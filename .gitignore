@@ -127,3 +127,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# k opacity tables
+#   There files are usually too large to be uploaded.
+*.kta
