@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 import unittest
 import numpy as np
-from nemesispy.disc.trig import arctan, rotatey, rotatez, generate_angles, gauss_lobatto_weights
-
+from nemesispy.disc.trig import arctan, rotatey, rotatez, generate_angles, \
+    gauss_lobatto_weights
 
 class TestDisc(unittest.TestCase):
 

@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 import unittest
 import numpy as np
-from ck import read_kta, read_kls, interp_k, mix_two_gas_k
 import matplotlib.pyplot as plt
+from nemesispy.radtran.ck import read_kta, read_kls, interp_k, mix_two_gas_k
 
 lowres_files = ['./data/ktables/h2o',
          './data/ktables/co2',

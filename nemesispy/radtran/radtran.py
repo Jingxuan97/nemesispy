@@ -1,7 +1,7 @@
 import numpy as np
 from numba import jit
-from constants import C_LIGHT, K_B, PLANCK
-from ck import interp_k, mix_multi_gas_k
+from nemesispy.data.constants import C_LIGHT, K_B, PLANCK
+from nemesispy.radtran.ck import interp_k, mix_multi_gas_k
 nopython = True
 
 @jit(nopython=nopython)

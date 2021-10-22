@@ -1,8 +1,9 @@
-from data.mol_info import mol_info
+import time
 import numpy as np
 from numba import jit
-from constants import C_LIGHT, K_B, PLANCK
-import time
+from nemesispy.data.mol_info import mol_info
+from nemesispy.data.constants import C_LIGHT, K_B, PLANCK
+
 
 def calc_mmw(ID, VMR, ISO=None):
     """

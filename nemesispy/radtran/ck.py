@@ -6,10 +6,9 @@ share the same wavelength-grid, pressure-grid, temperature-grid, g-ordinates
 and quadrature weights. Furthermore, it is assumed that the k-tables have
 the wavelength range desired for the final calculation result.
 """
-
 import numpy as np
 from numba import jit
-from constants import C_LIGHT, K_B, PLANCK
+from nemesispy.data.constants import C_LIGHT, K_B, PLANCK
 
 def read_kta(filename):
     """

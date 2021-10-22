@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 import unittest
 import numpy as np
-from path import split, average
+from nemesispy.radtran.path import split, average
 
 class TestSplit(unittest.TestCase):
-    
+
     def test_undefined_scheme(self):
         # should stop code when layering scheme is not defined
         Nlayer = 100
@@ -38,8 +38,8 @@ class TestSplit(unittest.TestCase):
         with self.assertRaises(AssertionError):
             H_base, P_base = split(H,P,Nlayer,layer_type,path_angle=-1)
         with self.assertRaises(AssertionError):
-            H_base, P_base = split(H,P,Nlayer,layer_type,path_angle=91)   
-    
+            H_base, P_base = split(H,P,Nlayer,layer_type,path_angle=91)
+
     def test_layer_type_0(self):
         # test spliting a profile by equal changes in pressure
         Nlayer = 50
@@ -78,7 +78,7 @@ class TestSplit(unittest.TestCase):
         del_H = np.round(del_H,5)
         result = np.all(del_H == del_H[0])
         self.assertTrue(result)
-    
+
     def test_layer_type_3(self):
         # test spliting by equal line-of-sight path intervals
         Nlayer = 100
@@ -91,14 +91,14 @@ class TestSplit(unittest.TestCase):
         for i in angles:
             H_base, P_base \
                 = split(H,P,Nlayer,layer_type,path_angle=i,radius=radius)
-            z0 = radius 
+            z0 = radius
             sin = np.sin(i*np.pi/180)
             cos = np.cos(i*np.pi/180)
             S_base = np.sqrt((H_base+z0)**2-(z0*sin)**2)-z0*cos
             del_S = S_base[1:]-S_base[:-1]
             del_S = np.round(del_S,4)
             result = np.all(del_S == del_S[0])
-            self.assertTrue(result) 
+            self.assertTrue(result)
 
     def test_layer_type_4(self):
         # layer base pressure levels specified by P_base
@@ -142,7 +142,7 @@ class TestSplit(unittest.TestCase):
 
 
 class TestAverage(unittest.TestCase):
-    
+
     def test_integration_type0_nadir(self):
         radius = 7e7
         Natm = 100
@@ -167,7 +167,7 @@ class TestAverage(unittest.TestCase):
         # layer scaling factor should be 1 if path angle = 0
         for i in range(Nlayer):
             self.assertEqual(np.round(scale[i],4),1)
-    
+
     def test_integration_type1_nadir(self):
         radius = 7e7
         Natm = 100

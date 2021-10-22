@@ -3,10 +3,10 @@
 import time
 import numpy as np
 import matplotlib.pyplot as plt
-from constants import R_SUN, R_JUP, M_JUP, AU, AMU, ATM
-from models import Model2
-from path import split,average
-from ck import read_kls, interp_k, radiance, blackbody_um, tau_gas
+from nemesispy.data.constants import R_SUN, R_JUP, M_JUP, AU, AMU, ATM
+from nemesispy.radtran.models import Model2
+from nemesispy.radtran.path import split,average
+from nemesispy.radtran.ck import read_kls, interp_k, radiance, blackbody_um, tau_gas
 
 ###############################################################################
 #                                                                             #
@@ -17,7 +17,7 @@ from ck import read_kls, interp_k, radiance, blackbody_um, tau_gas
 T_star = 4520
 R_star = 0.6668*R_SUN
 M_plt = 2.052*M_JUP
-R_plt = 1.036*R_JUP 
+R_plt = 1.036*R_JUP
 SMA = 0.015*AU
 # Atmospheric parameters
 NProfile = 50
