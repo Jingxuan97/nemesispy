@@ -12,7 +12,7 @@ from nemesispy.data.constants import C_LIGHT, K_B, PLANCK
 
 def read_kta(filename):
     """
-    Reads a pre-tabulated k-table from a Nemesis .kta file.
+    Reads a pre-tabulated correlated-k look-up table from a Nemesis .kta file.
 
     Parameters
     ----------
