@@ -3,7 +3,7 @@
 
 import unittest
 import numpy as np
-from trig import arctan, rotatey, rotatez, generate_angles, gauss_lobatto_weights
+from nemesispy.disc.trig import arctan, rotatey, rotatez, generate_angles, gauss_lobatto_weights
 
 
 class TestDisc(unittest.TestCase):
