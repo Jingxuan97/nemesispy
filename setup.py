@@ -1,2 +1,8 @@
-from setuptools import setup, find_packages
-setup(name='nemesispy2022', version='1.0', packages=find_packages())
+from setuptools import setup
+
+setup(name='nemesispy',
+      version='0.0',
+      description='NEMESIS radiative transfer code',
+      packages=['nemesispy'],
+      install_requires=['numpy','scipy','sympy'])
+      # install_requires=['numpy','matplotlib','sympy','miepython','numba','ray'])
