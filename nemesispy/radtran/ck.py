@@ -144,14 +144,15 @@ def read_kls(filenames):
     return gas_id_list, iso_id_list, wave_grid, g_ord, del_g, P_grid, T_grid,\
         k_gas_w_g_p_t
 
+# k_gas_w_g_p_t[Ngas, Nwave, Ng, Npres, Ntemp]
 @jit(nopython=True)
 def interp_k(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t):
     """
     Adapted from chimera https://github.com/mrline/CHIMERA.
     Interpolates the k-tables to input atmospheric P & T for each wavenumber and
     g-ordinate for each gas with a standard bi-linear interpolation scheme.
-    Parameters
 
+    Parameters
     ----------
     P_grid : ndarray
         Pressure grid on which the k-coeffs are pre-computed.
