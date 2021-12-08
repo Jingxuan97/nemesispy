@@ -1,6 +1,6 @@
 import numpy as np
 from numba import jit
-from nemesispy.radtran.interpk import interp_k, new_k_overlap
+from nemesispy.radtran.k2interp import interp_k, new_k_overlap
 
 def planck(wave,temp,ispace=1):
     """
@@ -69,27 +69,25 @@ def tau_gas(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
           DESCRIPTION.
     """
     k_gas_w_g_l = interp_k(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t) # NGAS,NWAVE,NG,NLAYER
-    Ngas, Nwave, Ng, Nlayer = k_gas_w_g_l.shape
+    # Ngas, Nwave, Ng, Nlayer = k_gas_w_g_l.shape
 
     k_w_g_l = new_k_overlap(k_gas_w_g_l, del_g, VMR_layer.T) # NWAVE,NG,NLAYER
 
-    utotl = U_layer * 1.0e-4 * 1.0e-20
+    utotl = U_layer * 1.0e-4 * 1.0e-20 # scaling
 
     TAUGAS = k_w_g_l * utotl # NWAVE, NG, NLAYER
 
     return TAUGAS
 
-
-
-def radtran(wave, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
-            P_grid, T_grid, g_ord, del_g):
+def radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
+            P_grid, T_grid, g_ord, del_g, ScalingFactor, RADIUS, solspec):
     """
     Calculate emission spectrum using the correlated-k method.
 
     Parameters
     ----------
-    wave : ndarray
-        Wavelengths (um).
+    wave_grid : ndarray
+        Wavelengths (um) grid for calculating spectra.
     U_layer : ndarray
         Total number of gas particles in each layer.
     P_layer : ndarray
@@ -115,8 +113,9 @@ def radtran(wave, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
         Output radiance (W cm-2 um-1 sr-1)
     """
     # Dimensioins
-    NWAVE = None
-    NLAY = None
+    NGAS, NWAVE, NG, NLAY = k_gas_w_g_p_t.shape[:-1]
+
+    ### Second order opacities to be continued
     # Collision Induced Absorptioin Optical Path
     TAUCIA = np.zeros([NWAVE,NLAY])
     # Rayleigh Scattering Optical Path
@@ -124,7 +123,7 @@ def radtran(wave, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
     # Dust Scattering Optical Path
     TAUDUST = np.zeros([NWAVE,NLAY])
 
-    # Gaseous Opacity
+    ### Gaseous Opacity
     # Calculating the k-coefficients for each gas in each layer
 
     """
@@ -144,20 +143,19 @@ def radtran(wave, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
             P_grid, T_grid, g_ord, del_g)
 
     TAUTOT = np.zeros(TAUGAS.shape) # NWAVE x NG x NLAYER
+    # Merge all different opacities
     for ig in range(NG): # wavebin x layer / NWAVE x NG x NLAYER
         TAUTOT[:,ig,:] = TAUGAS[:,ig,:] + TAUCIA[:,:] + TAUDUST[:,:] + TAURAY[:,:]
 
 
     #Scale to the line-of-sight opacities
-    ScalingFactor = None
     TAUTOT_LAYINC = TAUTOT * ScalingFactor
 
     # Thermal Emission Calculation
     # IMOD = 3
 
-    #Defining the units of the output spectrum
-    solspec = None # interpolate
-    xfac = np.pi*4.*np.pi*((Atmosphere.RADIUS)*1.0e2)**2.
+    #Defining the units of the output spectrum / divide by stellar spectrum
+    xfac = np.pi*4.*np.pi*((RADIUS)*1.0e2)**2.
     xfac = xfac / solspec
 
     #Calculating spectrum
@@ -169,7 +167,7 @@ def radtran(wave, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
     # taud[:,:] = taud[:,:] + TAUTOT_LAYINC[:,:,j]
     tr = np.exp(-taud)
 
-    bb = plank(wave, temp)
+    bb = plank(wave_grid, temp)
     for ig in range(NG):
         specg[:,ig] = specg[:,ig] + (trold[:,ig]-tr[:,ig])*bb[:] * xfac
 
