@@ -106,6 +106,13 @@ def radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
         g-ordinates of the k-table.
     del_g : ndarray
         Quadrature weights of the g-ordinates.
+    ScalingFactor : ndarray ( NLAY ) ##
+        Scale stuff to line of sight
+    RADIUS : real ##
+        Planetary radius
+    solspec : ndarray ##
+        Stellar spectra, used when the unit of the output is in fraction
+        of stellar irradiance.
 
     Returns
     -------

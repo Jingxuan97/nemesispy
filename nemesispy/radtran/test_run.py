@@ -52,7 +52,7 @@ VMR[:,5] = VMR_H2
 Run model
 """
 atm = Model2(T_star, R_star, M_plt, R_plt, SMA, P_range, mmw,
-                      kappa, gamma1, gamma2, alpha, T_irr)
+             kappa, gamma1, gamma2, alpha, T_irr)
 H_atm = atm.height()
 P_atm = atm.pressure()
 T_atm = atm.temperature()
