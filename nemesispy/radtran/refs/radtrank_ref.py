@@ -190,13 +190,12 @@ def CIRSrad(runname,Variables,Measurement,Atmosphere,Spectroscopy,Scatter,Stella
 
         #Calculating spectrum
         for ipath in range(Path.NPATH):
-
-
             #Calculating atmospheric contribution
             taud = np.zeros([Measurement.NWAVE,Spectroscopy.NG])
             trold = np.ones([Measurement.NWAVE,Spectroscopy.NG])
             specg = np.zeros([Measurement.NWAVE,Spectroscopy.NG])
 
+            #
             for j in range(Path.NLAYIN[ipath]):
 
                 taud[:,:] = taud[:,:] + TAUTOT_LAYINC[:,:,j,ipath]

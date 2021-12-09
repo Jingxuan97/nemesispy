@@ -49,7 +49,7 @@ def interp(x_data, y_data, x_input, interp_type=1):
     return y_output
 
 def split(H_atm, P_atm, Nlayer, layer_type=1, bottom_height=0.0, interp_type=1,
-          path_angle=0.0, radius=None, H_base=None, P_base=None):
+          path_angle=0.0, planet_radius=None, H_base=None, P_base=None):
     """
     Splits an atmospheric model into layers by specifying layer base altitudes.
 
@@ -60,6 +60,7 @@ def split(H_atm, P_atm, Nlayer, layer_type=1, bottom_height=0.0, interp_type=1,
         (At altitude H_atm[i] the pressure is P_atm[i].)
     P_atm : ndarray
         Pressures at which the atmospheric model is specified.
+        (At altitude P_atm[i] the pressure is H_atm[i].)
     Nlayer : int
         Number of layers into which the atmosphere is split.
     layer_type : int, default 1
@@ -79,7 +80,7 @@ def split(H_atm, P_atm, Nlayer, layer_type=1, bottom_height=0.0, interp_type=1,
     path_angle : real, default None
         Required only for layer type 3.
         Zenith angle in degrees defined at the base of the lowest layer.
-    radius : real
+    planet_radius : real
         Required only for layer type 3.
         Reference planetary radius in m where H=0.  Usually at surface for
         terrestrial planets, or at 1 bar pressure level for gas giants.
@@ -125,11 +126,11 @@ def split(H_atm, P_atm, Nlayer, layer_type=1, bottom_height=0.0, interp_type=1,
             'Zennith angle should be in range [0,90] degree'
         sin = np.sin(path_angle*np.pi/180) # sin(path_angle angle)
         cos = np.cos(path_angle*np.pi/180) # cos(path_angle angle)
-        r0 = radius+bottom_height # radial distance to lowest layer's base
-        rmax = radius+H_atm[-1] # radial distance maximum height
+        r0 = planet_radius+bottom_height # radial distance to lowest layer's base
+        rmax = planet_radius+H_atm[-1] # radial distance maximum height
         S_max = np.sqrt(rmax**2-(r0*sin)**2)-r0*cos # total path length
         S_base = np.linspace(0, S_max, Nlayer+1)[:-1]
-        H_base = np.sqrt(S_base**2+r0**2+2*S_base*r0*cos)-radius
+        H_base = np.sqrt(S_base**2+r0**2+2*S_base*r0*cos)-planet_radius
         logP_base = interp(H_atm,np.log(P_atm),H_base,interp_type)
         P_base = np.exp(logP_base)
 
@@ -150,22 +151,22 @@ def split(H_atm, P_atm, Nlayer, layer_type=1, bottom_height=0.0, interp_type=1,
         raise Exception('Layering scheme not defined')
     return H_base, P_base
 
-def average(radius, H_atm, P_atm, T_atm, VMR_atm, ID, H_base, path_angle=0.0,
+def average(planet_radius, H_atm, P_atm, T_atm, VMR_atm, ID, H_base, path_angle=0.0,
             integration_type=1, bottom_height=0.0, Nsimps=101):
     """
-    Calculates average layer properties.
+    Calculates average atmospheric layer properties.
 
     Inputs
     ------
-    radius : real
-        Reference planetary radius where H_atm=0.  Usually at surface for
+    planet_radius : real
+        Reference planetary planet_radius where H_atm=0.  Usually at surface for
         terrestrial planets, or at 1 bar pressure level for gas giants.
     H_atm : ndarray
-        Input profile heights
+        Input atmospheric layer height profile.
     P_atm : ndarray
-        Input profile pressures
+        Input atmospheric layer pressure profile.
     T_atm : ndarray
-        Input profile temperatures
+        Input atmospheric layer temperature profile.
     ID : ndarray
         Gas identifiers.
     VMR_atm : ndarray
@@ -216,10 +217,10 @@ def average(radius, H_atm, P_atm, T_atm, VMR_atm, ID, H_base, path_angle=0.0,
     del_H = np.concatenate(((H_base[1:]-H_base[:-1]),[H_atm[-1]-H_base[-1]]))
     sin = np.sin(path_angle*np.pi/180) # sin(viewing angle)
     cos = np.cos(path_angle*np.pi/180) # cos(viewing angle)
-    r0 = radius+bottom_height # minimum radial distance
-    rmax = radius+H_atm[-1] # maximum radial distance
+    r0 = planet_radius+bottom_height # minimum radial distance
+    rmax = planet_radius+H_atm[-1] # maximum radial distance
     S_max = np.sqrt(rmax**2-(r0*sin)**2)-r0*cos # total path length
-    S_base = np.sqrt((radius+H_base)**2-(r0*sin)**2)-r0*cos # path lengths at base of layer
+    S_base = np.sqrt((planet_radius+H_base)**2-(r0*sin)**2)-r0*cos # path lengths at base of layer
     del_S = np.concatenate(((S_base[1:]-S_base[:-1]),[S_max-S_base[-1]]))
     scale = del_S/del_H # Layer Scaling Factor
 
@@ -241,7 +242,7 @@ def average(radius, H_atm, P_atm, T_atm, VMR_atm, ID, H_base, path_angle=0.0,
         S[:-1] = (S_base[:-1]+S_base[1:])/2
         S[-1] = (S_base[-1]+S_max)/2
         # Derive other properties from path length S
-        H_layer = np.sqrt(S**2+r0**2+2*S*r0*cos) - radius
+        H_layer = np.sqrt(S**2+r0**2+2*S*r0*cos) - planet_radius
         P_layer = interp(H_atm,P_atm,H_layer)
         T_layer = interp(H_atm,T_atm,H_layer)
         # Ideal gas law: Number/(Area*Path_length) = P_atm/(K_B*T_atm)
@@ -265,7 +266,7 @@ def average(radius, H_atm, P_atm, T_atm, VMR_atm, ID, H_base, path_angle=0.0,
                 S1 = S_max
             # sub-divide each layer into Nsimps layers for integration
             S_int = np.linspace(S0, S1, Nsimps)
-            H_int = np.sqrt(S_int**2+r0**2+2*S_int*r0*cos)-radius
+            H_int = np.sqrt(S_int**2+r0**2+2*S_int*r0*cos)-planet_radius
             P_int = interp(H_atm,P_atm,H_int)
             T_int = interp(H_atm,T_atm,H_int)
             dU_dS_int = P_int/(K_B*T_int)
@@ -291,5 +292,22 @@ def average(radius, H_atm, P_atm, T_atm, VMR_atm, ID, H_base, path_angle=0.0,
     # Scale back to vertical layers
     U_layer = U_layer / scale
     Gas_layer = (Gas_layer.T * scale**-1 ).T
+
+    return H_layer,P_layer,T_layer,VMR_layer,U_layer,Gas_layer,scale,del_S
+
+def get_profiles(planet_radius, H_atm, P_atm, VMR_atm, T_atm, ID, Nlayer, H_base,
+    path_angle=0.0, layer_type=1, bottom_height=0.0, interp_type=1, P_base=None,
+    integration_type=1, Nsimps=101):
+    # get this done tomorrow.
+
+    H_base, P_base = split(H_atm, P_atm, Nlayer, layer_type=layer_type,
+        bottom_height=bottom_height, interp_type=interp_type,
+        path_angle=path_angle, planet_radius=planet_radius, H_base=H_base,
+        P_base=P_base)
+
+    H_layer,P_layer,T_layer,VMR_layer,U_layer,Gas_layer,scale,del_S\
+        = average(planet_radius, H_atm, P_atm, T_atm, VMR_atm, ID, H_base,
+            path_angle=path_angle, integration_type=integration_type,
+            bottom_height=bottom_height, Nsimps=Nsimps)
 
     return H_layer,P_layer,T_layer,VMR_layer,U_layer,Gas_layer,scale,del_S

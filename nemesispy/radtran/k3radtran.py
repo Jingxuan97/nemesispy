@@ -147,7 +147,6 @@ def radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
     for ig in range(NG): # wavebin x layer / NWAVE x NG x NLAYER
         TAUTOT[:,ig,:] = TAUGAS[:,ig,:] + TAUCIA[:,:] + TAUDUST[:,:] + TAURAY[:,:]
 
-
     #Scale to the line-of-sight opacities
     TAUTOT_LAYINC = TAUTOT * ScalingFactor
 
@@ -165,13 +164,20 @@ def radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
 
 
     # taud[:,:] = taud[:,:] + TAUTOT_LAYINC[:,:,j]
-    tr = np.exp(-taud)
 
-    bb = plank(wave_grid, temp)
-    for ig in range(NG):
-        specg[:,ig] = specg[:,ig] + (trold[:,ig]-tr[:,ig])*bb[:] * xfac
+    for ilayer in range(NLAY):
 
-    SPECOUT = np.tensordot(specg, del_g, axes=([1],[0]))
+        taud[:,:] = TAUTOT[:,:,ilayer]
+
+        tr = np.exp(-taud) # transmission function
+
+        bb = planck(wave_grid, T_layer[ilayer]) # blackbody function
+
+        for ig in range(NG):
+            specg[:,ig] = specg[:,ig] + (trold[:,ig]-tr[:,ig])*bb[:] * xfac
+
+
+    SPECOUT = np.tensordot(specg, del_g, axes=([1],[0])) * xfac
 
     return SPECOUT
 # """

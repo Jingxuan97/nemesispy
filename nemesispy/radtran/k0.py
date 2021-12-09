@@ -1,12 +1,17 @@
 import numpy as np
+from nemesispy.data.constants import R_SUN, R_JUP_E
+from nemesispy.radtran.models import Model2
 from nemesispy.radtran.path import average
 from nemesispy.radtran.k1read import read_kls
-from nemesispy.radtran.k2interp import interp_k, new_k_overlap
+# from nemesispy.radtran.k2interp import interp_k, new_k_overlap
 from nemesispy.radtran.k3radtran import radtran
+
+
 ### Required Inputs
-radius = 1
+R_star = 1*R_SUN
+planet_radius = R_JUP_E
 """
-radius : real
+planet_radius : real
     Reference planetary radius where H_atm=0.  Usually at surface for
     terrestrial planets, or at 1 bar pressure level for gas giants.
 """
@@ -89,7 +94,7 @@ wave_grid : ndarray
 ### Calling sequence
 # Get averaged layer properties
 H_layer,P_layer,T_layer,VMR_layer,U_layer,Gas_layer,scale,del_S\
-    = average(radius, H_atm, P_atm, T_atm, VMR_atm, ID, H_base)
+    = average(planet_radius, H_atm, P_atm, T_atm, VMR_atm, ID, H_base)
 
 # Get raw k table infos from files
 gas_id_list, iso_id_list, wave_grid, g_ord, del_g, P_grid, T_grid,\
