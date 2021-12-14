@@ -70,6 +70,7 @@ def tau_gas(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
     """
     k_gas_w_g_l = interp_k(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t) # NGAS,NWAVE,NG,NLAYER
     # Ngas, Nwave, Ng, Nlayer = k_gas_w_g_l.shape
+    print('k_gas_w_g_l', k_gas_w_g_l)
 
     k_w_g_l = new_k_overlap(k_gas_w_g_l, del_g, VMR_layer.T) # NWAVE,NG,NLAYER
 
@@ -121,7 +122,7 @@ def radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
     """
     # Dimensioins
     NGAS, NWAVE, NG, NLAY = k_gas_w_g_p_t.shape[:-1]
-
+    print('NGAS, NWAVE, NG, NLAY',NGAS, NWAVE, NG, NLAY)
     ### Second order opacities to be continued
     # Collision Induced Absorptioin Optical Path
     TAUCIA = np.zeros([NWAVE,NLAY])
@@ -148,7 +149,7 @@ def radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
     """
     TAUGAS = tau_gas(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
             P_grid, T_grid, g_ord, del_g)
-
+    print('TAUGAS', TAUGAS)
     TAUTOT = np.zeros(TAUGAS.shape) # NWAVE x NG x NLAYER
     # Merge all different opacities
     for ig in range(NG): # wavebin x layer / NWAVE x NG x NLAYER

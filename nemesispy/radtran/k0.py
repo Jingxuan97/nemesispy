@@ -26,8 +26,8 @@ H_atm = np.array([])
 
 """
 P_atm = np.array([])
-NProfile = 30
-Nlayer = 20
+NProfile = 40
+Nlayer = 10
 P_range = np.geomspace(20,1e-3,NProfile)*1e5
 mmw = 2*AMU
 
@@ -43,8 +43,8 @@ atm = Model2(T_star, R_star, M_plt, R_plt, SMA, P_range, mmw,
 H_atm = atm.height()
 P_atm = atm.pressure()
 T_atm = atm.temperature()
-print('H_atm',H_atm)
-print('P_atm',P_atm)
+# print('H_atm',H_atm)
+# print('P_atm',P_atm)
 """
 H_atm : ndarray
     Input profile heights
@@ -73,6 +73,8 @@ VMR_atm[:,2] = VMR_CO
 VMR_atm[:,3] = VMR_CH4
 VMR_atm[:,4] = VMR_He
 VMR_atm[:,5] = VMR_H2
+
+
 """
 VMR_atm : ndarray
     VMR_atm[i,j] is the Volume Mixing Ratio of gas j at profile point i.
@@ -83,20 +85,20 @@ H_base : ndarray
     Heights of the layer bases.
 """
 
-lowres_files = ['/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/data/ktables/h2o',
-         '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/data/ktables/co2',
-         '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/data/ktables/co',
-         '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/data/ktables/ch4']
+lowres_files = ['/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/h2o',
+         '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/co2',
+         '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/co',
+         '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/ch4']
 
-aeriel_files = ['/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/data/ktables/H2O_Katy_ARIEL_test',
-          '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/data/ktables/CO2_Katy_ARIEL_test',
-          '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/data/ktables/CO_Katy_ARIEL_test',
-          '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/data/ktables/CH4_Katy_ARIEL_test']
+aeriel_files = ['/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/H2O_Katy_ARIEL_test',
+          '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/CO2_Katy_ARIEL_test',
+          '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/CO_Katy_ARIEL_test',
+          '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/CH4_Katy_ARIEL_test']
 
-hires_files = ['/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/data/ktables/H2O_Katy_R1000',
-          '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/data/ktables/CO2_Katy_R1000',
-          '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/data/ktables/CO_Katy_R1000',
-          '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/data/ktables/CH4_Katy_R1000']
+hires_files = ['/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/H2O_Katy_R1000',
+          '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/CO2_Katy_R1000',
+          '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/CO_Katy_R1000',
+          '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/CH4_Katy_R1000']
 
 filenames = lowres_files
 """
@@ -136,14 +138,25 @@ H_layer,P_layer,T_layer,VMR_layer,U_layer,Gas_layer,scale,del_S\
     = average(planet_radius, H_atm, P_atm, T_atm, VMR_atm, ID, H_base)
 """
 H_layer,P_layer,T_layer,VMR_layer,U_layer,Gas_layer,scale,del_S\
-    = get_profiles(planet_radius, H_atm, P_atm, VMR_atm, T_atm, ID, Nlayer, H_base,
-    path_angle=0.0, layer_type=1, bottom_height=0.0, interp_type=1, P_base=None,
+    = get_profiles(planet_radius, H_atm, P_atm, VMR_atm, T_atm, ID, Nlayer,
+    H_base=None, path_angle=0.0, layer_type=1, bottom_height=0.0, interp_type=1, P_base=None,
     integration_type=1, Nsimps=101)
+
+print('H_layer', H_layer)
+print('P_layer', P_layer)
+print('T_layer', T_layer)
+print('VMR_layer', VMR_layer)
+print('U_layer', U_layer)
+print('Gas_layer', Gas_layer)
+print('scale', scale)
+print('del_S', del_S)
+
 # Get raw k table infos from files
 gas_id_list, iso_id_list, wave_grid, g_ord, del_g, P_grid, T_grid,\
         k_gas_w_g_p_t = read_kls(filenames)
-
-wave_grid = np.array([])
+print('wave_grid', wave_grid)
+print('g_ord', g_ord)
+print('del_g', del_g)
 
 """
 # Interpolate k lists to layers
@@ -152,9 +165,11 @@ k_gas_w_g_l = interp_k(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t)
 # Mix gas opacities
 k_w_g_l = new_k_overlap(k_gas_w_g_l,del_g,f)
 """
-StarSpectrum = np.array([]) # NWAVE
-scale = np.array([]) # NLAY
+StarSpectrum = np.ones(17) # NWAVE
 # Radiative Transfer
 SPECOUT = radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
             P_grid, T_grid, g_ord, del_g, ScalingFactor=scale,
             RADIUS=planet_radius, solspec=StarSpectrum)
+
+wave_grid = np.array([1.1425, 1.1775, 1.2125, 1.2475, 1.2825, 1.3175, 1.3525, 1.3875, 1.4225,
+1.4575, 1.4925, 1.5275, 1.5625, 1.5975, 1.6325, 3.6, 4.5])

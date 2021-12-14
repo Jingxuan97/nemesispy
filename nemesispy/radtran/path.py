@@ -206,6 +206,8 @@ def average(planet_radius, H_atm, P_atm, T_atm, VMR_atm, ID, H_base, path_angle=
     scale : ndarray
         Layer scaling factor, i.e. ratio of path length through each layer
         to the layer thickness.
+    del_S : ndarray
+
 
     Notes
     -----
@@ -295,7 +297,7 @@ def average(planet_radius, H_atm, P_atm, T_atm, VMR_atm, ID, H_base, path_angle=
 
     return H_layer,P_layer,T_layer,VMR_layer,U_layer,Gas_layer,scale,del_S
 
-def get_profiles(planet_radius, H_atm, P_atm, VMR_atm, T_atm, ID, Nlayer, H_base,
+def get_profiles(planet_radius, H_atm, P_atm, VMR_atm, T_atm, ID, Nlayer, H_base=None,
     path_angle=0.0, layer_type=1, bottom_height=0.0, interp_type=1, P_base=None,
     integration_type=1, Nsimps=101):
     # get this done tomorrow.

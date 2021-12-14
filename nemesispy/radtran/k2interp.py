@@ -5,7 +5,7 @@ import numpy as np
 from numba import jit
 from nemesispy.data.constants import C_LIGHT, K_B, PLANCK
 
-@jit(nopython=True)
+# @jit(nopython=True)
 def interp_k(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t):
     """
     Adapted from chimera https://github.com/mrline/CHIMERA.
