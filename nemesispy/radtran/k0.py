@@ -27,7 +27,7 @@ H_atm = np.array([])
 """
 P_atm = np.array([])
 NProfile = 40
-Nlayer = 10
+Nlayer = 15
 P_range = np.geomspace(20,1e-3,NProfile)*1e5
 mmw = 2*AMU
 
@@ -142,6 +142,7 @@ H_layer,P_layer,T_layer,VMR_layer,U_layer,Gas_layer,scale,del_S\
     H_base=None, path_angle=0.0, layer_type=1, bottom_height=0.0, interp_type=1, P_base=None,
     integration_type=1, Nsimps=101)
 
+P_layer = P_layer*1e-5
 print('H_layer', H_layer)
 print('P_layer', P_layer)
 print('T_layer', T_layer)
@@ -157,6 +158,7 @@ gas_id_list, iso_id_list, wave_grid, g_ord, del_g, P_grid, T_grid,\
 print('wave_grid', wave_grid)
 print('g_ord', g_ord)
 print('del_g', del_g)
+print('P_grid', P_grid)
 
 """
 # Interpolate k lists to layers
@@ -173,3 +175,11 @@ SPECOUT = radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t
 
 wave_grid = np.array([1.1425, 1.1775, 1.2125, 1.2475, 1.2825, 1.3175, 1.3525, 1.3875, 1.4225,
 1.4575, 1.4925, 1.5275, 1.5625, 1.5975, 1.6325, 3.6, 4.5])
+
+print(SPECOUT)
+
+import matplotlib.pyplot as plt
+
+plt.plot(wave_grid,-SPECOUT)
+plt.show()
+plt.close()

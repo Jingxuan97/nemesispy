@@ -193,19 +193,19 @@ def new_k_overlap(k_gas_w_g_l,del_g,f):
             for igas in range(ngas-1):
                 #getting first and second gases to combine
                 if igas==0:
-                    k_gas1 = np.zeros((nwave,ng))
-                    k_gas2 = np.zeros((nwave,ng))
-                    k_gas1[:,:] = k_gas_w_g_l[:,:,ip,igas]
-                    k_gas2[:,:] = k_gas_w_g_l[:,:,ip,igas+1]
+                    k_gas1_w_g = np.zeros((nwave,ng))
+                    k_gas2_w_g = np.zeros((nwave,ng))
+                    k_gas1_w_g[:,:] = k_gas_w_g_l[igas,:,:,ip]
+                    k_gas2_w_g[:,:] = k_gas_w_g_l[igas+1,:,:,ip]
                     f1 = f[igas,ip]
                     f2 = f[igas+1,ip]
 
                     k_combined = np.zeros((nwave,ng))
                 else:
-                    #k_gas1 = np.zeros((nwave,ng))
-                    #k_gas2 = np.zeros((nwave,ng))
-                    k_gas1[:,:] = k_combined[:,:]
-                    k_gas2[:,:] = k_gas_w_g_l[:,:,ip,igas+1]
+                    #k_gas1_w_g = np.zeros((nwave,ng))
+                    #k_gas2_w_g = np.zeros((nwave,ng))
+                    k_gas1_w_g[:,:] = k_combined[:,:]
+                    k_gas2_w_g[:,:] = k_gas_w_g_l[igas+1,:,:,ip]
                     f1 = f_combined
                     f2 = f[igas+1,ip]
 
@@ -213,7 +213,7 @@ def new_k_overlap(k_gas_w_g_l,del_g,f):
 
                 for iwave in range(nwave):
 
-                    k_g_combined, f_combined = new_k_overlap_two_gas(k_gas1[iwave,:], k_gas2[iwave,:], f1, f2, del_g)
+                    k_g_combined, f_combined = new_k_overlap_two_gas(k_gas1_w_g[iwave,:], k_gas2_w_g[iwave,:], f1, f2, del_g)
                     k_combined[iwave,:] = k_g_combined[:]
 
             k_w_g_l[:,:,ip] = k_combined[:,:]

@@ -121,10 +121,11 @@ def radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
         Output radiance (W cm-2 um-1 sr-1)
     """
     # Dimensioins
-    NGAS, NWAVE, NG, NLAY = k_gas_w_g_p_t.shape[:-1]
-    print('NGAS, NWAVE, NG, NLAY',NGAS, NWAVE, NG, NLAY)
+    NGAS, NWAVE, NG, NGRID = k_gas_w_g_p_t.shape[:-1]
+    print('NGAS, NWAVE, NG, NGRID',NGAS, NWAVE, NG, NGRID)
     ### Second order opacities to be continued
     # Collision Induced Absorptioin Optical Path
+    NLAY = len(P_layer)
     TAUCIA = np.zeros([NWAVE,NLAY])
     # Rayleigh Scattering Optical Path
     TAURAY = np.zeros([NWAVE,NLAY])
@@ -151,6 +152,7 @@ def radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
             P_grid, T_grid, g_ord, del_g)
     print('TAUGAS', TAUGAS)
     TAUTOT = np.zeros(TAUGAS.shape) # NWAVE x NG x NLAYER
+    print('TAUGAS.shape',TAUGAS.shape)
     # Merge all different opacities
     for ig in range(NG): # wavebin x layer / NWAVE x NG x NLAYER
         TAUTOT[:,ig,:] = TAUGAS[:,ig,:] + TAUCIA[:,:] + TAUDUST[:,:] + TAURAY[:,:]
@@ -166,9 +168,9 @@ def radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
     xfac = xfac / solspec
 
     #Calculating spectrum
-    taud = np.zeros(NWAVE, NG)
-    trold = np.zeros(NWAVE,NG)
-    specg = np.zeros(NWAVE,NG)
+    taud = np.zeros((NWAVE,NG))
+    trold = np.zeros((NWAVE,NG))
+    specg = np.zeros((NWAVE,NG))
 
 
     # taud[:,:] = taud[:,:] + TAUTOT_LAYINC[:,:,j]
@@ -188,6 +190,8 @@ def radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
     SPECOUT = np.tensordot(specg, del_g, axes=([1],[0])) * xfac
 
     return SPECOUT
+
+
 # """
 # @jit(nopython=True)
 # def tau_gas(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
