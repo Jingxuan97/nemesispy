@@ -11,6 +11,8 @@ from scipy.interpolate import interp1d
 from nemesispy.data.constants import K_B
 from nemesispy.radtran.utils import calc_mmw
 
+
+
 def interp(x_data, y_data, x_input, interp_type=1):
     """
     1D interpolation using scipy.interpolate.interp1d.

@@ -1,3 +1,5 @@
+#!/usr/local/bin/python3
+# -*- coding: utf-8 -*-
 import numpy as np
 from numba import jit
 from nemesispy.radtran.k2interp import interp_k, new_k_overlap

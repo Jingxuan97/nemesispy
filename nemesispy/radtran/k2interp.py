@@ -201,6 +201,8 @@ def new_k_overlap(k_gas_w_g_l,del_g,f):
                     f2 = f[igas+1,ip]
 
                     k_combined = np.zeros((nwave,ng))
+                    f_combined = np.zeros((ngas,nlayer))
+
                 else:
                     #k_gas1_w_g = np.zeros((nwave,ng))
                     #k_gas2_w_g = np.zeros((nwave,ng))
