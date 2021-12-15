@@ -6,16 +6,15 @@ temperature-grid, g-ordinates and quadrature weights.
 """
 import numpy as np
 
-def read_kta(filename):
-    # filepath is more accurate than filename
-    # this function is hopefully called once in a retrieval so no need to 
+def read_kta(filepath):
+    # this function is hopefully called once in a retrieval so no need to
     # optimise time
     """
     Reads a pre-tabulated correlated-k look-up table from a Nemesis .kta file.
 
     Parameters
     ----------
-    filename : str
+    filepath : str
         The path to the Nemesis .kta file to be read.
 
     Returns
@@ -38,16 +37,16 @@ def read_kta(filename):
         k-coefficients. Has dimension: Nwave x Ng x Npress x Ntemp.
     """
     # Open file
-    if filename[-3:] == 'kta':
-        f = open(filename,'rb')
+    if filepath[-3:] == 'kta':
+        f = open(filepath,'rb')
     else:
-        f = open(filename+'.kta','rb')
+        f = open(filepath+'.kta','rb')
 
     # Define bytes consumed by elements of table
     nbytes_int32 = 4
     nbytes_float32 = 4
     ioff = 0
-    
+
     # Read header
     irec0 = int(np.fromfile(f,dtype='int32',count=1))
     nwavekta = int(np.fromfile(f,dtype='int32',count=1))
@@ -68,12 +67,12 @@ def read_kta(filename):
     dummy = np.fromfile(f,dtype='float32',count=1)
     dummy = np.fromfile(f,dtype='float32',count=1)
     ioff = ioff + 2*nbytes_float32
-    
+
     # Read temperature/pressure grid
     P_grid = np.fromfile(f,dtype='float32',count=npress)
     T_grid = np.fromfile(f,dtype='float32',count=ntemp)
     ioff = ioff + npress*nbytes_float32+ntemp*nbytes_float32
-    
+
     # Calculate wavenumber/wavelength grid
     if delv>0.0:  # uniform grid
         vmax = delv*nwavekta + vmin
@@ -83,14 +82,14 @@ def read_kta(filename):
         wave_grid = np.fromfile(f,dtype='float32',count=nwavekta)
         ioff = ioff + nwavekta*nbytes_float32
     nwave = len(wave_grid)
-    
+
     #Read k-coefficients
     k_w_g_p_t = np.zeros([nwave,ng,npress,ntemp])
-    
+
     #Jump to the minimum wavenumber
     ioff = (irec0-1)*nbytes_float32
     f.seek(ioff,0)
-    
+
     #Reading the coefficients we require
     k_out = np.fromfile(f,dtype='float32',count=ntemp*npress*ng*nwave)
     ig = 0
@@ -140,9 +139,9 @@ def read_kls(filenames):
     k_gas_w_g_p_t=[]
     gas_id_list = []
     iso_id_list = []
-    for filename in filenames:
+    for filepath in filenames:
         gas_id, iso_id, wave_grid, g_ord, del_g, P_grid, T_grid,\
-          k_g = read_kta(filename)
+          k_g = read_kta(filepath)
         gas_id_list.append(gas_id)
         iso_id_list.append(iso_id)
         k_gas_w_g_p_t.append(k_g)
