@@ -15,7 +15,7 @@ def read_kta(filepath):
     Parameters
     ----------
     filepath : str
-        The path to the Nemesis .kta file to be read.
+        The filepath of the Nemesis .kta file to be read.
 
     Returns
     -------
@@ -102,14 +102,14 @@ def read_kta(filepath):
     f.close()
     return gas_id, iso_id, wave_grid, g_ord, del_g, P_grid, T_grid, k_w_g_p_t
 
-def read_kls(filenames):
+def read_kls(filepaths):
     """
     Read a list of k-tables from serveral Nemesis .kta files.
 
     Parameters
     ----------
-    filenames : list
-        A list of strings containing names of the kta files to be read.
+    filepaths : list
+        A list of strings containing filepaths to the .kta files to be read.
 
     Returns
     -------
@@ -139,7 +139,7 @@ def read_kls(filenames):
     k_gas_w_g_p_t=[]
     gas_id_list = []
     iso_id_list = []
-    for filepath in filenames:
+    for filepath in filepaths:
         gas_id, iso_id, wave_grid, g_ord, del_g, P_grid, T_grid,\
           k_g = read_kta(filepath)
         gas_id_list.append(gas_id)

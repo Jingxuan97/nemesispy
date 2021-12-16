@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 """Mix ktables of different gases."""
 import numpy as np
-from numba import jit
-from nemesispy.data.constants import C_LIGHT, K_B, PLANCK
+# from numba import jit
 
 # @jit(nopython=True)
 def interp_k(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t):
@@ -22,19 +21,21 @@ def interp_k(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t):
         Atmospheric pressure grid.
     T_layer : ndarray
         Atmospheric temperature grid.
-    k_gas_w_g_p_t : ndarray
-        k-coefficient array, size = ngas x nwavenumber x ng x npress x ntemp
+    k_gas_w_g_p_t(Ngas,Nwave,Ng,Npress,Ntemp) : ndarray
+        k-coefficient array,
+        Has dimensiion: Ngas x Nwave x Ng x Npress x Ntemp
 
     Returns
     -------
-    k_gas_w_g_l : ndarray
+    k_gas_w_g_l(Ngas,Nwave,Ng,Nlayer) : ndarray
         The interpolated-to-atmosphere k-coefficients.
-        Has dimension: Ngas x Nwavenumber x Ng x Nlayer.
+        Has dimension: Ngas x Nwave x Ng x Nlayer.
     Notes
     -----
     Units: bar for pressure and K for temperature.
     Code breaks if P_layer/T_layer is out of the range of P_grid/T_grid.
     Mainly need to worry about max(T_layer)>max(T_grid).
+    No extrapolation outside of the TP grid of ktable.
     """
     Ngas, Nwave, Ng, Npress, Ntemp = k_gas_w_g_p_t.shape
     Nlayer = len(P_layer)
@@ -42,9 +43,18 @@ def interp_k(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t):
     for ilayer in range(Nlayer): # loop through layers
         P = P_layer[ilayer]
         T = T_layer[ilayer]
-        # Workaround when max atmosphere T is out of range of k table grid
+        # Workaround when atmospheric layer pressure or temperature is out of
+        # range of the ktable TP grid
         if T > T_grid[-1]:
             T = T_grid[-1]-1
+        if T < T_grid[0]:
+            T = T_grid[0]+1
+        if P > P_grid[-1]:
+            P = P_grid[-1]-1
+        if P < P_grid[0]:
+            P = P_grid[0]+1
+        # find the points on the k table TP grid that sandwich the
+        # atmospheric layer TP
         P_index_hi = np.where(P_grid >= P)[0][0]
         P_index_low = np.where(P_grid < P)[0][-1]
         T_index_hi = np.where(T_grid >= T)[0][0]
@@ -53,6 +63,7 @@ def interp_k(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t):
         P_low = P_grid[P_index_low]
         T_hi = T_grid[T_index_hi]
         T_low = T_grid[T_index_low]
+        # interpolate
         for igas in range(Ngas): # looping through gases
             for iwave in range(Nwave): # looping through wavenumber
                 for ig in range(Ng): # looping through g-ord
@@ -77,15 +88,18 @@ def new_k_overlap_two_gas(k_gas1_g, k_gas2_g, q1, q2, del_g):
     Parameters
     ----------
     k_gas1_g(ng) : ndarray
-        k-coefficients for gas 1 at a particular wave bin and layer (temperature/pressure).
+        k-coefficients for gas 1 at a particular wave bin and layer, with
+        particular layer temperature and pressure.
     k_gas2_g(ng) : ndarray
-        k-coefficients for gas 2 at a particular wave bin and layer (temperature/pressure).
+        k-coefficients for gas 2 at a particular wave bin and layer, with
+        particular layer temperature and pressure.
     q1 : real
         Volume mixing ratio of gas 1.
     q2 : real
         Volume mixing ratio of gas 2.
     del_g(ng) : ndarray
         Gauss quadrature weights for the g-ordinates, assumed same for both gases.
+        These are the widths of the bins in g-space.
 
     Returns
     -------

@@ -1,22 +1,54 @@
 import sys
 sys.path.append('/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/')
 import numpy as np
-from nemesispy.data.constants import R_SUN, R_JUP_E, AMU, AU, M_JUP
+from nemesispy.data.constants import R_SUN, R_JUP_E, AMU, AU, M_JUP, R_JUP
 from nemesispy.radtran.models import Model2
 from nemesispy.radtran.path import get_profiles # average
 from nemesispy.radtran.k1read import read_kls
 # from nemesispy.radtran.k2interp import interp_k, new_k_overlap
 from nemesispy.radtran.k3radtran import radtran
 
+
+"""
+ID : ndarray
+    Gas identifiers.
+VMR_atm : ndarray
+    VMR_atm[i,j] is the Volume Mixing Ratio of gas j at profile point i.
+    The jth column corresponds to the gas with RADTRANS ID ID[j].
+"""
+
+ID = np.array([1,2,5,6,40,39])
+ISO = np.array([0,0,0,0,0,0])
+NProfile = 20
+NVMR = len(ID)
+
+VMR_atm = np.zeros((NProfile,NVMR))
+VMR_H2O = np.ones(NProfile)*1e-5
+VMR_CO2 = np.ones(NProfile)*1e-20
+VMR_CO = np.ones(NProfile)*1e-20
+VMR_CH4 = np.ones(NProfile)*1e-20
+#VMR_He = 0.03
+#VMR_H2 = 0
+VMR_He = (np.ones(NProfile)-VMR_H2O-VMR_CO2-VMR_CO-VMR_CH4)*0.15
+VMR_H2 = VMR_He/0.15*0.85
+VMR_atm[:,0] = VMR_H2O
+VMR_atm[:,1] = VMR_CO2
+VMR_atm[:,2] = VMR_CO
+VMR_atm[:,3] = VMR_CH4
+VMR_atm[:,4] = VMR_He
+VMR_atm[:,5] = VMR_H2
+
+
+
+
 ### Required Inputs
 # Planet/star parameters
-T_star = 6000
-
-M_plt = 1*M_JUP
+T_star = 4520
+M_plt = 2.052*M_JUP
 SMA = 0.015*AU
-R_star = 1*R_SUN
-planet_radius = 1*R_JUP_E
-R_plt = 1*R_JUP_E
+R_star = 0.6668*R_SUN
+planet_radius = 1*R_JUP
+R_plt = 1.036*R_JUP_E
 
 """
 planet_radius : real
@@ -28,8 +60,8 @@ H_atm = np.array([])
 
 """
 P_atm = np.array([])
-NProfile = 40
-Nlayer = 15
+NProfile = 20
+Nlayer = 25
 P_range = np.geomspace(20,1e-3,NProfile)*1e5
 mmw = 2*AMU
 
@@ -38,7 +70,7 @@ kappa = 1e-3
 gamma1 = 1e-1
 gamma2 = 1e-1
 alpha = 0.5
-T_irr = 1000
+T_irr = 1500
 
 atm = Model2(T_star, R_star, M_plt, R_plt, SMA, P_range, mmw,
                       kappa, gamma1, gamma2, alpha, T_irr)
@@ -55,12 +87,8 @@ P_atm : ndarray
 T_atm : ndarray
     Input profile temperatures
 """
-ID = np.array([1,2,5,6,40,39])
-ISO = np.array([0,0,0,0,0,0])
-"""
-ID : ndarray
-    Gas identifiers.
-"""
+
+
 NVMR = len(ID)
 VMR_atm = np.zeros((NProfile,NVMR))
 VMR_H2O = np.ones(NProfile)*1e-6
@@ -77,11 +105,6 @@ VMR_atm[:,4] = VMR_He
 VMR_atm[:,5] = VMR_H2
 
 
-"""
-VMR_atm : ndarray
-    VMR_atm[i,j] is the Volume Mixing Ratio of gas j at profile point i.
-    The jth column corresponds to the gas with RADTRANS ID ID[j].
-"""
 """
 H_base : ndarray
     Heights of the layer bases.
@@ -102,7 +125,7 @@ hires_files = ['/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/da
           '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/CO_Katy_R1000',
           '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/CH4_Katy_R1000']
 
-filenames = aeriel_files
+filenames = lowres_files
 """
 filenames : list
     A list of strings containing names of the kta files to be read.
@@ -169,10 +192,10 @@ k_gas_w_g_l = interp_k(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t)
 # Mix gas opacities
 k_w_g_l = new_k_overlap(k_gas_w_g_l,del_g,f)
 """
-StarSpectrum = np.ones(len(wave_grid)) # NWAVE
+StarSpectrum = np.ones(len(wave_grid))*(R_star)**2*np.pi # NWAVE
 # Radiative Transfer
 SPECOUT = radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
-            P_grid, T_grid, g_ord, del_g, ScalingFactor=scale,
+            P_grid, T_grid, del_g, ScalingFactor=scale,
             RADIUS=planet_radius, solspec=StarSpectrum)
 
 """
@@ -183,6 +206,12 @@ print(SPECOUT)
 
 import matplotlib.pyplot as plt
 
-plt.plot(wave_grid,-SPECOUT)
+plt.title('debug')
+plt.plot(wave_grid,SPECOUT)
+plt.tight_layout()
+plt.grid()
 plt.show()
 plt.close()
+
+
+

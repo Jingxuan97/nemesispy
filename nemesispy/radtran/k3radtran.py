@@ -1,7 +1,8 @@
 #!/usr/local/bin/python3
 # -*- coding: utf-8 -*-
 import numpy as np
-from numba import jit
+from copy import copy
+# from numba import jit
 from nemesispy.radtran.k2interp import interp_k, new_k_overlap
 
 def planck(wave,temp,ispace=1):
@@ -41,38 +42,37 @@ def planck(wave,temp,ispace=1):
     return bb
 
 def tau_gas(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
-            P_grid, T_grid, g_ord, del_g):
+            P_grid, T_grid, del_g):
     """
-      Parameters
-      ----------
-      k_gas_w_g_p_t : ndarray
-          DESCRIPTION.
-      P_layer : ndarray
-          DESCRIPTION.
-      T_layer : ndarray
-          DESCRIPTION.
-      VMR_layer : ndarray
-          DESCRIPTION.
-          NLAYER x NGAS
-      U_layer : ndarray
-          DESCRIPTION.
-      P_grid : ndarray
-          DESCRIPTION.
-      T_grid : ndarray
-          DESCRIPTION.
-      g_ord : ndarray
-          DESCRIPTION.
-      del_g : ndarray
-          DESCRIPTION.
+    Parameters
+    ----------
+    k_gas_w_g_p_t(Ngas,Nwave,Ng,Npress,Ntemp) : ndarray
+        Raw k-coefficients.
+        Has dimension: Nwave x Ng x Npress x Ntemp.
+    P_layer(Nlayer) : ndarray
+        Atmospheric pressure grid.
+    T_layer(Nlayer) : ndarray
+        Atmospheric temperature grid.
+    VMR_layer(Nlayer,Ngas) : ndarray
+        Array of volume mixing ratios for Ngas.
+        Has dimensioin: Nlayer x Ngas
+    U_layer : ndarray
+        DESCRIPTION.
+    P_grid(Npress) : ndarray
+        Pressure grid on which the k-coeff's are pre-computed.
+    T_grid(Ntemp) : ndarray
+        Temperature grid on which the k-coeffs are pre-computed.
+    del_g : ndarray
+        DESCRIPTION.
 
-      Returns
-      -------
-      tau_w_g_l : ndarray
-          DESCRIPTION.
+    Returns
+    -------
+    tau_w_g_l(Nwave,Ng,Nlayer) : ndarray
+        DESCRIPTION.
     """
     k_gas_w_g_l = interp_k(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t) # NGAS,NWAVE,NG,NLAYER
     # Ngas, Nwave, Ng, Nlayer = k_gas_w_g_l.shape
-    print('k_gas_w_g_l', k_gas_w_g_l)
+    # print('k_gas_w_g_l', k_gas_w_g_l)
 
     k_w_g_l = new_k_overlap(k_gas_w_g_l, del_g, VMR_layer.T) # NWAVE,NG,NLAYER
 
@@ -83,30 +83,29 @@ def tau_gas(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
     return TAUGAS
 
 def radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
-            P_grid, T_grid, g_ord, del_g, ScalingFactor, RADIUS, solspec):
+            P_grid, T_grid, del_g, ScalingFactor, RADIUS, solspec):
     """
     Calculate emission spectrum using the correlated-k method.
 
     Parameters
     ----------
-    wave_grid : ndarray
+    wave_grid(Nwave) : ndarray
         Wavelengths (um) grid for calculating spectra.
-    U_layer : ndarray
+    U_layer(Nlayer) : ndarray
         Total number of gas particles in each layer.
-    P_layer : ndarray
+    P_layer(Nlayer) : ndarray
         Atmospheric pressure grid.
-    T_layer : ndarray
+    T_layer(Nlayer) : ndarray
         Atmospheric temperature grid.
-    VMR_layer : ndarray
+    VMR_layer(Nlayer,Ngas) : ndarray
         Array of volume mixing ratios for Ngas.
+        Has dimensioin: Nlayer x Ngas
     k_gas_w_g_p_t : ndarray
         k-coefficients. Has dimension: Nwave x Ng x Npress x Ntemp.
-    P_grid : ndarray
+    P_grid(Npress) : ndarray
         Pressure grid on which the k-coeff's are pre-computed.
-    T_grid : ndarray
+    T_grid(Ntemp) : ndarray
         Temperature grid on which the k-coeffs are pre-computed.
-    g_ord : ndarray
-        g-ordinates of the k-table.
     del_g : ndarray
         Quadrature weights of the g-ordinates.
     ScalingFactor : ndarray ( NLAY ) ##
@@ -122,9 +121,15 @@ def radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
     radiance : ndarray
         Output radiance (W cm-2 um-1 sr-1)
     """
+    # Reverse layers from TOP of atmoaphsere first to BOTTOM of atmosphere last
+    U_layer = U_layer[::-1]
+    P_layer = P_layer[::-1]
+    T_layer = T_layer[::-1]
+    VMR_layer = VMR_layer[::-1]
+
     # Dimensioins
     NGAS, NWAVE, NG, NGRID = k_gas_w_g_p_t.shape[:-1]
-    print('NGAS, NWAVE, NG, NGRID',NGAS, NWAVE, NG, NGRID)
+    # print('NGAS, NWAVE, NG, NGRID',NGAS, NWAVE, NG, NGRID)
     ### Second order opacities to be continued
     # Collision Induced Absorptioin Optical Path
     NLAY = len(P_layer)
@@ -151,10 +156,10 @@ def radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
     TAUGAS = k_w_g_l * utotl
     """
     TAUGAS = tau_gas(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
-            P_grid, T_grid, g_ord, del_g)
-    print('TAUGAS', TAUGAS)
+            P_grid, T_grid, del_g)
+    # print('TAUGAS', TAUGAS)
     TAUTOT = np.zeros(TAUGAS.shape) # NWAVE x NG x NLAYER
-    print('TAUGAS.shape',TAUGAS.shape)
+    # print('TAUGAS.shape',TAUGAS.shape)
     # Merge all different opacities
     for ig in range(NG): # wavebin x layer / NWAVE x NG x NLAYER
         TAUTOT[:,ig,:] = TAUGAS[:,ig,:] + TAUCIA[:,:] + TAUDUST[:,:] + TAURAY[:,:]
@@ -176,64 +181,42 @@ def radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
 
 
     # taud[:,:] = taud[:,:] + TAUTOT_LAYINC[:,:,j]
+    # NEED LAYER REVERSAL
+    # print('T_layer1', T_layer)
+    # T_layer = T_layer[::-1]
+    # print('T_layer2', T_layer)
+
+    # TAUTOT = TAUTOT[:,:,::-1]
+
+    # Thermal Emission from planet
+    # SPECOUT = np.zeros(NWAVE, NG)
 
     for ilayer in range(NLAY):
 
-        taud[:,:] = TAUTOT[:,:,ilayer]
+        taud[:,:] = TAUTOT[:,:,-ilayer]
 
         tr = np.exp(-taud) # transmission function
 
-        bb = planck(wave_grid, T_layer[ilayer]) # blackbody function
+        bb = planck(wave_grid, T_layer[-ilayer]) # blackbody function
 
         for ig in range(NG):
             specg[:,ig] = specg[:,ig] + (trold[:,ig]-tr[:,ig])*bb[:] * xfac
 
+        trold = copy(tr)
+
+    # surface/bottom layer contribution
+    p1 = P_layer[int(len(P_layer)/2-1)] #midpoint
+    p2 = P_layer[-1] #lowest point in altitude/highest in pressure
+
+    surface = None
+    if p2 > p1: # i.e. if not a limb path
+        print(p2,p1)
+        if surface is None:
+            radground = planck(wave_grid,T_layer[-1])
+            print('radground',radground)
+        for ig in range(NG):
+            specg[:,ig] = specg[:,ig] + trold[:,ig]*radground*xfac
 
     SPECOUT = np.tensordot(specg, del_g, axes=([1],[0])) * xfac
 
     return SPECOUT
-
-
-# """
-# @jit(nopython=True)
-# def tau_gas(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
-#             P_grid, T_grid, g_ord, del_g):
-#     """
-#       Parameters
-#       ----------
-#       k_gas_w_g_p_t : ndarray
-#           DESCRIPTION.
-#       P_layer : ndarray
-#           DESCRIPTION.
-#       T_layer : ndarray
-#           DESCRIPTION.
-#       VMR_layer : ndarray
-#           DESCRIPTION.
-#       U_layer : ndarray
-#           DESCRIPTION.
-#       P_grid : ndarray
-#           DESCRIPTION.
-#       T_grid : ndarray
-#           DESCRIPTION.
-#       g_ord : ndarray
-#           DESCRIPTION.
-#       del_g : ndarray
-#           DESCRIPTION.
-
-#       Returns
-#       -------
-#       tau_w_g_l : ndarray
-#           DESCRIPTION.
-#     """
-#     k_gas_w_g_l = interp_k(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t)
-#     Ngas, Nwave, Ng, Nlayer = k_gas_w_g_l.shape
-#     tau_w_g_l = np.zeros((Nwave,Ng,Nlayer))
-#     for iwave in range (Nwave):
-#         k_gas_g_l = k_gas_w_g_l[:,iwave,:,:]
-#         k_g_l = np.zeros((Ng,Nlayer))
-#         for ilayer in range(Nlayer):
-#             k_g_l[:,ilayer], VMR\
-#                 = new_k_overlap(k_gas_g_l[:,:,ilayer],VMR_layer[ilayer,:],g_ord,del_g)
-#             tau_w_g_l[iwave,:,ilayer] = k_g_l[:,ilayer]*U_layer[ilayer]*VMR
-#     return tau_w_g_l
-# """
