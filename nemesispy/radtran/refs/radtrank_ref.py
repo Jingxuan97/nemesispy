@@ -1,3 +1,4 @@
+import numpy as np
 def CIRSrad(runname,Variables,Measurement,Atmosphere,Spectroscopy,Scatter,Stellar,Surface,CIA,Layer,Path):
 
     """
@@ -54,6 +55,57 @@ def CIRSrad(runname,Variables,Measurement,Atmosphere,Spectroscopy,Scatter,Stella
     #   Scattering opacity derived from the particle distribution and the single scattering albedo.
     #        For multiple scattering, this is passed to scattering routines
     #   Line opacity due to gaseous absorption (K-tables or LBL-tables)
+
+
+    #Calculating the continuum absorption by gaseous species
+    #################################################################################################################
+
+    #Computes a polynomial approximation to any known continuum spectra for a particular gas over a defined wavenumber region.
+
+    #To be done
+
+    #Calculating the vertical opacity by CIA
+    #################################################################################################################
+
+    TAUCIA,dTAUCIA,IABSORB = CIA.calc_tau_cia(Measurement.ISPACE,Measurement.WAVE,Atmosphere,Layer) #(NWAVE,NLAY);(NWAVE,NLAY,7)
+
+    #Calculating the vertical opacity by Rayleigh scattering
+    #################################################################################################################
+
+    if Scatter.IRAY==0:
+        TAURAY = np.zeros([Measurement.NWAVE,Layer.NLAY])
+    elif Scatter.IRAY==1:
+        TAURAY,dTAURAY = Scatter.calc_tau_rayleighj(Measurement.ISPACE,Measurement.WAVE,Layer) #(NWAVE,NLAY)
+    else:
+        sys.exit('error in CIRSrad :: IRAY type has not been implemented yet')
+
+    #Calculating the vertical opacity by aerosols from the extinction coefficient and single scattering albedo
+    #################################################################################################################
+
+    """
+    #Obtaining the phase function of each aerosol at the scattering angle
+    if Path.SINGLE==True:
+        sol_ang = Scatter.SOL_ANG
+        emiss_ang = Scatter.EMISS_ANG
+        azi_ang = Scatter.AZI_ANG
+
+        phasef = np.zeros(Scatter.NDUST+1)   #Phase angle for each aerosol type and for Rayleigh scattering
+
+        #Calculating cos(alpha), where alpha is the scattering angle
+        calpha = np.sin(sol_ang / 180. * np.pi) * np.sin(emiss_ang / 180. * np.pi) * np.cos( azi_ang/180.*np.pi - np.pi ) - \
+                 np.cos(emiss_ang / 180. * np.pi) * np.cos(sol_ang / 180. * np.pi)
+
+
+        phasef[Scatter.NDUST] = 0.75 * (1. + calpha**2.)  #Phase function for Rayleigh scattering (Hansen and Travis, 1974)
+    """
+
+    TAUDUST1,TAUCLSCAT,dTAUDUST1,dTAUCLSCAT = Scatter.calc_tau_dust(Measurement.WAVE,Layer) #(NWAVE,NLAYER,NDUST)
+
+    #Adding the opacity by the different dust populations
+    TAUDUST = np.sum(TAUDUST1,2)  #(NWAVE,NLAYER)
+    TAUSCAT = np.sum(TAUCLSCAT,2)  #(NWAVE,NLAYER)
+
+    del TAUDUST1
 
     #Calculating the gaseous line opacity in each layer
     ########################################################################################################
@@ -190,12 +242,13 @@ def CIRSrad(runname,Variables,Measurement,Atmosphere,Spectroscopy,Scatter,Stella
 
         #Calculating spectrum
         for ipath in range(Path.NPATH):
+
+
             #Calculating atmospheric contribution
             taud = np.zeros([Measurement.NWAVE,Spectroscopy.NG])
             trold = np.ones([Measurement.NWAVE,Spectroscopy.NG])
             specg = np.zeros([Measurement.NWAVE,Spectroscopy.NG])
 
-            #
             for j in range(Path.NLAYIN[ipath]):
 
                 taud[:,:] = taud[:,:] + TAUTOT_LAYINC[:,:,j,ipath]
