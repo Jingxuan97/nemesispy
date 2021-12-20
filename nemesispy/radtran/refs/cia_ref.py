@@ -19,7 +19,7 @@ class CIA_0:
 
         Attributes
         ----------
-        @attribute WAVEN: 1D array
+        @attribute NU_GRID: 1D array
             Wavenumber array (NOTE: ALWAYS IN WAVENUMBER, NOT WAVELENGTH)
         @attribute TEMP: 1D array
             Temperature levels at which the CIA data is defined (K)
@@ -38,8 +38,8 @@ class CIA_0:
         self.NWAVE = NWAVE
 
         # Input the following profiles using the edit_ methods.
-        self.WAVEN = None # np.zeros(NWAVE)
-        self.TEMP = None # np.zeros(NT)
+        self.NU_GRID = None # np.zeros(NWAVE)
+        self.TEMPS = None # np.zeros(NT)
         self.K_CIA = None #np.zeros(NPAIR,NT,NWAVE)
 
 
@@ -88,8 +88,8 @@ class CIA_0:
         self.NWAVE = NWAVE
         self.NT = NT
         self.NPAIR = NPAIR
-        self.WAVEN = NU_GRID
-        self.TEMP = TEMPS
+        self.NU_GRID = NU_GRID
+        self.TEMPS = TEMPS
         self.K_CIA = K_CIA
 
     def calc_tau_cia(self,ISPACE,WAVEC,Atmosphere,Layer,MakePlot=False):
@@ -169,7 +169,7 @@ class CIA_0:
             isort = np.argsort(WAVEN)
             WAVEN = WAVEN[isort]
 
-        if((WAVEN.min()<self.WAVEN.min()) or (WAVEN.max()>self.WAVEN.max())):
+        if((WAVEN.min()<self.NU_GRID.min()) or (WAVEN.max()>self.NU_GRID.max())):
             print('warning in CIA :: Calculation wavelengths expand a larger range than in .cia file')
 
 #       calculating the CIA opacity at the correct temperature and wavenumber
@@ -180,21 +180,21 @@ class CIA_0:
 
             #Interpolating to the correct temperature
             temp1 = Layer.TEMP[ilay]
-            temp0,it = find_nearest(self.TEMP,temp1)
+            temp0,it = find_nearest(self.TEMPS,temp1)
 
-            if self.TEMP[it]>=temp1:
+            if self.TEMPS[it]>=temp1:
                 ithi = it
                 if it==0:
-                    temp1 = self.TEMP[it]
+                    temp1 = self.TEMPS[it]
                     itl = 0
                     ithi = 1
                 else:
                     itl = it - 1
 
-            elif self.TEMP[it]<temp1:
+            elif self.TEMPS[it]<temp1:
                 itl = it
                 if it==self.NT-1:
-                    temp1 = self.TEMP[it]
+                    temp1 = self.TEMPS[it]
                     ithi = self.NT - 1
                     itl = self.NT - 2
                 else:
@@ -203,31 +203,31 @@ class CIA_0:
             ktlo = self.K_CIA[:,itl,:]
             kthi = self.K_CIA[:,ithi,:]
 
-            fhl = (temp1 - self.TEMP[itl])/(self.TEMP[ithi] - self.TEMP[itl])
-            fhh = (self.TEMP[ithi] - temp1)/(self.TEMP[ithi] - self.TEMP[itl])
-            dfhldT = 1./(self.TEMP[ithi] - self.TEMP[itl])
-            dfhhdT = -1./(self.TEMP[ithi] - self.TEMP[itl])
+            fhl = (temp1 - self.TEMPS[itl])/(self.TEMPS[ithi] - self.TEMPS[itl])
+            fhh = (self.TEMPS[ithi] - temp1)/(self.TEMPS[ithi] - self.TEMPS[itl])
+            dfhldT = 1./(self.TEMPS[ithi] - self.TEMPS[itl])
+            dfhhdT = -1./(self.TEMPS[ithi] - self.TEMPS[itl])
 
             kt = ktlo*(1.-fhl) + kthi * (1.-fhh)
             dktdT = -ktlo * dfhldT - kthi * dfhhdT
 
             #Cheking that interpolation can be performed to the calculation wavenumbers
-            inwave = np.where( (self.WAVEN>=WAVEN.min()) & (self.WAVEN<=WAVEN.max()) )
+            inwave = np.where( (self.NU_GRID>=WAVEN.min()) & (self.NU_GRID<=WAVEN.max()) )
             inwave = inwave[0]
             if len(inwave)>0:
 
                 k_cia = np.zeros([NWAVEC,self.NPAIR])
                 dkdT_cia = np.zeros([NWAVEC,self.NPAIR])
-                inwave1 = np.where( (WAVEN>=self.WAVEN.min()) & (WAVEN<=self.WAVEN.max()) )
+                inwave1 = np.where( (WAVEN>=self.NU_GRID.min()) & (WAVEN<=self.NU_GRID.max()) )
                 inwave1 = inwave1[0]
 
                 #fig,(ax1,ax2) = plt.subplots(2,1,figsize=(10,6))
                 #labels = ['H2-H2 (eqm)','H2-He (eqm)','H2-H2 (normal)','H2-He (normal)','H2-N2','H2-CH4','N2-N2','CH4-CH4','H2-CH4)']
                 for ipair in range(self.NPAIR):
-                    #ax1.plot(self.WAVEN,kt[ipair,:],label=labels[ipair])
-                    f = interpolate.interp1d(self.WAVEN,kt[ipair,:])
+                    #ax1.plot(self.NU_GRID,kt[ipair,:],label=labels[ipair])
+                    f = interpolate.interp1d(self.NU_GRID,kt[ipair,:])
                     k_cia[inwave1,ipair] = f(WAVEN[inwave1])
-                    f = interpolate.interp1d(self.WAVEN,dktdT[ipair,:])
+                    f = interpolate.interp1d(self.NU_GRID,dktdT[ipair,:])
                     dkdT_cia[inwave1,ipair] = f(WAVEN[inwave1])
                     #ax2.plot(WAVEN,k_cia[:,ipair])
                 #plt.tight_layout()
