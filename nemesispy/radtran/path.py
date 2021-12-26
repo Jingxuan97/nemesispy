@@ -11,8 +11,6 @@ from scipy.interpolate import interp1d
 from nemesispy.data.constants import K_B
 from nemesispy.radtran.utils import calc_mmw
 
-
-
 def interp(x_data, y_data, x_input, interp_type=1):
     """
     1D interpolation using scipy.interpolate.interp1d.
@@ -54,6 +52,7 @@ def split(H_atm, P_atm, Nlayer, layer_type=1, bottom_height=0.0, interp_type=1,
           path_angle=0.0, planet_radius=None, H_base=None, P_base=None):
     """
     Splits an atmospheric model into layers by specifying layer base altitudes.
+    To ensure smooth integration with other functions, use SI units.
 
     Parameters
     ----------
@@ -70,7 +69,7 @@ def split(H_atm, P_atm, Nlayer, layer_type=1, bottom_height=0.0, interp_type=1,
         0 = by equal changes in pressure
         1 = by equal changes in log pressure
         2 = by equal changes in height
-        3 = by equal changes in path length at zenith
+        3 = by equal changes in path length
         4 = layer base pressure levels specified by P_base
         5 = layer base height levels specified by H_base
         Note 4 and 5 force Nlayer = len(P_base) or len(H_base).

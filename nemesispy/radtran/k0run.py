@@ -7,7 +7,33 @@ from nemesispy.radtran.path import get_profiles # average
 from nemesispy.radtran.k1read import read_kls
 # from nemesispy.radtran.k2interp import interp_k, new_k_overlap
 from nemesispy.radtran.k3radtran import radtran
+from nemesispy.radtran.k5cia import read_cia
 
+
+
+
+"""
+         0.000  0.19739E+02    2294.2300  0.10000E-04  0.10000E-19  0.10000E-19  0.10000E-19  0.15000E+00  0.84999E+00
+        90.390  0.11720E+02    2275.6741  0.10000E-04  0.10000E-19  0.10000E-19  0.10000E-19  0.15000E+00  0.84999E+00
+       179.552  0.69594E+01    2221.3721  0.10000E-04  0.10000E-19  0.10000E-19  0.10000E-19  0.15000E+00  0.84999E+00
+       265.916  0.41324E+01    2124.3049  0.10000E-04  0.10000E-19  0.10000E-19  0.10000E-19  0.15000E+00  0.84999E+00
+       347.980  0.24538E+01    1995.6700  0.10000E-04  0.10000E-19  0.10000E-19  0.10000E-19  0.15000E+00  0.84999E+00
+       424.832  0.14570E+01    1854.4310  0.10000E-04  0.10000E-19  0.10000E-19  0.10000E-19  0.15000E+00  0.84999E+00
+       496.285  0.86515E+00    1718.0520  0.10000E-04  0.10000E-19  0.10000E-19  0.10000E-19  0.15000E+00  0.84999E+00
+       562.745  0.51372E+00    1598.6730  0.10000E-04  0.10000E-19  0.10000E-19  0.10000E-19  0.15000E+00  0.84999E+00
+       624.995  0.30504E+00    1502.5710  0.10000E-04  0.10000E-19  0.10000E-19  0.10000E-19  0.15000E+00  0.84999E+00
+       683.970  0.18113E+00    1430.7090  0.10000E-04  0.10000E-19  0.10000E-19  0.10000E-19  0.15000E+00  0.84999E+00
+       740.575  0.10755E+00    1380.3280  0.10000E-04  0.10000E-19  0.10000E-19  0.10000E-19  0.15000E+00  0.84999E+00
+       795.573  0.63862E-01    1346.8170  0.10000E-04  0.10000E-19  0.10000E-19  0.10000E-19  0.15000E+00  0.84999E+00
+       849.542  0.37920E-01    1325.3910  0.10000E-04  0.10000E-19  0.10000E-19  0.10000E-19  0.15000E+00  0.84999E+00
+       902.885  0.22517E-01    1312.0670  0.10000E-04  0.10000E-19  0.10000E-19  0.10000E-19  0.15000E+00  0.84999E+00
+       955.869  0.13370E-01    1303.9330  0.10000E-04  0.10000E-19  0.10000E-19  0.10000E-19  0.15000E+00  0.84999E+00
+      1008.664  0.79390E-02    1299.0250  0.10000E-04  0.10000E-19  0.10000E-19  0.10000E-19  0.15000E+00  0.84999E+00
+      1061.373  0.47140E-02    1296.0840  0.10000E-04  0.10000E-19  0.10000E-19  0.10000E-19  0.15000E+00  0.84999E+00
+      1114.062  0.27991E-02    1294.3311  0.10000E-04  0.10000E-19  0.10000E-19  0.10000E-19  0.15000E+00  0.84999E+00
+      1166.766  0.16621E-02    1293.2880  0.10000E-04  0.10000E-19  0.10000E-19  0.10000E-19  0.15000E+00  0.84999E+00
+      1219.512  0.98692E-03    1292.6680  0.10000E-04  0.10000E-19  0.10000E-19  0.10000E-19  0.15000E+00  0.84999E+00
+"""
 
 """
 ID : ndarray
@@ -37,9 +63,6 @@ VMR_atm[:,2] = VMR_CO
 VMR_atm[:,3] = VMR_CH4
 VMR_atm[:,4] = VMR_He
 VMR_atm[:,5] = VMR_H2
-
-
-
 
 ### Required Inputs
 # Planet/star parameters
@@ -192,11 +215,18 @@ k_gas_w_g_l = interp_k(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t)
 # Mix gas opacities
 k_w_g_l = new_k_overlap(k_gas_w_g_l,del_g,f)
 """
+
+# Get raw CIA info
+cia_file_path='/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/cia/exocia_hitran12_200-3800K.tab'
+CIA_NU_GRID,CIA_TEMPS,K_CIA = read_cia(cia_file_path)
+
+
 StarSpectrum = np.ones(len(wave_grid))*(R_star)**2*np.pi # NWAVE
 # Radiative Transfer
 SPECOUT = radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
             P_grid, T_grid, del_g, ScalingFactor=scale,
-            RADIUS=planet_radius, solspec=StarSpectrum)
+            RADIUS=planet_radius, solspec=StarSpectrum,
+            k_cia=K_CIA,ID=ID,NU_GRID=CIA_NU_GRID,CIA_TEMPS=CIA_TEMPS)
 
 """
 wave_grid = np.array([1.1425, 1.1775, 1.2125, 1.2475, 1.2825, 1.3175, 1.3525, 1.3875, 1.4225,
@@ -208,10 +238,8 @@ import matplotlib.pyplot as plt
 
 plt.title('debug')
 plt.plot(wave_grid,SPECOUT)
+plt.scatter(wave_grid,SPECOUT,marker='o',color='k',linewidth=0.5,s=10)
 plt.tight_layout()
 plt.grid()
 plt.show()
 plt.close()
-
-
-

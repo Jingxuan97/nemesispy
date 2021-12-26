@@ -4,7 +4,7 @@ import numpy as np
 from copy import copy
 # from numba import jit
 from nemesispy.radtran.k2interp import interp_k, new_k_overlap
-
+from nemesispy.radtran.k5cia import calc_tau_cia
 def planck(wave,temp,ispace=1):
     """
     Calculate the blackbody radiation given by the Planck function
@@ -83,7 +83,8 @@ def tau_gas(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
     return TAUGAS
 
 def radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
-            P_grid, T_grid, del_g, ScalingFactor, RADIUS, solspec):
+            P_grid, T_grid, del_g, ScalingFactor, RADIUS, solspec,
+            k_cia,ID,NU_GRID,CIA_TEMPS):
     """
     Calculate emission spectrum using the correlated-k method.
 
@@ -134,6 +135,13 @@ def radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
     # Collision Induced Absorptioin Optical Path
     NLAY = len(P_layer)
     TAUCIA = np.zeros([NWAVE,NLAY])
+
+    """
+    TO BE DONE!
+    """
+    TAUCIA = calc_tau_cia(WAVE_GRID=wave_grid,K_CIA=k_cia,ISPACE=1,
+        ID=ID,TOTAM=U_layer,T_layer=T_layer,VMR_layer=VMR_layer,
+        NU_GRID=NU_GRID,TEMPS=CIA_TEMPS,INORMAL=0,NPAIR=9,DELH=1)
     # Rayleigh Scattering Optical Path
     TAURAY = np.zeros([NWAVE,NLAY])
     # Dust Scattering Optical Path
@@ -219,4 +227,5 @@ def radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
 
     SPECOUT = np.tensordot(specg, del_g, axes=([1],[0])) * xfac
 
+    print('TAUCIA',TAUCIA)
     return SPECOUT

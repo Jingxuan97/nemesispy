@@ -3,7 +3,7 @@ import sys
 from numpy.core.numeric import isfortran
 from scipy.io import FortranFile
 
-from nemesispy2022.nemesispy.radtran.k0run import T_layer
+# from nemesispy2022.nemesispy.radtran.k0run import T_layer
 
 """
 @param INORMAL: int,
@@ -18,7 +18,7 @@ from nemesispy2022.nemesispy.radtran.k0run import T_layer
 @param NWAVE: int,
     Number of spectral points over which the CIA data is defined
 """
-
+"/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/cia/exocia_hitran12_200-3800K.tab"
 def find_nearest(array, value):
 
     """
@@ -81,7 +81,6 @@ def read_cia(filepath,dnu=10,npara=0):
 
     f = FortranFile(filepath, 'r')
     TEMPS = f.read_reals( dtype='float64' )
-    print(TEMPS)
     KCIA_list = f.read_reals( dtype='float32' )
     NT = len(TEMPS)
     NWAVE = int(len(KCIA_list)/NT/NPAIR)
@@ -98,8 +97,13 @@ def read_cia(filepath,dnu=10,npara=0):
 
     return NU_GRID, TEMPS, K_CIA
 
+NU_GRID1, TEMPS1, K_CIA1 \
+    = read_cia("/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/cia/exocia_hitran12_200-3800K.tab")
+
 from scipy import interpolate
-def calc_tau_cia(WAVE_GRID,TOTAM,ID,ISO,VMR_layer,ISPACE,K_CIA,NU_GRID,TEMPS,INORMAL):
+def calc_tau_cia(WAVE_GRID,K_CIA,ISPACE,
+        ID,TOTAM,T_layer,VMR_layer,DELH,
+        NU_GRID,TEMPS,INORMAL,NPAIR=9):
     """
     Parameters
     ----------
@@ -112,7 +116,8 @@ def calc_tau_cia(WAVE_GRID,TOTAM,ID,ISO,VMR_layer,ISPACE,K_CIA,NU_GRID,TEMPS,INO
     VMR_layer : TYPE
         DESCRIPTION.
     ISPACE : int
-        Flag indicating whether the calculation must be performed in wavenumbers (0) or wavelength (1)
+        Flag indicating whether the calculation must be performed in
+        wavenumbers (0) or wavelength (1)
     K_CIA(NPAIR,NTEMP,NWAVE) : ndarray
          CIA cross sections for each pair at each temperature level and wavenumber.
     NU_GRID : TYPE
@@ -133,7 +138,9 @@ def calc_tau_cia(WAVE_GRID,TOTAM,ID,ISO,VMR_layer,ISPACE,K_CIA,NU_GRID,TEMPS,INO
     NPAIR = 9
 
 
+
     NLAY,NVMR = VMR_layer.shape
+    ISO = np.zeros(NVMR)
 
     # mixing ratios of the relevant gases
     qh2 = np.zeros(NLAY)
@@ -143,6 +150,7 @@ def calc_tau_cia(WAVE_GRID,TOTAM,ID,ISO,VMR_layer,ISPACE,K_CIA,NU_GRID,TEMPS,INO
     qco2 = np.zeros(NLAY)
     # IABSORB = np.ones(5,dtype='int32') * -1
 
+    # get mixing ratios from VMR grid
     for iVMR in range(NVMR):
         if ID[iVMR] == 39: # hydrogen
             qh2[:] = VMR_layer[:,iVMR]
@@ -167,13 +175,13 @@ def calc_tau_cia(WAVE_GRID,TOTAM,ID,ISO,VMR_layer,ISPACE,K_CIA,NU_GRID,TEMPS,INO
         amag1 = TOTAM / XLEN / AMAGAT # number density
         tau = XLEN*amag1**2 # optical path, why fiddle around with XLEN
 
-        # define the calculatiion wavenumbers, WAVE_GRID IS WAVEC
-        if ISPACE == 0:
+        # define the calculatiion wavenumbers
+        if ISPACE == 0: # input wavegrid is already in wavenumber (cm^-1)
             WAVEN = WAVE_GRID
         elif ISPACE == 1:
             WAVEN = 1.E4/WAVE_GRID
             isort = np.argsort(WAVEN)
-            WAVEN = WAVEN[isort]
+            WAVEN = WAVEN[isort] # ascending wavenumbers
 
         if WAVEN.min() < NU_GRID.min() or WAVEN.max()>NU_GRID.max():
             print('warning in CIA :: Calculation wavelengths expand a larger range than in .cia file')
@@ -183,7 +191,6 @@ def calc_tau_cia(WAVE_GRID,TOTAM,ID,ISO,VMR_layer,ISPACE,K_CIA,NU_GRID,TEMPS,INO
         tau_cia_layer = np.zeros([NWAVEC,NLAY])
 
         for ilay in range(NLAY):
-
             # interpolating to the correct temperature
             temp1 = T_layer[ilay]
             temp0,it = find_nearest(TEMPS,temp1)
@@ -192,6 +199,7 @@ def calc_tau_cia(WAVE_GRID,TOTAM,ID,ISO,VMR_layer,ISPACE,K_CIA,NU_GRID,TEMPS,INO
             if TEMPS[it] >= temp1:
                 ithi = it
                 if it==0:
+                    # edge case, layer T < T grid
                     temp1 = TEMPS[it]
                     itl = 0
                     ithi = 1
@@ -202,12 +210,12 @@ def calc_tau_cia(WAVE_GRID,TOTAM,ID,ISO,VMR_layer,ISPACE,K_CIA,NU_GRID,TEMPS,INO
                 NT = len(TEMPS)
                 itl = it
                 if it == NT - 1:
+                    # edge case, layer T > T grid
                     temp1 = TEMPS[it]
                     ithi = NT - 1
                     itl = NT - 2
                 else:
                     ithi = it + 1
-
 
             # find opacities for the chosen T
             ktlo = K_CIA[:,itl,:]
@@ -219,8 +227,6 @@ def calc_tau_cia(WAVE_GRID,TOTAM,ID,ISO,VMR_layer,ISPACE,K_CIA,NU_GRID,TEMPS,INO
             kt = ktlo * (1.-fhl) + kthi * (1.-fhh)
 
             # checking that interpolation can be performed to the calculation wavenumbers
-            """THERE ARE TWO SETS OF WAVE GRIDS"""
-
             inwave = np.where( (NU_GRID>=WAVEN.min()) & (NU_GRID<=WAVEN.max()) )
             inwave = inwave[0]
 
@@ -232,6 +238,7 @@ def calc_tau_cia(WAVE_GRID,TOTAM,ID,ISO,VMR_layer,ISPACE,K_CIA,NU_GRID,TEMPS,INO
 
                 for ipair in range(NPAIR):
 
+                    # wavenumber interpolation
                     f = interpolate.interp1d(NU_GRID,kt[ipair,:])
                     k_cia[inwave1,ipair] = f(WAVEN[inwave1])
 
@@ -251,14 +258,16 @@ def calc_tau_cia(WAVE_GRID,TOTAM,ID,ISO,VMR_layer,ISPACE,K_CIA,NU_GRID,TEMPS,INO
                 sum1[:] = sum1[:] + k_cia[:,7] * qch4[ilay] * qch4[ilay]
                 sum1[:] = sum1[:] + k_cia[:,8] * qh2[ilay] * qch4[ilay]
 
+                # look up CO2-CO2 CIA coefficients (external)
+                k_co2 = co2cia(WAVEN)
 
                 sum1[:] = sum1[:] + k_co2[:] * qco2[ilay] * qco2[ilay]
-                #Look up N2-N2 NIR CIA coefficients
 
+                #Look up N2-N2 NIR CIA coefficients
+                # TO BE DONE
 
                 #Look up N2-H2 NIR CIA coefficients
-
-
+                # TO BE DONE
 
                 tau_cia_layer[:,ilay] = sum1[:] * tau[ilay]
 
