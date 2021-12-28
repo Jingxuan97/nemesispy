@@ -44,6 +44,10 @@ def planck(wave,temp,ispace=1):
 def tau_gas(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
             P_grid, T_grid, del_g):
     """
+    Calculate the optical path due to gaseous absorbers.
+    Absorber amounts (U_layer) is scaled by a factor 1e-20 because Nemesis
+    k-tables are scaled by a factor of 1e20.
+
     Parameters
     ----------
     k_gas_w_g_p_t(Ngas,Nwave,Ng,Npress,Ntemp) : ndarray
