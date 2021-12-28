@@ -78,7 +78,7 @@ def tau_gas(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
 
     k_w_g_l = new_k_overlap(k_gas_w_g_l, del_g, VMR_layer.T) # NWAVE,NG,NLAYER
 
-    utotl = U_layer * 1.0e-4 # scaling
+    utotl = U_layer
 
     TAUGAS = k_w_g_l * utotl # NWAVE, NG, NLAYER
 
@@ -121,6 +121,8 @@ def radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
         Stellar spectra, used when the unit of the output is in fraction
         of stellar irradiance.
 
+        Stellar flux at planet's distance (W cm-2 um-1 or W cm-2 (cm-1)-1)
+
     Returns
     -------
     radiance : ndarray
@@ -133,6 +135,7 @@ def radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
     VMR_layer = VMR_layer[::-1]
 
     U_layer *= 1.0e-20 # absorber amounts (U_layer) is scaled by a factor 1e-20
+    U_layer *= 1.0e-4 # convert from absorbers per m^2 to per cm^2
 
     # Dimensioins
     NGAS, NWAVE, NG, NGRID = k_gas_w_g_p_t.shape[:-1]
@@ -185,7 +188,7 @@ def radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
     # IMOD = 3
 
     #Defining the units of the output spectrum / divide by stellar spectrum
-    xfac = np.pi*4.*np.pi*((RADIUS)*1.0e2)**2.
+    xfac = 4.*np.pi*((RADIUS)*1e2)**2.
     xfac = xfac / solspec
 
     #Calculating spectrum
@@ -224,14 +227,14 @@ def radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
 
     surface = None
     if p2 > p1: # i.e. if not a limb path
-        print(p2,p1)
+        #print(p2,p1)
         if surface is None:
             radground = planck(wave_grid,T_layer[-1])
-            print('radground',radground)
+            #print('radground',radground)
         for ig in range(NG):
             specg[:,ig] = specg[:,ig] + trold[:,ig]*radground*xfac
 
-    SPECOUT = np.tensordot(specg, del_g, axes=([1],[0])) * xfac
+    SPECOUT = np.tensordot(specg, del_g, axes=([1],[0]))
 
-    print('TAUCIA',TAUCIA)
+    # print('TAUCIA',TAUCIA)
     return SPECOUT
