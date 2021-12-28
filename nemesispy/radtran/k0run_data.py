@@ -5,6 +5,11 @@ Need to make sure pressure grid of k table is in the same unit as the calculatio
 unit.
 """
 """
+Watch out for the stellar spectrum unit.
+In .sol file, the data Stellar flux at planet's distance (W cm-2 um-1 or W cm-2 (cm-1)-1)
+no need to rework using the radius.
+"""
+"""
 R_star = 0.6668*R_SUN
 planet_radius = 1*R_JUP
 R_plt = 1.036*R_JUP_E
