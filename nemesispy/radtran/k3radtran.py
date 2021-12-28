@@ -45,8 +45,6 @@ def tau_gas(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
             P_grid, T_grid, del_g):
     """
     Calculate the optical path due to gaseous absorbers.
-    Absorber amounts (U_layer) is scaled by a factor 1e-20 because Nemesis
-    k-tables are scaled by a factor of 1e20.
 
     Parameters
     ----------
@@ -80,7 +78,7 @@ def tau_gas(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
 
     k_w_g_l = new_k_overlap(k_gas_w_g_l, del_g, VMR_layer.T) # NWAVE,NG,NLAYER
 
-    utotl = U_layer * 1.0e-4 * 1.0e-20 # scaling
+    utotl = U_layer * 1.0e-4 # scaling
 
     TAUGAS = k_w_g_l * utotl # NWAVE, NG, NLAYER
 
@@ -91,6 +89,8 @@ def radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
             k_cia,ID,NU_GRID,CIA_TEMPS):
     """
     Calculate emission spectrum using the correlated-k method.
+    Absorber amounts (U_layer) is scaled by a factor 1e-20 because Nemesis
+    k-tables are scaled by a factor of 1e20.
 
     Parameters
     ----------
@@ -131,6 +131,8 @@ def radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
     P_layer = P_layer[::-1]
     T_layer = T_layer[::-1]
     VMR_layer = VMR_layer[::-1]
+
+    U_layer *= 1.0e-20 # absorber amounts (U_layer) is scaled by a factor 1e-20
 
     # Dimensioins
     NGAS, NWAVE, NG, NGRID = k_gas_w_g_p_t.shape[:-1]
