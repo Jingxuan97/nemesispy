@@ -1,4 +1,10 @@
 """
+Q: what is the pressure grid unit in memesis ktables??
+"""
+"""
+Q: is CIA properly taken care of??
+"""
+"""
 Watch out for units...
 Pressure UNIT is ATM in nemesis, which is 101325 Pa
 Need to make sure pressure grid of k table is in the same unit as the calculation

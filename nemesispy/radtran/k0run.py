@@ -2,6 +2,7 @@ import sys
 sys.path.append('/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/')
 import numpy as np
 from nemesispy.data.constants import R_SUN, R_JUP_E, AMU, AU, M_JUP, R_JUP
+from nemesispy.radtran.utils import calc_mmw
 from nemesispy.radtran.models import Model2
 from nemesispy.radtran.path import get_profiles # average
 from nemesispy.radtran.k1read import read_kls
@@ -19,10 +20,10 @@ NVMR = len(ID)
 # Volume Mixing Ratio
 # VMR_atm[i,j] is the Volume Mixing Ratio of gas j at profile point i.
 VMR_atm = np.zeros((NProfile,NVMR))
-VMR_H2O = np.ones(NProfile)*1e-5
-VMR_CO2 = np.ones(NProfile)*1e-20
-VMR_CO = np.ones(NProfile)*1e-20
-VMR_CH4 = np.ones(NProfile)*1e-20
+VMR_H2O = np.ones(NProfile)*1e-4 *0
+VMR_CO2 = np.ones(NProfile)*1e-20 *0
+VMR_CO = np.ones(NProfile)*1e-20 *0
+VMR_CH4 = np.ones(NProfile)*1e-20 *0
 VMR_He = (np.ones(NProfile)-VMR_H2O-VMR_CO2-VMR_CO-VMR_CH4)*0.15
 VMR_H2 = VMR_He/0.15*0.85
 VMR_atm[:,0] = VMR_H2O
@@ -31,20 +32,21 @@ VMR_atm[:,2] = VMR_CO
 VMR_atm[:,3] = VMR_CH4
 VMR_atm[:,4] = VMR_He
 VMR_atm[:,5] = VMR_H2
+mmw = calc_mmw(ID,VMR_atm[0,:])
+# print('mmw',mmw/AMU)
 
 ### Required Inputs
 # Planet/star parameters
 T_star = 4520
-M_plt = 2.052*M_JUP
+M_plt = 3.8951064000000004e+27 # kg
 SMA = 0.015*AU
-R_star = 463899e3 #km
+R_star = 463892759.99999994 #km
 R_plt = 74065712.0 #km
 
 # Atmosphere layout
 NProfile = 20
 Nlayer = 20
-P_range = np.geomspace(20,1e-3,NProfile)*101325
-mmw = 2*AMU
+P_range = np.logspace(np.log10(20),np.log10(1e-3),NProfile)*1e5
 
 # Atmospheric model params
 kappa = 1e-3
@@ -81,6 +83,7 @@ print('del_S', del_S)
 # Get raw k table infos from files
 gas_id_list, iso_id_list, wave_grid, g_ord, del_g, P_grid, T_grid,\
         k_gas_w_g_p_t = read_kls(filenames)
+# P_grid is in Pa?
 P_grid *= 101325
 print('wave_grid', wave_grid)
 print('g_ord', g_ord)
@@ -98,7 +101,7 @@ StarSpectrum = np.ones(len(wave_grid))# *4*(R_star)**2*np.pi # NWAVE
 SPECOUT = radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
             P_grid, T_grid, del_g, ScalingFactor=scale,
             RADIUS=R_plt, solspec=StarSpectrum,
-            k_cia=K_CIA,ID=ID,NU_GRID=CIA_NU_GRID,CIA_TEMPS=CIA_TEMPS)
+            k_cia=K_CIA,ID=ID,NU_GRID=CIA_NU_GRID,CIA_TEMPS=CIA_TEMPS, DEL_S=del_S)
 
 """
 wave_grid = np.array([1.1425, 1.1775, 1.2125, 1.2475, 1.2825, 1.3175, 1.3525, 1.3875, 1.4225,

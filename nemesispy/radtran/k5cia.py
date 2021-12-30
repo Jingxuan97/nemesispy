@@ -102,8 +102,8 @@ def read_cia(filepath,dnu=10,npara=0):
 
 from scipy import interpolate
 def calc_tau_cia(WAVE_GRID,K_CIA,ISPACE,
-        ID,TOTAM,T_layer,VMR_layer,
-        NU_GRID,TEMPS,INORMAL,NPAIR=9,DELH=1):
+        ID,TOTAM,T_layer,VMR_layer,DELH,
+        NU_GRID,TEMPS,INORMAL,NPAIR=9):
     """
     Parameters
     ----------
@@ -171,8 +171,12 @@ def calc_tau_cia(WAVE_GRID,K_CIA,ISPACE,
         TOTAM = TOTAM * 1.0e-4 # cm-2
 
         amag1 = TOTAM / XLEN / AMAGAT # number density
-        tau = XLEN*amag1**2 # optical path, why fiddle around with XLEN
+        # print('TOTAM',TOTAM)
+        # print('amag1',amag1)
 
+        tau = XLEN*amag1**2# optical path, why fiddle around with XLEN
+
+        # print('tau',tau)
         # define the calculatiion wavenumbers
         if ISPACE == 0: # input wavegrid is already in wavenumber (cm^-1)
             WAVEN = WAVE_GRID
@@ -270,8 +274,10 @@ def calc_tau_cia(WAVE_GRID,K_CIA,ISPACE,
                 tau_cia_layer[:,ilay] = sum1[:] * tau[ilay]
 
         if ISPACE==1:
+            # tau_cia_layer[:,:] = tau_cia_layer[isort,:]*1e47
             tau_cia_layer[:,:] = tau_cia_layer[isort,:]
 
+    # print('tau_cia_layer',tau_cia_layer)
     return tau_cia_layer
 
 

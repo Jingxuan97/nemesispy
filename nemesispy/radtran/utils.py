@@ -2,7 +2,7 @@ import time
 import numpy as np
 from numba import jit
 from nemesispy.data.mol_info import mol_info
-from nemesispy.data.constants import C_LIGHT, K_B, PLANCK
+from nemesispy.data.constants import C_LIGHT, K_B, PLANCK, AMU
 
 
 def calc_mmw(ID, VMR, ISO=None):
@@ -37,6 +37,7 @@ def calc_mmw(ID, VMR, ISO=None):
             mass = mol_info['{}'.format(ID[i])]['isotope']\
                 ['{}'.format(ISO[i])]['mass']
         MMW += VMR[i] * mass
+    MMW *= AMU # si unit
     return MMW
 
 @jit(nopython=True)

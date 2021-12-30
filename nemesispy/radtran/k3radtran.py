@@ -72,6 +72,10 @@ def tau_gas(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
     tau_w_g_l(Nwave,Ng,Nlayer) : ndarray
         DESCRIPTION.
     """
+
+    U_layer *= 1.0e-20 # absorber amounts (U_layer) is scaled by a factor 1e-20
+    U_layer *= 1.0e-4 # convert from absorbers per m^2 to per cm^2
+
     k_gas_w_g_l = interp_k(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t) # NGAS,NWAVE,NG,NLAYER
     # Ngas, Nwave, Ng, Nlayer = k_gas_w_g_l.shape
     # print('k_gas_w_g_l', k_gas_w_g_l)
@@ -86,11 +90,13 @@ def tau_gas(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
 
 def radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
             P_grid, T_grid, del_g, ScalingFactor, RADIUS, solspec,
-            k_cia,ID,NU_GRID,CIA_TEMPS):
+            k_cia, ID, NU_GRID, CIA_TEMPS, DEL_S):
     """
     Calculate emission spectrum using the correlated-k method.
-    Absorber amounts (U_layer) is scaled by a factor 1e-20 because Nemesis
-    k-tables are scaled by a factor of 1e20.
+    # Absorber amounts (U_layer) is scaled by a factor 1e-20 because Nemesis
+    # k-tables are scaled by a factor of 1e20.
+
+    # Need to be smart about benchmarking against NEMESIS
 
     Parameters
     ----------
@@ -98,10 +104,12 @@ def radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
         Wavelengths (um) grid for calculating spectra.
     U_layer(Nlayer) : ndarray
         Total number of gas particles in each layer.
+        We want SI unit (no. of particle/m^2) here.
     P_layer(Nlayer) : ndarray
         Atmospheric pressure grid.
+        We want SI unit (Pa) here.
     T_layer(Nlayer) : ndarray
-        Atmospheric temperature grid.
+        Atmospheric temperature grid. In Kelvin.
     VMR_layer(Nlayer,Ngas) : ndarray
         Array of volume mixing ratios for Ngas.
         Has dimensioin: Nlayer x Ngas
@@ -109,14 +117,16 @@ def radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
         k-coefficients. Has dimension: Nwave x Ng x Npress x Ntemp.
     P_grid(Npress) : ndarray
         Pressure grid on which the k-coeff's are pre-computed.
+        We want SI unit (Pa) here.
     T_grid(Ntemp) : ndarray
-        Temperature grid on which the k-coeffs are pre-computed.
+        Temperature grid on which the k-coeffs are pre-computed. In Kelvin
     del_g : ndarray
         Quadrature weights of the g-ordinates.
     ScalingFactor : ndarray ( NLAY ) ##
         Scale stuff to line of sight
     RADIUS : real ##
         Planetary radius
+        We want SI unit (m) here.
     solspec : ndarray ##
         Stellar spectra, used when the unit of the output is in fraction
         of stellar irradiance.
@@ -134,8 +144,6 @@ def radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
     T_layer = T_layer[::-1]
     VMR_layer = VMR_layer[::-1]
 
-    U_layer *= 1.0e-20 # absorber amounts (U_layer) is scaled by a factor 1e-20
-    U_layer *= 1.0e-4 # convert from absorbers per m^2 to per cm^2
 
     # Dimensioins
     NGAS, NWAVE, NG, NGRID = k_gas_w_g_p_t.shape[:-1]
@@ -149,8 +157,8 @@ def radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
     TO BE DONE!
     """
     TAUCIA = calc_tau_cia(WAVE_GRID=wave_grid,K_CIA=k_cia,ISPACE=1,
-        ID=ID,TOTAM=U_layer,T_layer=T_layer,VMR_layer=VMR_layer,
-        NU_GRID=NU_GRID,TEMPS=CIA_TEMPS,INORMAL=0,NPAIR=9,DELH=1)
+        ID=ID,TOTAM=U_layer,T_layer=T_layer,VMR_layer=VMR_layer, DELH=DEL_S,
+        NU_GRID=NU_GRID,TEMPS=CIA_TEMPS,INORMAL=0,NPAIR=9)
     # Rayleigh Scattering Optical Path
     TAURAY = np.zeros([NWAVE,NLAY])
     # Dust Scattering Optical Path
@@ -178,12 +186,14 @@ def radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
     TAUTOT = np.zeros(TAUGAS.shape) # NWAVE x NG x NLAYER
     # print('TAUGAS.shape',TAUGAS.shape)
     # Merge all different opacities
+
+    TAUCIA *= 0
     for ig in range(NG): # wavebin x layer / NWAVE x NG x NLAYER
         TAUTOT[:,ig,:] = TAUGAS[:,ig,:] + TAUCIA[:,:] + TAUDUST[:,:] + TAURAY[:,:]
 
     #Scale to the line-of-sight opacities
     TAUTOT_LAYINC = TAUTOT * ScalingFactor
-
+    TAUTOT = TAUTOT * ScalingFactor
     # Thermal Emission Calculation
     # IMOD = 3
 
@@ -235,6 +245,11 @@ def radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
             specg[:,ig] = specg[:,ig] + trold[:,ig]*radground*xfac
 
     SPECOUT = np.tensordot(specg, del_g, axes=([1],[0]))
-
-    # print('TAUCIA',TAUCIA)
+    """
+    specg1 = np.zeros([NWAVE,NG,1])
+    specg1[:,:,0] = specg
+    SPECOUT = np.tensordot(specg1, del_g, axes=([1],[0]))
+    """
+    print('TAUCIA',TAUCIA)
+    print('TAUGAS',TAUGAS)
     return SPECOUT
