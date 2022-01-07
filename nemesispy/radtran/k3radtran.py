@@ -86,7 +86,7 @@ def tau_gas(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
 
     TAUGAS = k_w_g_l * utotl # NWAVE, NG, NLAYER
 
-    return TAUGAS
+    return TAUGAS # *0.1
 
 def radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
             P_grid, T_grid, del_g, ScalingFactor, RADIUS, solspec,
