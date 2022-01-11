@@ -1,6 +1,6 @@
 #!/usr/local/bin/python3
 # -*- coding: utf-8 -*-
-"""Mix ktables of different gases."""
+"""Calculate the opacity of a mixture of gases using ktables."""
 import numpy as np
 # from numba import jit
 

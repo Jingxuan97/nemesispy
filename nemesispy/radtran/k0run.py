@@ -20,10 +20,10 @@ NVMR = len(ID)
 # Volume Mixing Ratio
 # VMR_atm[i,j] is the Volume Mixing Ratio of gas j at profile point i.
 VMR_atm = np.zeros((NProfile,NVMR))
-VMR_H2O = np.ones(NProfile)*1e-4
-VMR_CO2 = np.ones(NProfile)*1e-20
-VMR_CO = np.ones(NProfile)*1e-20
-VMR_CH4 = np.ones(NProfile)*1e-20
+VMR_H2O = np.ones(NProfile)*1e-8 
+VMR_CO2 = np.ones(NProfile)*1e-8
+VMR_CO = np.ones(NProfile)*1e-8
+VMR_CH4 = np.ones(NProfile)*1e-8
 VMR_He = (np.ones(NProfile)-VMR_H2O-VMR_CO2-VMR_CO-VMR_CH4)*0.15
 VMR_H2 = VMR_He/0.15*0.85
 VMR_atm[:,0] = VMR_H2O
@@ -72,19 +72,16 @@ U_layer = np.array( [0.44339E+27, 0.26863E+27, 0.16284E+27, 0.98846E+26,
 0.11396E+25, 0.69568E+24, 0.42496E+24, 0.25983E+24,
 0.15897E+24, 0.97338E+23, 0.59639E+23, 0.36563E+23])*1e4
 """
-H_layer,P_layer,T_layer,VMR_layer,U_layer,Gas_layer,scale,del_S\
-    = get_profiles(R_plt, H_atm, P_atm, VMR_atm, T_atm, ID, Nlayer,
-    H_base=None, path_angle=0.0, layer_type=1, bottom_height=0.0, interp_type=1, P_base=None,
-    integration_type=1, Nsimps=101)
 
-print('H_layer', H_layer)
-print('P_layer', P_layer)
-print('T_layer', T_layer)
-# print('VMR_layer', VMR_layer)
-print('U_layer', U_layer)
-print('Gas_layer', Gas_layer)
-print('scale', scale)
-print('del_S', del_S)
+
+# print('H_layer', H_layer)
+# print('P_layer', P_layer)
+# print('T_layer', T_layer)
+# # print('VMR_layer', VMR_layer)
+# print('U_layer', U_layer)
+# print('Gas_layer', Gas_layer)
+# print('scale', scale)
+# print('del_S', del_S)
 
 # Get raw k table infos from files
 gas_id_list, iso_id_list, wave_grid, g_ord, del_g, P_grid, T_grid,\
@@ -103,6 +100,13 @@ CIA_NU_GRID,CIA_TEMPS,K_CIA = read_cia(cia_file_path)
 # Get raw stellar spectrum
 StarSpectrum = np.ones(len(wave_grid))# *4*(R_star)**2*np.pi # NWAVE
 
+# DO Gauss Labatto quadrature averaging
+# angles = np.array([80.4866,61.4500,42.3729,23.1420,0.00000])
+H_layer,P_layer,T_layer,VMR_layer,U_layer,Gas_layer,scale,del_S\
+    = get_profiles(R_plt, H_atm, P_atm, VMR_atm, T_atm, ID, Nlayer,
+    H_base=None, path_angle=0.0, layer_type=1, bottom_height=0.0, interp_type=1, P_base=None,
+    integration_type=1, Nsimps=101)
+
 # Radiative Transfer
 SPECOUT = radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
             P_grid, T_grid, del_g, ScalingFactor=scale,
@@ -118,18 +122,22 @@ fortran_model = [3.6743158e+22, 3.7200399e+22, 3.9049920e+22, 4.0878084e+22, 4.1
  2.2436328e+22, 2.3985561e+22, 2.4880188e+22, 2.4668674e+22, 2.3569399e+22,
  5.1856743e+21, 2.5685985e+21]
 # print(SPECOUT)
-
+fortran_model = [2.5029930e+22, 2.4856582e+22, 2.9633066e+22, 3.5345970e+22, 3.6964785e+22,
+ 3.1785492e+22, 1.4004005e+22, 9.9735074e+21, 8.9512482e+21, 9.7668563e+21,
+ 1.1407971e+22, 1.4087847e+22, 1.7370373e+22, 2.0564625e+22, 2.2217288e+22,
+ 4.4644814e+21, 2.2432798e+21]
 import matplotlib.pyplot as plt
 
 plt.title('debug')
 plt.plot(wave_grid,SPECOUT)
-plt.scatter(wave_grid,SPECOUT,marker='o',color='k',linewidth=0.5,s=10)
+plt.scatter(wave_grid,SPECOUT,marker='o',color='b',linewidth=0.5,s=10, label='python')
 plt.scatter(wave_grid,fortran_model,label='fortran',marker='x',color='k')
 plt.plot(wave_grid,fortran_model,color='k')
 plt.legend()
 plt.tight_layout()
 plt.plot()
 plt.grid()
+plt.savefig('comparison.pdf',dpi=400)
 plt.show()
 plt.close()
 
