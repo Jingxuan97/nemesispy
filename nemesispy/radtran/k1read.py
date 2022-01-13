@@ -9,6 +9,37 @@ in the radiative transfer routine by multiplying absorber amounts by 1e-20.
 """
 import numpy as np
 
+def find_nearest(array, value):
+
+    """
+    FUNCTION NAME : find_nearest()
+
+    DESCRIPTION : Find the closest value in an array
+
+    INPUTS :
+
+        array :: List of numbers
+        value :: Value to search for
+
+    OPTIONAL INPUTS: none
+
+    OUTPUTS :
+
+        closest_value :: Closest number to value in array
+        index :: Index of closest_value within array
+
+    CALLING SEQUENCE:
+
+        closest_value,index = find_nearest(array,value)
+
+    MODIFICATION HISTORY : Juan Alday (29/04/2019)
+
+    """
+    array = np.asarray(array)
+    idx = (np.abs(array - value)).argmin()
+    return array[idx],idx
+
+
 def read_kta(filepath):
     # this function is hopefully called once in a retrieval so no need to
     # optimise time
@@ -25,7 +56,7 @@ def read_kta(filepath):
     gas_id : int
         Gas identifier.
     iso_id : int
-        Isotope identifier.
+        Isotopologue identifier.
     wave_grid : ndarray
         Wavenumber/wavelength grid of the k-table.
     g_ord : ndarray
@@ -153,3 +184,60 @@ def read_kls(filepaths):
     k_gas_w_g_p_t = np.array(k_gas_w_g_p_t)
     return gas_id_list, iso_id_list, wave_grid, g_ord, del_g, P_grid, T_grid,\
         k_gas_w_g_p_t
+
+def interp_k_old(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t):
+    """
+    Adapted from chimera https://github.com/mrline/CHIMERA.
+    Interpolates the k-tables to input atmospheric P & T for each wavenumber and
+    g-ordinate for each gas with a standard bi-linear interpolation scheme.
+
+    Parameters
+    ----------
+    P_grid : ndarray
+        Pressure grid on which the k-coeffs are pre-computed.
+    T_grid : ndarray
+        Temperature grid on which the k-coeffs are pre-computed.
+    P_layer : ndarray
+        Atmospheric pressure grid.
+    T_layer : ndarray
+        Atmospheric temperature grid.
+    k_gas_w_g_p_t(Ngas,Nwave,Ng,Npress,Ntemp) : ndarray
+        k-coefficient array,
+        Has dimensiion: Ngas x Nwave x Ng x Npress x Ntemp
+
+    Returns
+    -------
+    k_gas_w_g_l(Ngas,Nwave,Ng,Nlayer) : ndarray
+        The interpolated-to-atmosphere k-coefficients.
+        Has dimension: Ngas x Nwave x Ng x Nlayer.
+    Notes
+    -----
+    Units: bar for pressure and K for temperature.
+    Code breaks if P_layer/T_layer is out of the range of P_grid/T_grid.
+    Mainly need to worry about max(T_layer)>max(T_grid).
+    No extrapolation outside of the TP grid of ktable.
+    """
+    k_gas_w_g_l = None
+    return k_gas_w_g_l
+
+def cal_k(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t):
+    """
+    Calculate the k coeffcients of gases at given presures and temperatures
+    using pre-tabulated k-tables.
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+    """
+    NGAS, NWAVE, NG, NPRESS, NTEMP = k_gas_w_g_p_t.shape
+    NLAYER = len(P_grid)
+    k_gas_w_g_l = np.zeros([NGAS,NWAVE,NG,NLAYER])
+
+    for ilayer in range(NLAYER):
+        press1 = P_layer[ilayer]
+        temp1 = T_layer[ilayer]
+
+        # find the PT levels just above and below the current layer
+        lpress = np.log(press1)

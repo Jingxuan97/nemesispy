@@ -6,7 +6,6 @@ from nemesispy.radtran.utils import calc_mmw
 from nemesispy.radtran.models import Model2
 from nemesispy.radtran.path import get_profiles # average
 from nemesispy.radtran.k1read import read_kls
-# from nemesispy.radtran.k2interp import interp_k, new_k_overlap
 from nemesispy.radtran.k3radtran import radtran
 from nemesispy.radtran.k5cia import read_cia
 
@@ -20,10 +19,10 @@ NVMR = len(ID)
 # Volume Mixing Ratio
 # VMR_atm[i,j] is the Volume Mixing Ratio of gas j at profile point i.
 VMR_atm = np.zeros((NProfile,NVMR))
-VMR_H2O = np.ones(NProfile)*1e-8 
-VMR_CO2 = np.ones(NProfile)*1e-8
-VMR_CO = np.ones(NProfile)*1e-8
-VMR_CH4 = np.ones(NProfile)*1e-8
+VMR_H2O = np.ones(NProfile)*1e-4
+VMR_CO2 = np.ones(NProfile)*1e-20
+VMR_CO = np.ones(NProfile)*1e-20
+VMR_CH4 = np.ones(NProfile)*1e-20
 VMR_He = (np.ones(NProfile)-VMR_H2O-VMR_CO2-VMR_CO-VMR_CH4)*0.15
 VMR_H2 = VMR_He/0.15*0.85
 VMR_atm[:,0] = VMR_H2O

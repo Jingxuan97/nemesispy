@@ -78,6 +78,8 @@ def interp_k(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t):
                     k_gas_w_g_l[igas, iwave, ig, ilayer] = fxy
     return k_gas_w_g_l
 
+
+
 def new_k_overlap_two_gas(k_gas1_g, k_gas2_g, q1, q2, del_g):
     """
     Combines the absorption coefficient distributions of two gases with overlapping
