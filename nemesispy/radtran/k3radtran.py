@@ -3,7 +3,8 @@
 import numpy as np
 from copy import copy
 # from numba import jit
-from nemesispy.radtran.k2interp import interp_k, new_k_overlap
+from nemesispy.radtran.k2interp import new_k_overlap
+from nemesispy.radtran.k2interp import cal_k as interp_k
 from nemesispy.radtran.k5cia import calc_tau_cia
 def planck(wave,temp,ispace=1):
     """
