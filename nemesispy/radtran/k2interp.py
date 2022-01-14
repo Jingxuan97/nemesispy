@@ -3,6 +3,9 @@
 """Calculate the opacity of a mixture of gases using ktables."""
 import numpy as np
 # from numba import jit
+"""
+DO a transmission spectrum
+"""
 def find_nearest(array, value):
 
     """
@@ -36,6 +39,7 @@ def find_nearest(array, value):
 
 def cal_k(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t, wavecalc=None):
     """
+    Follows normal sequence
     Calculate the k coeffcients of gases at given presures and temperatures
     using pre-tabulated k-tables.
 
@@ -100,6 +104,7 @@ def cal_k(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t, wavecalc=None):
         phi = np.log(P_grid[iphi])
         tlo = T_grid[itl]
         thi = T_grid[ithi]
+
         klo1 = np.zeros([NGAS,NWAVE,NG])
         klo2 = np.zeros([NGAS,NWAVE,NG])
         khi1 = np.zeros([NGAS,NWAVE,NG])
@@ -118,6 +123,12 @@ def cal_k(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t, wavecalc=None):
         dudt = 1./(thi-tlo)
 
         igood = np.where( (klo1>0.0) & (klo2>0.0) & (khi1>0.0) & (khi2>0.0) )
+        print('kgood',kgood)
+        print('NGAS',NGAS)
+        print('igood[0]',igood[0])
+        print('igood[1]',igood[1])
+        print('igood[2]',igood[2])
+        print('ilayer',ilayer)
         # kgood = np.zeros([self.NWAVE,self.NG,npoints,self.NGAS]) juan
         # k_gas_w_g_l = np.zeros([NGAS,NWAVE,NG,NLAYER]) mine
 
