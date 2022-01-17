@@ -58,7 +58,7 @@ atm = Model2(T_star, R_star, M_plt, R_plt, SMA, P_range, mmw,
 H_atm = atm.height()
 P_atm = atm.pressure()
 T_atm = atm.temperature()
-
+print('T_atm',T_atm)
 lowres_files = ['/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/h2o',
          '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/co2',
          '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/co',

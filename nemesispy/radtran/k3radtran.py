@@ -4,7 +4,8 @@ import numpy as np
 from copy import copy
 # from numba import jit
 from nemesispy.radtran.k2interp import new_k_overlap
-from nemesispy.radtran.k2interp import cal_k as interp_k
+# from nemesispy.radtran.k2interp import cal_k as interp_k
+from nemesispy.radtran.k2interp import interp_k
 from nemesispy.radtran.k5cia import calc_tau_cia
 def planck(wave,temp,ispace=1):
     """
@@ -37,6 +38,7 @@ def planck(wave,temp,ispace=1):
         a = c1 * (y**5.) / 1.0e4
     else:
         raise Exception('error in planck: ISPACE must be either 0 or 1')
+
     tmp = c2 * y / temp
     b = np.exp(tmp) - 1
     bb = a/b
@@ -94,8 +96,9 @@ def radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
             k_cia, ID, NU_GRID, CIA_TEMPS, DEL_S):
     """
     Calculate emission spectrum using the correlated-k method.
+
     # Absorber amounts (U_layer) is scaled by a factor 1e-20 because Nemesis
-    # k-tables are scaled by a factor of 1e20.
+    # k-tables are scaled by a factor of 1e20. Done in tau_gas.
 
     # Need to be smart about benchmarking against NEMESIS
 
@@ -188,7 +191,6 @@ def radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
     # print('TAUGAS.shape',TAUGAS.shape)
     # Merge all different opacities
 
-    TAUCIA *= 0
     for ig in range(NG): # wavebin x layer / NWAVE x NG x NLAYER
         TAUTOT[:,ig,:] = TAUGAS[:,ig,:] + TAUCIA[:,:] + TAUDUST[:,:] + TAURAY[:,:]
 

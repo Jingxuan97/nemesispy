@@ -50,9 +50,11 @@ def cal_k(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t, wavecalc=None):
     -------
     """
     NGAS, NWAVE, NG, NPRESS, NTEMP = k_gas_w_g_p_t.shape
-    NLAYER = len(P_grid)
+    NLAYER = len(P_layer)
+    print('P_layer',P_layer)
     k_gas_w_g_l = np.zeros([NGAS,NWAVE,NG,NLAYER])
 
+    # kgood (NGAS, NWAVE, NG, NLAYER)
     kgood = np.zeros([NGAS,NWAVE,NG,NLAYER])
     for ilayer in range(NLAYER):
         press1 = P_layer[ilayer]
@@ -73,7 +75,7 @@ def cal_k(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t, wavecalc=None):
         elif P_grid[ip]<press1:
             ipl = ip
             if ip == NPRESS -1:
-                lpress = np.log(P_grid[-1])
+                lpress = np.log(P_grid[NPRESS-1])
                 iphi = NPRESS - 1
                 ipl = NPRESS - 2
             else:
@@ -117,13 +119,17 @@ def cal_k(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t, wavecalc=None):
         khi2[:] = k_gas_w_g_p_t[:,:,:,iphi,ithi]
         khi1[:] = k_gas_w_g_p_t[:,:,:,iphi,itl]
 
+        print('klo1',klo1)
+        print(klo1.shape)
+
         # bilinear interpolation
         v = (lpress-plo)/(phi-plo)
         u = (temp1-tlo)/(thi-tlo)
         dudt = 1./(thi-tlo)
 
         igood = np.where( (klo1>0.0) & (klo2>0.0) & (khi1>0.0) & (khi2>0.0) )
-        print('kgood',kgood)
+        # NGAS x NWAVE x NG
+        # print('kgood',kgood)
         print('NGAS',NGAS)
         print('igood[0]',igood[0])
         print('igood[1]',igood[1])
@@ -132,21 +138,21 @@ def cal_k(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t, wavecalc=None):
         # kgood = np.zeros([self.NWAVE,self.NG,npoints,self.NGAS]) juan
         # k_gas_w_g_l = np.zeros([NGAS,NWAVE,NG,NLAYER]) mine
 
-        kgood[igood[2],igood[0],igood[1],ilayer] \
-            = (1.0-v)*(1.0-u)*np.log(klo1[igood[2],igood[0],igood[1]]) \
-            + v*(1.0-u)*np.log(khi1[igood[2],igood[0],igood[1]]) \
-            + v*u*np.log(khi2[igood[2],igood[0],igood[1]]) \
-            + (1.0-v)*u*np.log(klo2[igood[2],igood[0],igood[1]])
+        kgood[igood[0],igood[1],igood[2],ilayer] \
+            = (1.0-v)*(1.0-u)*np.log(klo1[igood[0],igood[1],igood[2]]) \
+            + v*(1.0-u)*np.log(khi1[igood[0],igood[1],igood[2]]) \
+            + v*u*np.log(khi2[igood[0],igood[1],igood[2]]) \
+            + (1.0-v)*u*np.log(klo2[igood[0],igood[1],igood[2]])
 
-        kgood[igood[2],igood[0],igood[1],ilayer] \
-            = np.exp(kgood[igood[2],igood[0],igood[1],ilayer])
+        kgood[igood[0],igood[1],igood[2],ilayer] \
+            = np.exp(kgood[igood[0],igood[1],igood[2],ilayer])
 
         ibad = np.where( (klo1<=0.0) & (klo2<=0.0) & (khi1<=0.0) & (khi2<=0.0) )
-        kgood[ibad[2],ibad[0],ibad[1],ilayer] \
-            = (1.0-v)*(1.0-u)*klo1[ibad[2], ibad[0],ibad[1]] \
-            + v*(1.0-u)*khi1[ibad[2], ibad[0],ibad[1]] \
-            + v*u*khi2[ibad[2], ibad[0],ibad[1]] \
-            + (1.0-v)*u*klo2[ibad[2], ibad[0],ibad[1]]
+        kgood[ibad[0],ibad[1],ibad[2],ilayer] \
+            = (1.0-v)*(1.0-u)*klo1[ ibad[0],ibad[1],ibad[2]] \
+            + v*(1.0-u)*khi1[ ibad[0],ibad[1],ibad[2]] \
+            + v*u*khi2[ ibad[0],ibad[1],ibad[2]] \
+            + (1.0-v)*u*klo2[ ibad[0],ibad[1],ibad[2]]
 
     k_gas_w_g_l = kgood
     return k_gas_w_g_l
