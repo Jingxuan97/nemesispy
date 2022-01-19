@@ -242,60 +242,63 @@ def new_k_overlap_two_gas(k_gas1_g, k_gas2_g, q1, q2, del_g):
 
     Parameters
     ----------
-    k_gas1_g(ng) : ndarray
+    k_gas1_g(NG) : ndarray
         k-coefficients for gas 1 at a particular wave bin and layer, with
         particular layer temperature and pressure.
-    k_gas2_g(ng) : ndarray
+    k_gas2_g(NG) : ndarray
         k-coefficients for gas 2 at a particular wave bin and layer, with
         particular layer temperature and pressure.
     q1 : real
         Volume mixing ratio of gas 1.
     q2 : real
         Volume mixing ratio of gas 2.
-    del_g(ng) : ndarray
+    del_g(NG) : ndarray
         Gauss quadrature weights for the g-ordinates, assumed same for both gases.
         These are the widths of the bins in g-space.
 
     Returns
     -------
-    k_combined_g(ng) : ndarray
+    k_combined_g(NG) : ndarray
         Combined k-distribution of both gases at a particular wave bin and layer.
     q_combined : real
         Combined volume mixing ratio of both gases.
     """
-    ng = len(del_g)  #Number of g-ordinates
-    k_combined_g = np.zeros(ng)
+    NG = len(del_g)  #Number of g-ordinates
+    k_combined_g = np.zeros(NG)
     q_combined = q1 + q2
-    print('q1,q2',q1,q2)
+    # print('q1,q2',q1,q2)
 
-    if((k_gas1_g[ng-1]<=0.0) and (k_gas2_g[ng-1]<=0.0)):
+    if((k_gas1_g[NG-1]<=0.0) and (k_gas2_g[NG-1]<=0.0)):
+        # both gases have neglible opaciteis
         pass
     elif( (q1<=0.0) and (q2<=0.0) ):
+        # both gases have neglible VMR
         pass
-    elif((k_gas1_g[ng-1]==0.0) or (q1==0.0)):
+    elif((k_gas1_g[NG-1]==0.0) or (q1==0.0)):
+        # gas 1 is neglible
         k_combined_g[:] = k_gas2_g[:] * q2/(q1+q2)
-    elif((k_gas2_g[ng-1]==0.0) or (q2==0.0)):
+    elif((k_gas2_g[NG-1]==0.0) or (q2==0.0)):
+        # gas 2 is neglible
         k_combined_g[:] = k_gas1_g[:] * q1/(q1+q2)
     else:
-
-        nloop = ng * ng
+        nloop = NG * NG
         weight = np.zeros(nloop)
         contri = np.zeros(nloop)
         ix = 0
-        for i in range(ng):
-            for j in range(ng):
+        for i in range(NG):
+            for j in range(NG):
                 weight[ix] = del_g[i] * del_g[j]
                 contri[ix] = (k_gas1_g[i]*q1 + k_gas2_g[j]*q2)/(q1+q2)
                 ix = ix + 1
 
         #getting the cumulative g ordinate
-        g_ord = np.zeros(ng+1)
+        g_ord = np.zeros(NG+1)
         g_ord[0] = 0.0
-        for ig in range(ng):
+        for ig in range(NG):
             g_ord[ig+1] = g_ord[ig] + del_g[ig]
 
-        if g_ord[ng]<1.0:
-            g_ord[ng] = 1.0
+        if g_ord[NG]<1.0:
+            g_ord[NG] = 1.0
 
         #sorting contri array
         isort = np.argsort(contri)
@@ -313,7 +316,7 @@ def new_k_overlap_two_gas(k_gas1_g, k_gas2_g, q1, q2, del_g):
         sum1 = 0.0
         for i in range(nloop):
 
-            if( (gdist[i]<g_ord[ig+1]) & (ig<=ng-1) ):
+            if( (gdist[i]<g_ord[ig+1]) & (ig<=NG-1) ):
                 k_combined_g[ig] = k_combined_g[ig] + contrib1[i] * weight1[i]
                 sum1 = sum1 + weight1[i]
             else:
@@ -322,11 +325,11 @@ def new_k_overlap_two_gas(k_gas1_g, k_gas2_g, q1, q2, del_g):
                 sum1 = sum1 + weight1[i]
                 k_combined_g[ig] = k_combined_g[ig] / sum1
                 ig = ig + 1
-                if(ig<=ng-1):
+                if(ig<=NG-1):
                     sum1 = (1.-frac)*weight1[i]
                     k_combined_g[ig] = k_combined_g[ig] + (1.-frac) * contrib1[i] * weight1[i]
 
-        if ig==ng-1:
+        if ig==NG-1:
             k_combined_g[ig] = k_combined_g[ig] / sum1
 
     # print('k_combined_g, q_combined',k_combined_g, q_combined)
@@ -341,61 +344,63 @@ def new_k_overlap(k_gas_w_g_l,del_g,f):
 
     Parameters
     ----------
-    k_gas_w_g_l(ngas, nwave, ng, nlayer) : ndarray
+    k_gas_w_g_l(NGAS, NWAVE, NG, NLAYER) : ndarray
         k-distributions of the different gases
-    del_g(ng) : ndarray
+    del_g(NG) : ndarray
         Gauss quadrature weights for the g-ordinates, assumed same for all gases.
-    f(ngas,nlayer) : ndarray
+    f(NGAS,NLAYER) : ndarray
         fraction of the different gases at each of the p-T points
 
     Returns
     -------
-    k_w_g_l(nwave,ng,nlayer) : ndarray
+    k_w_g_l(NWAVE,NG,NLAYER) : ndarray
         Opacity at each wavelength bin, each g ordinate and each layer.
     """
-    ngas,nwave,ng,nlayer = k_gas_w_g_l.shape
+    NGAS,NWAVE,NG,NLAYER = k_gas_w_g_l.shape
 
-    k_w_g_l = np.zeros((nwave,ng,nlayer))
+    k_w_g_l = np.zeros((NWAVE,NG,NLAYER))
     """
     Error spotted:
     old : k_w_g_l[:,:,:] = k_gas_w_g_l[:,:,:,0]
     new : k_w_g_l[:,:,:] = k_gas_w_g_l[0,:,:,:]
     """
-    if ngas<=1:  #There are not enough gases to combine
+    if NGAS<=1:
+        # only one gas is under consideration
         k_w_g_l[:,:,:] = k_gas_w_g_l[0,:,:,:]
     else:
-        for ip in range(nlayer): #running for each p-T case
-            for igas in range(ngas-1):
-                #getting first and second gases to combine
+        for ilayer in range(NLAYER): #running for each p-T case
+            for igas in range(NGAS-1):
                 if igas==0:
-                    k_gas1_w_g = np.zeros((nwave,ng))
-                    k_gas2_w_g = np.zeros((nwave,ng))
-                    k_gas1_w_g[:,:] = k_gas_w_g_l[igas,:,:,ip]
-                    k_gas2_w_g[:,:] = k_gas_w_g_l[igas+1,:,:,ip]
-                    f1 = f[igas,ip]
-                    f2 = f[igas+1,ip]
+                    # set up first and second gases to combine
+                    kgas1_w_g = np.zeros((NWAVE,NG))
+                    kgas2_w_g = np.zeros((NWAVE,NG))
+                    kgas1_w_g[:,:] = k_gas_w_g_l[igas,:,:,ilayer]
+                    kgas2_w_g[:,:] = k_gas_w_g_l[igas+1,:,:,ilayer]
+                    f1 = f[igas,ilayer]
+                    f2 = f[igas+1,ilayer]
 
-                    k_combined = np.zeros((nwave,ng))
-                    f_combined = np.zeros((ngas,nlayer))
+                    k_combined = np.zeros((NWAVE,NG))
+                    # f_combined = np.zeros((NGAS,NLAYER))
 
                 else:
-                    #k_gas1_w_g = np.zeros((nwave,ng))
-                    #k_gas2_w_g = np.zeros((nwave,ng))
-                    k_gas1_w_g[:,:] = k_combined[:,:]
-                    k_gas2_w_g[:,:] = k_gas_w_g_l[igas+1,:,:,ip]
+                    #kgas1_w_g = np.zeros((NWAVE,NG))
+                    #kgas2_w_g = np.zeros((NWAVE,NG))
+                    kgas1_w_g[:,:] = k_combined[:,:]
+                    kgas2_w_g[:,:] = k_gas_w_g_l[igas+1,:,:,ilayer]
                     f1 = f_combined
-                    f2 = f[igas+1,ip]
+                    f2 = f[igas+1,ilayer]
 
-                    k_combined = np.zeros((nwave,ng))
+                    k_combined = np.zeros((NWAVE,NG))
 
-                for iwave in range(nwave):
+                for iwave in range(NWAVE):
 
-                    k_g_combined, f_combined = new_k_overlap_two_gas(k_gas1_w_g[iwave,:], k_gas2_w_g[iwave,:], f1, f2, del_g)
+                    k_g_combined, f_combined = new_k_overlap_two_gas(kgas1_w_g[iwave,:], kgas2_w_g[iwave,:], f1, f2, del_g)
                     k_combined[iwave,:] = k_g_combined[:]
 
-            k_w_g_l[:,:,ip] = k_combined[:,:]
+            k_w_g_l[:,:,ilayer] = k_combined[:,:]
 
-    return k_w_g_l
+    return k_w_g_l, f_combined
+
 
 def mix_two_gas_k(k_g1, k_g2, VMR1, VMR2, del_g):
     """

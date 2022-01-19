@@ -3,8 +3,8 @@
 import numpy as np
 from copy import copy
 # from numba import jit
-# from nemesispy.radtran.k2interp import new_k_overlap
-from nemesispy.radtran.k2interp import mix_multi_gas_k as new_k_overlap
+from nemesispy.radtran.k2interp import new_k_overlap
+# from nemesispy.radtran.k2interp import mix_multi_gas_k as new_k_overlap
 # from nemesispy.radtran.k2interp import cal_k as interp_k
 from nemesispy.radtran.k2interp import interp_k
 from nemesispy.radtran.k5cia import calc_tau_cia
@@ -128,7 +128,7 @@ def planck(wave,temp,ispace=1):
     return bb
 
 
-def tau_gas_old(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
+def tau_gas(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
             P_grid, T_grid, del_g):
     """
     Calculate the optical path due to gaseous absorbers.
@@ -167,15 +167,15 @@ def tau_gas_old(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
     # Ngas, Nwave, Ng, Nlayer = k_gas_w_g_l.shape
     # print('k_gas_w_g_l', k_gas_w_g_l)
 
-    k_w_g_l = new_k_overlap(k_gas_w_g_l, del_g, VMR_layer) # NWAVE,NG,NLAYER
+    k_w_g_l,f_combined = new_k_overlap(k_gas_w_g_l, del_g, VMR_layer.T) # NWAVE,NG,NLAYER
 
     utotl = U_layer
 
-    TAUGAS = k_w_g_l * utotl   # NWAVE, NG, NLAYER
+    TAUGAS = k_w_g_l * utotl * f_combined  # NWAVE, NG, NLAYER
 
     return TAUGAS
 
-def tau_gas(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
+def tau_gas_alternative(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
             P_grid, T_grid, del_g):
     """
       Parameters
@@ -307,17 +307,19 @@ def radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
     """
     TAURAY = calc_tau_rayleighj(wave_grid=wave_grid,TOTAM=U_layer)
     # print('TAURAY',TAURAY)
-    TAURAY *= 0
+    # TAURAY *= 0
 
     TAUCIA = calc_tau_cia(WAVE_GRID=wave_grid,K_CIA=k_cia,ISPACE=1,
         ID=ID,TOTAM=U_layer,T_layer=T_layer,P_layer=P_layer,VMR_layer=VMR_layer,DELH=DEL_S,
         NU_GRID=NU_GRID,TEMPS=CIA_TEMPS,INORMAL=0,NPAIR=9)
+    # TAUCIA *= 0
 
 
     ### Gaseous Opacity
     # Calculating the k-coefficients for each gas in each layer
     TAUGAS = tau_gas(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
             P_grid, T_grid, del_g) # NWAVE x NG x NLAYER
+
     # print('TAUGAS', TAUGAS)
 
 
