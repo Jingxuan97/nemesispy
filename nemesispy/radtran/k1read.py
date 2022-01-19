@@ -9,6 +9,13 @@ in the radiative transfer routine by multiplying absorber amounts by 1e-20.
 """
 import numpy as np
 
+"""Test File Paths
+'/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/h2o'
+'/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/co2'
+'/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/co'
+'/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/ch4'
+"""
+
 def find_nearest(array, value):
 
     """
@@ -65,6 +72,7 @@ def read_kta(filepath):
         Quadrature weights of the g-ordinates.
     P_grid : ndarray
         Pressure grid on which the k-coeff's are pre-computed.
+        Unit: atm
     T_grid : ndarray
         Temperature grid on which the k-coeffs are pre-computed.
     k_w_g_p_t : ndarray
