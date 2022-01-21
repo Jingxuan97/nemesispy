@@ -4,6 +4,36 @@ from numba import jit
 from nemesispy.data.mol_info import mol_info
 from nemesispy.data.constants import C_LIGHT, K_B, PLANCK, AMU
 
+def find_nearest(array, value):
+
+    """
+    FUNCTION NAME : find_nearest()
+
+    DESCRIPTION : Find the closest value in an array
+
+    INPUTS :
+
+        array :: List of numbers
+        value :: Value to search for
+
+    OPTIONAL INPUTS: none
+
+    OUTPUTS :
+
+        closest_value :: Closest number to value in array
+        index :: Index of closest_value within array
+
+    CALLING SEQUENCE:
+
+        closest_value,index = find_nearest(array,value)
+
+    MODIFICATION HISTORY : Juan Alday (29/04/2019)
+
+    """
+    array = np.asarray(array)
+    idx = (np.abs(array - value)).argmin()
+    return array[idx],idx
+
 
 def calc_mmw(ID, VMR, ISO=None):
     """

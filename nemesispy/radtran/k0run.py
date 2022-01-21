@@ -19,11 +19,11 @@ NVMR = len(ID)
 # Volume Mixing Ratio
 # VMR_atm[i,j] is the Volume Mixing Ratio of gas j at profile point i.
 VMR_atm = np.zeros((NProfile,NVMR))
-VMR_H2O = np.ones(NProfile)*1e-4 *0
+VMR_H2O = np.ones(NProfile)*1e-4 
 VMR_CO2 = np.ones(NProfile)*1e-4 *0
 VMR_CO = np.ones(NProfile)*1e-4 *0
 VMR_CH4 = np.ones(NProfile)*1e-4 *0
-H2ratio = 0
+H2ratio = 1
 VMR_He = (np.ones(NProfile)-VMR_H2O-VMR_CO2-VMR_CO-VMR_CH4)*(1-H2ratio)
 VMR_H2 = (np.ones(NProfile)-VMR_H2O-VMR_CO2-VMR_CO-VMR_CH4)*H2ratio
 VMR_atm[:,0] = VMR_H2O
@@ -110,20 +110,30 @@ H_layer,P_layer,T_layer,VMR_layer,U_layer,Gas_layer,scale,del_S\
     = get_profiles(R_plt, H_atm, P_atm, VMR_atm, T_atm, ID, Nlayer,
     H_base=None, path_angle=0.0, layer_type=1, bottom_height=0.0, interp_type=1, P_base=None,
     integration_type=1, Nsimps=101)
-T_layer = np.array([1292.988, 1293.762, 1295.024, 1297.082, 1300.425, 1305.834, 1314.523, 1328.323, 
-1349.853, 1382.588, 1430.597, 1497.776, 1586.563, 1696.441, 1822.772, 1956.128, 
-2082.552, 2185.848, 2253.708, 2286.032]) # pure H2 from Fortran
-T_layer = T_layer[::-1]
+"""
 U_layer = np.array([0.50903E+27,0.30850E+27,0.18707E+27,0.11359E+27,0.69073E+26,0.42045E+26,
 0.25610E+26,0.15602E+26,0.95054E+25,0.57911E+25,0.35289E+25,0.21515E+25,
 0.13125E+25,0.80137E+24,0.48963E+24,0.29943E+24,0.18323E+24,0.11221E+24,
 0.68771E+23,0.42171E+23])*1e4 # pure H2 from Fortran
 """
+
+T_layer = np.array([1292.988, 1293.762, 1295.024, 1297.082, 1300.425, 1305.834, 1314.523, 1328.323, 
+1349.853, 1382.588, 1430.597, 1497.776, 1586.563, 1696.441, 1822.772, 1956.128, 
+2082.552, 2185.848, 2253.708, 2286.032]) # pure H2 from Fortran
+T_layer = T_layer[::-1]
+
+"""
 totam = np.array([0.44341E+27,0.26865E+27,0.16285E+27,0.98854E+26,0.60092E+26,0.36569E+26,
 0.22268E+26,0.13563E+26,0.82610E+25,0.50316E+25,0.30653E+25,0.18685E+25,0.11397E+25,
 0.69572E+24,0.42500E+24,0.25985E+24,0.15898E+24,0.97341E+23,0.59644E+23,0.36567E+23])
-U_layer = totam*1e-20
+U_layer = totam*1e4
 """
+
+totam = np.array([0.50862E+27,0.30826E+27,0.18692E+27,0.11350E+27,0.69017E+26,0.42012E+26,
+0.25590E+26,0.15589E+26,0.94976E+25,0.57864E+25,0.35260E+25,0.21497E+25,
+0.13114E+25,0.80071E+24,0.48924E+24,0.29919E+24,0.18308E+24,0.11212E+24,
+0.68713E+23,0.42136E+23])*1e4 # 1e-4 h2o + h2
+
 # Radiative Transfer
 SPECOUT = radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
             P_grid, T_grid, del_g, ScalingFactor=scale,
@@ -167,6 +177,19 @@ fortran_model = [4.4054693e+22, 4.4694610e+22, 4.4556426e+22, 4.4582966e+22, 4.4
  4.4129773e+22, 4.2826643e+22, 4.0996826e+22, 3.8878161e+22, 3.6546353e+22,
  3.4097300e+22, 3.1650463e+22, 2.9285091e+22, 2.7064472e+22, 2.5024294e+22,
  5.8001989e+21, 2.8707236e+21]
+
+# 1e-4 h2o, pure He, fixed ground radiation
+fortran_model = [3.2183185e+22, 3.2145737e+22, 3.7438737e+22, 4.3498112e+22, 4.5119511e+22,
+ 3.9433023e+22, 1.8148662e+22, 1.3318566e+22, 1.1909286e+22, 1.2957171e+22,
+ 1.5051839e+22, 1.8536633e+22, 2.2972589e+22, 2.7980254e+22, 3.1944922e+22,
+ 5.2123722e+21, 2.5566670e+21]
+
+# 1e-4 h2o, pure H2, fixed ground radiation
+fortran_model = [2.3386727e+22, 2.3223329e+22, 2.7884951e+22, 3.3525034e+22, 3.5133009e+22,
+ 3.0026636e+22, 1.3094568e+22, 9.2723774e+21, 8.3360171e+21, 9.0995923e+21,
+ 1.0637932e+22, 1.3140588e+22, 1.6189699e+22, 1.9094999e+22, 2.0491682e+22,
+ 4.3127540e+21, 2.1802355e+21]
+
 import matplotlib.pyplot as plt
 
 plt.title('debug')
@@ -218,7 +241,7 @@ def planck(wave,temp,ispace=1):
 wave_grid = np.array([1.1425, 1.1775, 1.2125, 1.2475, 1.2825, 1.3175, 1.3525, 1.3875, 1.4225,
 1.4575, 1.4925, 1.5275, 1.5625, 1.5975, 1.6325, 3.6, 4.5])
 BB = planck(wave_grid,2285.50022797)*np.pi*4.*np.pi*(74065.70*1e5)**2
-plt.plot(wave_grid,BB,label='BB')
+plt.plot(wave_grid,BB,label='black body')
 
 plt.xlabel(r'wavelength($\mu$m)')
 plt.ylabel(r'total radiance(W sr$^{-1}$ $\mu$m$^{-1})$')

@@ -239,6 +239,7 @@ def new_k_overlap_two_gas(k_gas1_g, k_gas2_g, q1, q2, del_g):
     opacities. The overlapping is assumed to be random and the k-distributions are
     assumed to have NG-1 mean values and NG-1 weights. Correspondingly there are
     NG ordinates in total.
+    ??? why NG-1 mean values and NG-1 weights ???
 
     Parameters
     ----------
@@ -316,7 +317,7 @@ def new_k_overlap_two_gas(k_gas1_g, k_gas2_g, q1, q2, del_g):
         sum1 = 0.0
         for i in range(nloop):
 
-            if( (gdist[i]<g_ord[ig+1]) & (ig<=NG-1) ):
+            if (gdist[i]<g_ord[ig+1]) & (ig<=NG-1) :
                 k_combined_g[ig] = k_combined_g[ig] + contrib1[i] * weight1[i]
                 sum1 = sum1 + weight1[i]
             else:

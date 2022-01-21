@@ -15,7 +15,9 @@ import numpy as np
 '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/co'
 '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/ch4'
 """
-
+import sys
+sys.path.append('/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/')
+from nemesispy.radtran.utils import find_nearest
 def find_nearest(array, value):
 
     """
