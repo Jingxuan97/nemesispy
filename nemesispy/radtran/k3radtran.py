@@ -23,6 +23,11 @@ is ktables unit atm? i think it is.
 
 how is the filter function used?
 
+[3.2183185e+22 3.2145737e+22 3.7438737e+22 4.3498112e+22 4.5119511e+22
+ 3.9433023e+22 1.8148662e+22 1.3318566e+22 1.1909286e+22 1.2957171e+22
+ 1.5051839e+22 1.8536633e+22 2.2972589e+22 2.7980254e+22 3.1944922e+22
+ 5.2123722e+21 2.5566670e+21]
+
 """
 def calc_tau_rayleighj(wave_grid,TOTAM,ISPACE=1):
     """
@@ -305,7 +310,7 @@ def radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
     """
     TO BE DONE!
     """
-    TAURAY = calc_tau_rayleighj(wave_grid=wave_grid,TOTAM=U_layer)
+    TAURAY = calc_tau_rayleighj(wave_grid=wave_grid,TOTAM=U_layer) * 0 #### CHECK
     # print('TAURAY',TAURAY)
     # TAURAY *= 0
 
