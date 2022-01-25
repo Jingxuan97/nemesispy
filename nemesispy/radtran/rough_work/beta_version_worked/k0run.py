@@ -17,13 +17,13 @@ NProfile = 20
 NVMR = len(ID)
 
 # Volume Mixing Ratio
-# VMR_atm[i,j] is the Volume Mixing Ratio of gas j at profile point i.
+# VMR_atm[i,j] is the Volume Mixing Ratio of jth gas at ith layer.
 VMR_atm = np.zeros((NProfile,NVMR))
-VMR_H2O = np.ones(NProfile)*1e-4 
+VMR_H2O = np.ones(NProfile)*1e-4
 VMR_CO2 = np.ones(NProfile)*1e-4 *0
 VMR_CO = np.ones(NProfile)*1e-4 *0
 VMR_CH4 = np.ones(NProfile)*1e-4 *0
-H2ratio = 0
+H2ratio = 1
 VMR_He = (np.ones(NProfile)-VMR_H2O-VMR_CO2-VMR_CO-VMR_CH4)*(1-H2ratio)
 VMR_H2 = (np.ones(NProfile)-VMR_H2O-VMR_CO2-VMR_CO-VMR_CH4)*H2ratio
 VMR_atm[:,0] = VMR_H2O
@@ -67,6 +67,12 @@ lowres_files = ['/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/d
          '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/co',
          '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/ch4']
 filenames = lowres_files
+
+lowres_files = ['/Users/jingxuanyang/ktables/h2owasp43.kta',
+'/Users/jingxuanyang/ktables/cowasp43.kta',
+'/Users/jingxuanyang/ktables/co2wasp43.kta',
+'/Users/jingxuanyang/ktables/ch4wasp43.kta']
+
 """
 U_layer = np.array( [0.44339E+27, 0.26863E+27, 0.16284E+27, 0.98846E+26,
 0.60088E+26, 0.36566E+26, 0.22266E+26, 0.13562E+26,
@@ -89,7 +95,13 @@ U_layer = np.array( [0.44339E+27, 0.26863E+27, 0.16284E+27, 0.98846E+26,
 gas_id_list, iso_id_list, wave_grid, g_ord, del_g, P_grid, T_grid,\
         k_gas_w_g_p_t = read_kls(filenames)
 # P_grid is in Pa? no its in atm
-P_grid *= 101325
+
+
+
+unitP = 1e5
+unitP = 101325
+P_grid *= unitP
+
 """
 print('wave_grid', wave_grid)
 print('g_ord', g_ord)
@@ -98,8 +110,8 @@ print('del_g', del_g)
 print('P_grid', P_grid)
 
 # Get raw CIA info
-cia_file_path='/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/cia/exocia_hitran12_200-3800K.tab'
-CIA_NU_GRID,CIA_TEMPS,K_CIA = read_cia(cia_file_path)
+cia_file='/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/cia/exocia_hitran12_200-3800K.tab'
+CIA_NU_GRID,CIA_TEMPS,K_CIA = read_cia(cia_file)
 
 # Get raw stellar spectrum
 StarSpectrum = np.ones(len(wave_grid))# *4*(R_star)**2*np.pi # NWAVE
@@ -108,7 +120,7 @@ StarSpectrum = np.ones(len(wave_grid))# *4*(R_star)**2*np.pi # NWAVE
 # angles = np.array([80.4866,61.4500,42.3729,23.1420,0.00000])
 H_layer,P_layer,T_layer,VMR_layer,U_layer,Gas_layer,scale,del_S\
     = get_profiles(R_plt, H_atm, P_atm, VMR_atm, T_atm, ID, Nlayer,
-    H_base=None, path_angle=0.0, layer_type=1, bottom_height=0.0, interp_type=1, P_base=None,
+    H_base=None, path_angle=0, layer_type=1, bottom_height=0.0, interp_type=1, P_base=None,
     integration_type=1, Nsimps=101)
 """
 U_layer = np.array([0.50903E+27,0.30850E+27,0.18707E+27,0.11359E+27,0.69073E+26,0.42045E+26,
@@ -117,8 +129,8 @@ U_layer = np.array([0.50903E+27,0.30850E+27,0.18707E+27,0.11359E+27,0.69073E+26,
 0.68771E+23,0.42171E+23])*1e4 # pure H2 from Fortran
 """
 """
-T_layer = np.array([1292.988, 1293.762, 1295.024, 1297.082, 1300.425, 1305.834, 1314.523, 1328.323, 
-1349.853, 1382.588, 1430.597, 1497.776, 1586.563, 1696.441, 1822.772, 1956.128, 
+T_layer = np.array([1292.988, 1293.762, 1295.024, 1297.082, 1300.425, 1305.834, 1314.523, 1328.323,
+1349.853, 1382.588, 1430.597, 1497.776, 1586.563, 1696.441, 1822.772, 1956.128,
 2082.552, 2185.848, 2253.708, 2286.032]) # pure H2 from Fortran
 T_layer = T_layer[::-1]
 """
@@ -134,6 +146,16 @@ totam = np.array([0.50862E+27,0.30826E+27,0.18692E+27,0.11350E+27,0.69017E+26,0.
 0.13114E+25,0.80071E+24,0.48924E+24,0.29919E+24,0.18308E+24,0.11212E+24,
 0.68713E+23,0.42136E+23])*1e4 # 1e-4 h2o + h2
 """
+"""
+# pure he
+T_layer = np.array([2285.991,2253.491,2185.264,2081.481,1954.610,1820.982,
+1694.586,1584.812,1496.265,1429.394,1381.687,1349.208,1327.878,1314.224,
+1305.636,1300.295,1296.997,1294.969,1293.727,1292.966])
+
+totam = np.array([0.25624E+27,0.15510E+27,0.93929E+26,0.56966E+26,
+0.34598E+26,0.21038E+26,0.12801E+26,0.77910E+25,0.47422E+25,0.28867E+25,
+0.17576E+25,0.10707E+25,0.65266E+24,0.39820E+24,0.24311E+24,
+0.14855E+24,0.90834E+23,0.55584E+23,0.34040E+23,0.20857E+23])
 
 # He 1e-4 H2O
 T_layer = np.array([2285.991,2253.489,2185.257,2081.474,1954.617,
@@ -144,8 +166,14 @@ totam = np.array([0.25615E+27,0.15504E+27,0.93892E+26,0.56944E+26,0.34587E+26,
 0.21030E+26,0.12796E+26,0.77884E+25,0.47405E+25,0.28856E+25,0.17569E+25,
 0.10703E+25,0.65244E+24,0.39804E+24,0.24301E+24,0.14851E+24,0.90804E+23,
 0.55565E+23,0.34028E+23,0.20851E+23])*1e4
+
+P_layer = np.array([0.16191E+02,0.97955E+01,0.59331E+01,0.35984E+01,0.21851E+01,
+0.13281E+01,0.80773E+00,0.49153E+00,0.29926E+00,0.18230E+00,0.11113E+00,
+0.67792E-01,0.41385E-01,0.25282E-01,0.15453E-01,0.94523E-02,0.57839E-02,
+0.35407E-02,0.21686E-02,0.13288E-02])*101325
+"""
 # Radiative Transfer
-SPECOUT = radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
+SPECOUT,radground = radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
             P_grid, T_grid, del_g, ScalingFactor=scale,
             RADIUS=R_plt, solspec=StarSpectrum,
             k_cia=K_CIA,ID=ID,NU_GRID=CIA_NU_GRID,CIA_TEMPS=CIA_TEMPS, DEL_S=del_S)
@@ -189,28 +217,28 @@ fortran_model = [4.4054693e+22, 4.4694610e+22, 4.4556426e+22, 4.4582966e+22, 4.4
  5.8001989e+21, 2.8707236e+21]
 
 
-# 1e-4 h2o, pure H2, fixed ground radiation
-fortran_model = [2.3386727e+22, 2.3223329e+22, 2.7884951e+22, 3.3525034e+22, 3.5133009e+22,
- 3.0026636e+22, 1.3094568e+22, 9.2723774e+21, 8.3360171e+21, 9.0995923e+21,
- 1.0637932e+22, 1.3140588e+22, 1.6189699e+22, 1.9094999e+22, 2.0491682e+22,
- 4.3127540e+21, 2.1802355e+21]
-
 # 1e-4 h2o, pure He, fixed ground radiation
 fortran_model = [3.2183185e+22, 3.2145737e+22, 3.7438737e+22, 4.3498112e+22, 4.5119511e+22,
  3.9433023e+22, 1.8148662e+22, 1.3318566e+22, 1.1909286e+22, 1.2957171e+22,
  1.5051839e+22, 1.8536633e+22, 2.2972589e+22, 2.7980254e+22, 3.1944922e+22,
  5.2123722e+21, 2.5566670e+21]
 
+# 1e-4 h2o, pure H2, fixed ground radiation
+fortran_model = [2.3386727e+22, 2.3223329e+22, 2.7884951e+22, 3.3525034e+22, 3.5133009e+22,
+ 3.0026636e+22, 1.3094568e+22, 9.2723774e+21, 8.3360171e+21, 9.0995923e+21,
+ 1.0637932e+22, 1.3140588e+22, 1.6189699e+22, 1.9094999e+22, 2.0491682e+22,
+ 4.3127540e+21, 2.1802355e+21]
+
+# Pure He
 import matplotlib.pyplot as plt
 
 
 
 plt.title('debug')
-plt.plot(wave_grid,SPECOUT.T[0])
-plt.scatter(wave_grid,SPECOUT,marker='o',color='b',linewidth=0.5,s=10, label='python')
-
-plt.scatter(wave_grid,fortran_model,label='fortran',marker='x',color='k')
-plt.plot(wave_grid,fortran_model,color='k')
+plt.plot(wave_grid,SPECOUT)
+plt.scatter(wave_grid,SPECOUT,marker='o',color='b',linewidth=0.5,s=1, label='python')
+plt.scatter(wave_grid,fortran_model,label='fortran',marker='x',color='k',s=20)
+# plt.plot(wave_grid,fortran_model,color='k')
 
 ## black body plot
 
@@ -253,9 +281,10 @@ def planck(wave,temp,ispace=1):
 
 wave_grid = np.array([1.1425, 1.1775, 1.2125, 1.2475, 1.2825, 1.3175, 1.3525, 1.3875, 1.4225,
 1.4575, 1.4925, 1.5275, 1.5625, 1.5975, 1.6325, 3.6, 4.5])
-BB = planck(wave_grid,2285.50022797)*np.pi*4.*np.pi*(74065.70*1e5)**2
-plt.plot(wave_grid,BB,label='black body')
+BB = planck(wave_grid,2285.991)*np.pi*4.*np.pi*(74065.70*1e5)**2
+plt.plot(wave_grid,BB,label='black body',marker='*')
 
+# plt.scatter(wave_grid,radground,label='radground',marker='+')
 plt.xlabel(r'wavelength($\mu$m)')
 plt.ylabel(r'total radiance(W sr$^{-1}$ $\mu$m$^{-1})$')
 
@@ -267,8 +296,7 @@ plt.savefig('comparison.pdf',dpi=400)
 plt.show()
 plt.close()
 
-
-diff = (SPECOUT.T[0]-fortran_model)/SPECOUT.T[0]
+diff = (SPECOUT-fortran_model)/SPECOUT
 print(diff)
 
 """
@@ -357,4 +385,21 @@ Gas_layer [[4.43039336e+26 4.43039336e+10 4.43039336e+10 4.43039336e+10
   8.76381176e+25 4.96616000e+26]
  [3.76228180e+22 3.76228180e+06 3.76228180e+06 3.76228180e+06
   5.64285836e+25 3.19761974e+26]]
+
+no rayleiigh no cia
+[0.01176268 0.00993311 0.00690039 0.00555645 0.00612432 0.00745527
+ 0.01411693 0.01597703 0.01500602 0.01282563 0.01002507 0.00716911
+ 0.003549   0.00148769 0.0006867  0.00271556 0.00428428]
+
+no cia
+[0.01176268 0.00993311 0.00690039 0.00555645 0.00612432 0.00745527
+ 0.01411693 0.01597703 0.01500602 0.01282563 0.01002507 0.00716911
+ 0.003549   0.00148769 0.0006867  0.00271556 0.00428428]
+
+full batch iray = 0
+
+own layer routine
+[ 0.00739232  0.00537757  0.00318653  0.00279264  0.00364278  0.00445534
+  0.00890112  0.0095062   0.00851458  0.00647767  0.00398057  0.00164343
+ -0.00130733 -0.00252171 -0.00260729  0.00041391  0.00224294]
 """

@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 from copy import copy
+
+from numpy.core.defchararray import array
 # from numba import jit
 from nemesispy.radtran.k2interp import new_k_overlap
 # from nemesispy.radtran.k2interp import mix_multi_gas_k as new_k_overlap
@@ -316,7 +318,7 @@ def radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
 
     TAUCIA = calc_tau_cia(WAVE_GRID=wave_grid,K_CIA=k_cia,ISPACE=1,
         ID=ID,TOTAM=U_layer,T_layer=T_layer,P_layer=P_layer,VMR_layer=VMR_layer,DELH=DEL_S,
-        NU_GRID=NU_GRID,TEMPS=CIA_TEMPS,INORMAL=0,NPAIR=9)
+        NU_GRID=NU_GRID,TEMPS=CIA_TEMPS,INORMAL=1,NPAIR=9)
     # TAUCIA *= 0
 
 
@@ -324,7 +326,7 @@ def radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
     # Calculating the k-coefficients for each gas in each layer
     TAUGAS = tau_gas(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
             P_grid, T_grid, del_g) # NWAVE x NG x NLAYER
-
+    # TAUGAS *= 0
     # print('TAUGAS', TAUGAS)
 
 
@@ -341,79 +343,123 @@ def radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
     # Thermal Emission Calculation
     # IMOD = 3
     NPATH = 1
-    SPECOUT = np.zeros([NWAVE,NG,NPATH])
+    SPECOUT = np.zeros([NWAVE,NG])
 
     #Defining the units of the output spectrum / divide by stellar spectrum
     # IFORM = 1
-    radextra = sum(DEL_S)
+    radextra = sum(DEL_S[:-1])
+    #radextra*=0
     xfac = np.pi*4.*np.pi*((RADIUS+radextra)*1e2)**2.
     xfac = xfac / solspec
 
     #Calculating spectrum
-    for ipath in range(NPATH):
+    #Calculating atmospheric contribution
+    taud = np.zeros((NWAVE,NG))
+    """
+    ERROR :
+        old : trold = np.zeros((NWAVE,NG))
+        new : trold = np.ones((NWAVE,NG))
+    """
+    trold = np.ones((NWAVE,NG)) ###### this is the issue
+    specg = np.zeros((NWAVE,NG))
 
-        #Calculating atmospheric contribution
-        taud = np.zeros((NWAVE,NG))
-        trold = np.zeros((NWAVE,NG))
-        specg = np.zeros((NWAVE,NG))
+    # Thermal Emission from planet
+    # SPECOUT = np.zeros(NWAVE, NG)
 
-        # Thermal Emission from planet
-        # SPECOUT = np.zeros(NWAVE, NG)
+    """
+    ERROR 1:
+        old : taud[:,:] =  TAUTOT[:,:,ilayer]
+        new : taud[:,:] =  TAUTOT[:,:,ilayer] + taud[:,:]
+    ERROR 2:
+        old : TAUTOT[:,:,-ilayer]
+        bb = planck(wave_grid, T_layer[-ilayer])
+    """
+    for ilayer in range(NLAY):
 
-        """
-        ERROR 1:
-            old : taud[:,:] =  TAUTOT[:,:,ilayer]
-            new : taud[:,:] =  TAUTOT[:,:,ilayer] + taud[:,:]
-        ERROR 2:
-            old : TAUTOT[:,:,-ilayer]
-            bb = planck(wave_grid, T_layer[-ilayer])
-        """
-        for ilayer in range(NLAY):
+        taud[:,:] =  TAUTOT[:,:,ilayer] + taud[:,:]
 
-            taud[:,:] =  TAUTOT[:,:,ilayer] + taud[:,:]
-            tr = np.exp(-taud) # transmission function
-            #print('tr',tr)
-            bb = planck(wave_grid, T_layer[ilayer]) # blackbody function
+        print('taud',np.amax(taud),np.amin(taud))
+        tr = np.exp(-taud) # transmission function
+        # print('tr',tr)
 
-            for ig in range(NG):
-                specg[:,ig] = specg[:,ig] + (trold[:,ig]-tr[:,ig])*bb[:] * xfac
-                # print('specg[:,ig]',specg[:,ig])
-            trold = copy(tr)
-            #trold = tr
+        #print('tr',tr)
+        bb = planck(wave_grid, T_layer[ilayer]) # blackbody function
+        print('bb',bb)
+        print('np.amin(specg),np.amax(specg)',np.amin(specg),np.amax(specg))
+        print('np.amin(tr),np.amax(tr)',np.amin(tr),np.amax(tr))
+        for ig in range(NG):
+            specg[:,ig] = specg[:,ig] + (trold[:,ig]-tr[:,ig])*bb[:]# * xfac
 
-        # surface/bottom layer contribution
-        p1 = P_layer[int(len(P_layer)/2-1)] #midpoint
-        p2 = P_layer[-1] #lowest point in altitude/highest in pressure
+            # print('trold[:,ig]-tr[:,ig]*bb[:]', (trold[:,ig]-tr[:,ig])*bb[:],np.amin(trold[:,ig]-tr[:,ig])*bb[:])
+            # print('specg[:,ig]',specg[:,ig])
+        # trold = copy(tr)
+        print('(trold[:,ig]-tr[:,ig])',np.amax(trold[:,ig]-tr[:,ig]),np.amin(trold[:,ig]-tr[:,ig]))
+        trold = tr
+        # print('trold',trold)
 
-        surface = None
-        if p2 > p1: # i.e. if not a limb path
-            #print(p2,p1)
-            if not surface:
-                radground = planck(wave_grid,T_layer[-1])
-                #print('radground',radground)
-            for ig in range(NG):
-                specg[:,ig] = specg[:,ig] + trold[:,ig]*radground*xfac
-                # print('trold[:,ig]*radground*xfac',trold[:,ig]*radground*xfac)
+    # surface/bottom layer contribution
+    p1 = P_layer[int(len(P_layer)/2-1)] #midpoint
+    p2 = P_layer[-1] #lowest point in altitude/highest in pressure
 
-        SPECOUT[:,:,ipath] = specg[:,:]
-        # Option 1
+    surface = None
+    print('np.amax(specg),np.amin(specg)',np.amax(specg),np.amin(specg))
+    if p2 > p1: # i.e. if not a limb path
+        #print(p2,p1)
+        if not surface:
+            radground = planck(wave_grid,T_layer[-1])
+            print(T_layer[-1])
+            print('radground',radground)
+            #print('radground',radground)
+        for ig in range(NG):
+            # specg[:,ig] = specg[:,ig] + trold[:,ig]*radground*xfac
+            # print('trold[:,ig]*radground*xfac',trold[:,ig]*radground*xfac)
+            # radground_scaled = trold[:,ig]*radground # *xfac
+            specg[:,ig] = specg[:,ig] + trold[:,ig]*radground
 
-    SPECOUT = np.tensordot(SPECOUT, del_g, axes=([1],[0]))
+    SPECOUT[:,:] = specg[:,:]
 
-    # Option 2
-    # SPECOUT = np.zeros(NWAVE)
-    # for iwave in range(NWAVE):
-    #     SPECOUT[iwave] = np.sum(specg[iwave,:] * del_g)
+    # Option 1
+    print('SPECOUT',np.amin(SPECOUT))
+    SPECOUT = np.tensordot(SPECOUT, del_g, axes=([1],[0])) * xfac
 
-    # Option 3
-    # specg1 = np.zeros([NWAVE,NG,1])
-    # specg1[:,:,0] = specg
-    # SPECOUT = np.tensordot(specg1, del_g, axes=([1],[0]))
 
-    # print('TAUCIA',TAUCIA) # NWAVE X NLAYER
-    # print('TAUGAS',TAUGAS) # NWAVE x NG x NLAYER
-    # print('TAUTOT',TAUTOT) # NWAVE x NG x NLAYER
-    return SPECOUT
+    # SPECOUT = SPECOUT.T[0]
+    #print('SPECOUT0',SPECOUT)
+
+    """
+    SPECOUT += radground_scaled
+    #print('SPECOUT1',SPECOUT)
+    SPECOUT = radground_scaled
+    """
+    # # Option 2
+    # # SPECOUT = np.zeros(NWAVE)
+    # # for iwave in range(NWAVE):
+    # #     SPECOUT[iwave] = np.sum(specg[iwave,:] * del_g)
+
+    # # Option 3
+    # # specg1 = np.zeros([NWAVE,NG,1])
+    # # specg1[:,:,0] = specg
+    # # SPECOUT = np.tensordot(specg1, del_g, axes=([1],[0]))
+
+    # # print('TAUCIA',TAUCIA) # NWAVE X NLAYER
+    # # print('TAUGAS',TAUGAS) # NWAVE x NG x NLAYER
+    # # print('TAUTOT',TAUTOT) # NWAVE x NG x NLAYER
+    """
+    radiance = np.zeros(len(wave_grid))
+    for iwave, wl in enumerate(wave_grid):
+        tau_g_l = TAUGAS[iwave,:,:]
+        bb = planck(wl,T_layer)
+
+        radiance_g = np.zeros(NG)
+        for ig in range(NG):
+            tau_g = tau_g_l[ig,:]
+            tr = np.exp(-np.cumsum(tau_g))
+            tr = np.concatenate((np.array([1]),tr))
+            del_tr = tr[:-1] - tr[1:]
+            radiance_g[ig] = np.sum(bb*del_tr)
+        radiance[iwave] = np.sum(radiance_g*del_g)
+    """
+    return SPECOUT, np.zeros(NWAVE)
 
 """# pure H2 He case
  original name of this file: wasp43b.drv
