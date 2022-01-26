@@ -5,10 +5,10 @@ import numpy as np
 from nemesispy.data.constants import R_SUN, R_JUP_E, AMU, AU, M_JUP, R_JUP
 from nemesispy.radtran.utils import calc_mmw
 from nemesispy.radtran.models import Model2
-from nemesispy.radtran.path import get_profiles # average
+from nemesispy.radtran.path import calc_layer # average
 from nemesispy.radtran.read import read_kls
-from nemesispy.radtran.radiance import radtran, planck_function
-from nemesispy.radtran.cia import read_cia
+from nemesispy.radtran.radiance import radtran, calc_planck
+from nemesispy.radtran.read import read_cia
 
 lowres_files = ['/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/h2o',
          '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/co2',
@@ -74,8 +74,8 @@ T_atm = atm.temperature()
 gas_id_list, iso_id_list, wave_grid, g_ord, del_g, P_grid, T_grid,\
         k_gas_w_g_p_t = read_kls(filenames)
 CIA_NU_GRID,CIA_TEMPS,K_CIA = read_cia(cia_file_path)
-wave_grid = np.array([1.1425, 1.1775, 1.2125, 1.2475, 1.2825, 1.3175, 1.3525, 1.3875, 1.4225,
-1.4575, 1.4925, 1.5275, 1.5625, 1.5975, 1.6325, 3.6, 4.5])
+wave_grid = np.array([1.1425, 1.1775, 1.2125, 1.2475, 1.2825, 1.3175, 1.3525,
+1.3875, 1.4225, 1.4575, 1.4925, 1.5275, 1.5625, 1.5975, 1.6325, 3.6, 4.5])
 
 # Get raw stellar spectrum
 StarSpectrum = np.ones(len(wave_grid)) # *4*(R_star)**2*np.pi # NWAVE
@@ -83,12 +83,12 @@ StarSpectrum = np.ones(len(wave_grid)) # *4*(R_star)**2*np.pi # NWAVE
 # DO Gauss Labatto quadrature averaging
 # angles = np.array([80.4866,61.4500,42.3729,23.1420,0.00000])
 H_layer,P_layer,T_layer,VMR_layer,U_layer,Gas_layer,scale,del_S\
-    = get_profiles(R_plt, H_atm, P_atm, VMR_atm, T_atm, ID, Nlayer,
-    H_base=None, path_angle=0, layer_type=1, bottom_height=0.0, interp_type=1, P_base=None,
-    integration_type=1, Nsimps=101)
+    = calc_layer(R_plt, H_atm, P_atm, VMR_atm, T_atm, ID, Nlayer,
+    H_base=None, path_angle=0, layer_type=1, H_0=0.0, interp_type=1, P_base=None,
+    integration_type=1, NSIMPS=101)
 
 # Radiative Transfer
-SPECOUT,radground = radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
+SPECOUT = radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
             P_grid, T_grid, del_g, ScalingFactor=scale,
             RADIUS=R_plt, solspec=StarSpectrum,
             k_cia=K_CIA,ID=ID,NU_GRID=CIA_NU_GRID,CIA_TEMPS=CIA_TEMPS, DEL_S=del_S)
@@ -105,7 +105,7 @@ plt.plot(wave_grid,SPECOUT)
 plt.scatter(wave_grid,SPECOUT,marker='o',color='b',linewidth=0.5,s=1, label='python')
 plt.scatter(wave_grid,fortran_model,label='fortran',marker='x',color='k',s=20)
 
-BB = planck_function(wave_grid,2285.991)*np.pi*4.*np.pi*(74065.70*1e5)**2
+BB = calc_planck(wave_grid,2285.991)*np.pi*4.*np.pi*(74065.70*1e5)**2
 plt.plot(wave_grid,BB,label='black body',marker='*')
 
 plt.xlabel(r'wavelength($\mu$m)')
@@ -114,9 +114,10 @@ plt.legend()
 plt.tight_layout()
 plt.plot()
 plt.grid()
-plt.savefig('comparison.pdf',dpi=400)
+# plt.savefig('comparison.pdf',dpi=400)
 plt.show()
 plt.close()
 
 diff = (SPECOUT-fortran_model)/SPECOUT
 print(diff)
+print(max(diff))

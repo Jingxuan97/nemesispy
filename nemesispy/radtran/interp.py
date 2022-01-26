@@ -230,7 +230,7 @@ def new_k_overlap(k_gas_w_g_l,del_g,VMR):
                     kgas1_w_g[:,:] = k_combined[:,:]
                     kgas2_w_g[:,:] = k_gas_w_g_l[igas+1,:,:,ilayer]
                     f1 = f_combined
-                    f2 = VMR[igas+1,ilayer]
+                    f2 = VMR[ilayer,igas+1]
                     k_combined = np.zeros((NWAVE,NG))
 
                 for iwave in range(NWAVE):

@@ -8,7 +8,7 @@ from nemesispy.radtran.interp import new_k_overlap
 from nemesispy.radtran.interp import interp_k
 from nemesispy.radtran.cia import calc_tau_cia
 
-def planck_function(wave,temp,ispace=1):
+def calc_planck(wave,temp,ispace=1):
     """
     Calculate the blackbody radiation given by the Planck function
 
@@ -39,7 +39,7 @@ def planck_function(wave,temp,ispace=1):
         y = 1.0e4/wave
         a = c1 * (y**5.) / 1.0e4
     else:
-        raise Exception('error in planck_function: ISPACE must be either 0 or 1')
+        raise Exception('error in calc_planck: ISPACE must be either 0 or 1')
 
     tmp = c2 * y / temp
     b = np.exp(tmp) - 1
@@ -122,13 +122,13 @@ def calc_tau_gas(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
     k_gas_w_g_p_t(NGAS,NWAVE,NG,NPRESSKTA,NTEMPKTA) : ndarray
         Raw k-coefficients.
         Has dimension: NWAVE x NG x NPRESSKTA x NTEMPKTA.
-    P_layer(Nlayer) : ndarray
+    P_layer(NLAYER) : ndarray
         Atmospheric pressure grid.
-    T_layer(Nlayer) : ndarray
+    T_layer(NLAYER) : ndarray
         Atmospheric temperature grid.
-    VMR_layer(Nlayer,NGAS) : ndarray
+    VMR_layer(NLAYER,NGAS) : ndarray
         Array of volume mixing ratios for NGAS.
-        Has dimensioin: Nlayer x NGAS
+        Has dimensioin: NLAYER x NGAS
     U_layer : ndarray
         DESCRIPTION.
     P_grid(NPRESSKTA) : ndarray
@@ -140,7 +140,7 @@ def calc_tau_gas(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
 
     Returns
     -------
-    tau_w_g_l(NWAVE,NG,Nlayer) : ndarray
+    tau_w_g_l(NWAVE,NG,NLAYER) : ndarray
         DESCRIPTION.
     """
 
@@ -149,7 +149,7 @@ def calc_tau_gas(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
 
     k_gas_w_g_l = interp_k(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t) # NGAS,NWAVE,NG,NLAYER
 
-    k_w_g_l,f_combined = new_k_overlap(k_gas_w_g_l, del_g, VMR_layer.T) # NWAVE,NG,NLAYER
+    k_w_g_l,f_combined = new_k_overlap(k_gas_w_g_l, del_g, VMR_layer) # NWAVE,NG,NLAYER
 
     utotl = U_layer
 
@@ -172,17 +172,17 @@ def radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
     ----------
     wave_grid(NWAVE) : ndarray
         Wavelengths (um) grid for calculating spectra.
-    U_layer(Nlayer) : ndarray
+    U_layer(NLAYER) : ndarray
         Total number of gas particles in each layer.
         We want SI unit (no. of particle/m^2) here.
-    P_layer(Nlayer) : ndarray
+    P_layer(NLAYER) : ndarray
         Atmospheric pressure grid.
         We want SI unit (Pa) here.
-    T_layer(Nlayer) : ndarray
+    T_layer(NLAYER) : ndarray
         Atmospheric temperature grid. In Kelvin.
-    VMR_layer(Nlayer,NGAS) : ndarray
+    VMR_layer(NLAYER,NGAS) : ndarray
         Array of volume mixing ratios for NGAS.
-        Has dimensioin: Nlayer x NGAS
+        Has dimensioin: NLAYER x NGAS
     k_gas_w_g_p_t : ndarray
         k-coefficients. Has dimension: NWAVE x NG x NPRESSKTA x NTEMPKTA.
     P_grid(NPRESSKTA) : ndarray
@@ -272,7 +272,7 @@ def radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
 
             tau_cumulative_w_g[:,:] =  tau_total_w_g_l[:,:,ilayer] + tau_cumulative_w_g[:,:]
             tr_w_g = np.exp(-tau_cumulative_w_g) # transmission function
-            bb = planck_function(wave_grid, T_layer[ilayer]) # blackbody function
+            bb = calc_planck(wave_grid, T_layer[ilayer]) # blackbody function
             for ig in range(NG):
                 spec_w_g[:,ig] = spec_w_g[:,ig]+(tr_old_w_g[:,ig]-tr_w_g[:,ig])*bb[:]
 
@@ -286,13 +286,13 @@ def radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
         surface = None
         if p2 > p1: # i.e. if not a limb path
             if not surface:
-                radground = planck_function(wave_grid,T_layer[-1])
+                radground = calc_planck(wave_grid,T_layer[-1])
             for ig in range(NG):
                 spec_w_g[:,ig] = spec_w_g[:,ig] + tr_old_w_g[:,ig]*radground
 
         spec_out[:,:,ipath] = spec_w_g[:,:]
 
-    # Option 1
     spec_out = np.tensordot(spec_out, del_g, axes=([1],[0])) * xfac
     spec_out = spec_out.T[0]
-    return spec_out, np.zeros(NWAVE)
+
+    return spec_out

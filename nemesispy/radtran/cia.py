@@ -1,6 +1,5 @@
 import numpy as np
 from scipy import interpolate
-from scipy.io import FortranFile
 
 def find_nearest(input_array, target_value):
     """
@@ -21,56 +20,9 @@ def find_nearest(input_array, target_value):
         array[idx] : ndarray
             Closest number to target_value in the input array
     """
-
     array = np.asarray(input_array)
     idx = (np.abs(array - target_value)).argmin()
     return array[idx], idx
-
-def read_cia(filepath,dnu=10,npara=0):
-    """
-    Parameters
-    ----------
-    filepath : str
-        Filepath to the .tab file containing CIA information.
-    dnu : real, optional
-        Wavenumber interval. The default is 10.
-    npara : int, optional
-        DESCRIPTION. The default is 0.
-
-    Returns
-    -------
-    NU_GRID(NWAVE) : ndarray
-        Wavenumber array (NOTE: ALWAYS IN WAVENUMBER, NOT WAVELENGTH).
-    TEMPS(NTEMP) : ndarray
-        Temperature levels at which the CIA data is defined (K).
-    K_CIA(NPAIR,NTEMP,NWAVE) : ndarray
-         CIA cross sections for each pair at each temperature level and wavenumber.
-    """
-
-    if npara != 0:
-        # might need sys.exit'
-        raise('Routines have not been adapted yet for npara!=0')
-
-    # Reading the actual CIA file
-    if npara == 0:
-        NPAIR = 9 # 9 pairs of collision induced absorption opacities
-
-    f = FortranFile(filepath, 'r')
-    TEMPS = f.read_reals( dtype='float64' )
-    KCIA_list = f.read_reals( dtype='float32' )
-    NT = len(TEMPS)
-    NWAVE = int(len(KCIA_list)/NT/NPAIR)
-    NU_GRID = np.linspace(0,dnu*(NWAVE-1),NWAVE)
-    K_CIA = np.zeros([NPAIR,NT,NWAVE]) # NPAIR x NT x NWAVE
-
-    index = 0
-    for iwn in range(NWAVE):
-        for itemp in range(NT):
-            for ipair in range(NPAIR):
-                K_CIA[ipair,itemp,iwn] = KCIA_list[index]
-                index += 1
-
-    return NU_GRID, TEMPS, K_CIA
 
 def calc_tau_cia(wave_grid,K_CIA,ISPACE,
         ID,TOTAM,T_layer,P_layer,VMR_layer,DELH,

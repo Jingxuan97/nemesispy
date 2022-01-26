@@ -1,6 +1,8 @@
 #!/usr/local/bin/python3
 # -*- coding: utf-8 -*-
-"""Routines to read pre-tabulated correlated-k look-up tables (k-tables).
+"""Routines to read pre-tabulated correlated-k look-up tables (k-tables) and
+collision induced absorption opacitied files.
+
 All k-tables are assumed to share the same wavelength grid, pressure grid,
 temperature grid, g ordinates and quadrature weights.
 
@@ -9,6 +11,7 @@ which need to be rescaled in the radiative transfer routine by multiplying
 absorber amounts by 1e-20.
 """
 import numpy as np
+from scipy.io import FortranFile
 import sys
 sys.path.append('/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/')
 from nemesispy.data.constants import ATM
@@ -160,3 +163,48 @@ def read_kls(filepaths):
     k_gas_w_g_p_t = np.array(k_gas_w_g_p_t)
     return gas_id_list, iso_id_list, wave_grid, g_ord_quad, del_g, P_grid, T_grid,\
         k_gas_w_g_p_t
+
+def read_cia(filepath,dnu=10,npara=0):
+    """
+    Parameters
+    ----------
+    filepath : str
+        Filepath to the .tab file containing CIA information.
+    dnu : real, optional
+        Wavenumber interval. The default is 10.
+    npara : int, optional
+        DESCRIPTION. The default is 0.
+
+    Returns
+    -------
+    NU_GRID(NWAVE) : ndarray
+        Wavenumber array (NOTE: ALWAYS IN WAVENUMBER, NOT WAVELENGTH).
+    TEMPS(NTEMP) : ndarray
+        Temperature levels at which the CIA data is defined (K).
+    K_CIA(NPAIR,NTEMP,NWAVE) : ndarray
+         CIA cross sections for each pair at each temperature level and wavenumber.
+    """
+    if npara != 0:
+        # might need sys.exit'
+        raise('Routines have not been adapted yet for npara!=0')
+
+    # Reading the actual CIA file
+    if npara == 0:
+        NPAIR = 9 # 9 pairs of collision induced absorption opacities
+
+    f = FortranFile(filepath, 'r')
+    TEMPS = f.read_reals( dtype='float64' )
+    KCIA_list = f.read_reals( dtype='float32' )
+    NT = len(TEMPS)
+    NWAVE = int(len(KCIA_list)/NT/NPAIR)
+    NU_GRID = np.linspace(0,dnu*(NWAVE-1),NWAVE)
+    K_CIA = np.zeros([NPAIR,NT,NWAVE]) # NPAIR x NT x NWAVE
+
+    index = 0
+    for iwn in range(NWAVE):
+        for itemp in range(NT):
+            for ipair in range(NPAIR):
+                K_CIA[ipair,itemp,iwn] = KCIA_list[index]
+                index += 1
+
+    return NU_GRID, TEMPS, K_CIA
