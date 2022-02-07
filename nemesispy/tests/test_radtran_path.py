@@ -17,15 +17,15 @@ class TestSplit(unittest.TestCase):
             H_base, P_base = split(H,P,Nlayer,layer_type=layer_type)
 
     def test_layer_bottom_height_range(self):
-        # should stop code bottom_height is out of range
+        # should stop code H_0 is out of range
         Nlayer = 100
         Nprofile = 100
         H = np.linspace(0,1e6,Nprofile)
         P = np.linspace(1e5,1,Nprofile)
         with self.assertRaises(AssertionError):
-            H_base, P_base = split(H,P,Nlayer,bottom_height=(H[0]-1))
+            H_base, P_base = split(H,P,Nlayer,H_0=(H[0]-1))
         with self.assertRaises(AssertionError):
-            H_base, P_base = split(H,P,Nlayer,bottom_height=(H[-1]))
+            H_base, P_base = split(H,P,Nlayer,H_0=(H[-1]))
 
     def test_path_angle_range(self):
         # test spliting by equal line-of-sight path intervals
@@ -36,9 +36,9 @@ class TestSplit(unittest.TestCase):
         layer_type = 3
         # code should stop if zenith angle is not between [0,90]
         with self.assertRaises(AssertionError):
-            H_base, P_base = split(H,P,Nlayer,layer_type,path_angle=-1)
+            H_base, P_base = split(H,P,Nlayer,layer_type,custom_path_angle=-1)
         with self.assertRaises(AssertionError):
-            H_base, P_base = split(H,P,Nlayer,layer_type,path_angle=91)
+            H_base, P_base = split(H,P,Nlayer,layer_type,custom_path_angle=91)
 
     def test_layer_type_0(self):
         # test spliting a profile by equal changes in pressure
@@ -90,7 +90,7 @@ class TestSplit(unittest.TestCase):
         radius = 7e7
         for i in angles:
             H_base, P_base \
-                = split(H,P,Nlayer,layer_type,path_angle=i,radius=radius)
+                = split(H,P,Nlayer,layer_type,path_angle=i,planet_radius=radius)
             z0 = radius
             sin = np.sin(i*np.pi/180)
             cos = np.cos(i*np.pi/180)
@@ -133,12 +133,12 @@ class TestSplit(unittest.TestCase):
         # code should stop if input base heights out of range of profile
         with self.assertRaises(AssertionError):
             H_base = np.linspace(H[0]-1,H[-1],Nlayer)
-            H_base,P_base = split(H,P,Nlayer,layer_type,H_base=H_base)
+            H_base,P_base = split(H,P,Nlayer,layer_type,custom_H_base=H_base)
         with self.assertRaises(AssertionError):
             H_base = np.linspace(H[0],H[-1]+1,Nlayer)
-            H_base,P_base = split(H,P,Nlayer,layer_type,H_base=H_base)
+            H_base,P_base = split(H,P,Nlayer,layer_type,custom_H_base=H_base)
         H_base = np.linspace(H[0]+1,H[-1]-1,Nlayer)
-        H_base,P_base = split(H,P,Nlayer,layer_type,H_base=H_base)
+        H_base,P_base = split(H,P,Nlayer,layer_type,custom_H_base=H_base)
 
 
 class TestAverage(unittest.TestCase):
@@ -161,7 +161,7 @@ class TestAverage(unittest.TestCase):
         H_base = np.geomspace(10,9.9e5,Nlayer)
         path_angle = 0
         integration_type = 0
-        H_layer,P_layer,T_layer,VMR_layer,total_path,path,scale\
+        H_layer,P_layer,T_layer,VMR_layer,U_layer,Gas_layer,scale,del_S\
             = average(radius, H_atm, P_atm, T_atm, VMR_atm, ID, H_base, path_angle,\
                       integration_type=integration_type)
         # layer scaling factor should be 1 if path angle = 0
@@ -186,7 +186,7 @@ class TestAverage(unittest.TestCase):
         H_base = np.geomspace(10,9.9e5,Nlayer)
         path_angle = 0
         integration_type = 1
-        H_layer,P_layer,T_layer,VMR_layer,total_path,path,scale\
+        H_layer,P_layer,T_layer,VMR_layer,U_layer,Gas_layer,scale,del_S\
             = average(radius, H_atm, P_atm, T_atm, VMR_atm, ID, H_base, path_angle,\
                       integration_type=integration_type)
         # layer scaling factor should be 1 if path angle = 0

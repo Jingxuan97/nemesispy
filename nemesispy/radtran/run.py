@@ -85,8 +85,9 @@ StarSpectrum = np.ones(len(wave_grid)) # *4*(R_star)**2*np.pi # NWAVE
 # angles = np.array([80.4866,61.4500,42.3729,23.1420,0.00000])
 H_layer,P_layer,T_layer,VMR_layer,U_layer,Gas_layer,scale,del_S\
     = calc_layer(R_plt, H_atm, P_atm,  T_atm, VMR_atm, ID, Nlayer,
-    H_base=None, path_angle=0, layer_type=1, H_0=0.0, interp_type=1, P_base=None,
+    path_angle=0, layer_type=1, H_0=0.0, interp_type=1,
     integration_type=1, NSIMPS=101)
+print('scale',scale)
 
 # Radiative Transfer
 SPECOUT = radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
@@ -94,12 +95,17 @@ SPECOUT = radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t
             RADIUS=R_plt, solspec=StarSpectrum,
             k_cia=K_CIA,ID=ID,NU_GRID=CIA_NU_GRID,CIA_TEMPS=CIA_TEMPS, DEL_S=del_S)
 
-# 1e-4 h2o, pure H2, fixed ground radiation
+# 1e-4 h2o, pure H2, fixed ground radiation at 0 zenith angle
 fortran_model = [2.3386727e+22, 2.3223329e+22, 2.7884951e+22, 3.3525034e+22, 3.5133009e+22,
  3.0026636e+22, 1.3094568e+22, 9.2723774e+21, 8.3360171e+21, 9.0995923e+21,
  1.0637932e+22, 1.3140588e+22, 1.6189699e+22, 1.9094999e+22, 2.0491682e+22,
  4.3127540e+21, 2.1802355e+21]
 
+# 1e-4 h2o, pure H2, fixed ground radiation at 45 zenith angle
+fortran_model = [2.8620871e+22, 2.8380491e+22, 3.3898887e+22, 4.0607526e+22, 4.2549604e+22,
+ 3.6542824e+22, 1.5758073e+22, 1.1191856e+22, 1.0017755e+22, 1.0942468e+22,
+ 1.2814779e+22, 1.5990998e+22, 2.0164856e+22, 2.5100488e+22, 2.9190714e+22,
+ 4.9054536e+21, 2.4231562e+21]
 # start plot
 plt.title('debug')
 plt.plot(wave_grid,SPECOUT)

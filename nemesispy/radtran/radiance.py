@@ -49,7 +49,7 @@ def calc_planck(wave,temp,ispace=1):
 
 def calc_tau_rayleighj(wave_grid,TOTAM,ISPACE=1):
     """
-    Function to calculate the Rayleigh scattering opacity in each atmospheric layer,
+    Calculate the Rayleigh scattering opacity in each atmospheric layer,
     for Gas Giant atmospheres using data from Allen (1976) Astrophysical Quantities
 
     Parameters
@@ -209,10 +209,10 @@ def radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
         Output spectrum (W cm-2 um-1 sr-1)
     """
     # Reverse layer ordering from TOP of atmoaphsere first to BOTTOM of atmosphere last
+    ScalingFactor = ScalingFactor[::-1]
     P_layer = P_layer[::-1]
     T_layer = T_layer[::-1]
     U_layer = U_layer[::-1]
-    ScalingFactor = ScalingFactor[::-1]
     VMR_layer = VMR_layer[::-1,:]
 
     # Record constants
