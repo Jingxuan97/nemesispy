@@ -10,6 +10,7 @@ from nemesispy.radtran.read import read_kls
 from nemesispy.radtran.radiance import radtran, calc_planck
 from nemesispy.radtran.read import read_cia
 
+
 lowres_files = ['/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/h2o',
          '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/co2',
          '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/co',
@@ -83,7 +84,7 @@ StarSpectrum = np.ones(len(wave_grid)) # *4*(R_star)**2*np.pi # NWAVE
 # DO Gauss Labatto quadrature averaging
 # angles = np.array([80.4866,61.4500,42.3729,23.1420,0.00000])
 H_layer,P_layer,T_layer,VMR_layer,U_layer,Gas_layer,scale,del_S\
-    = calc_layer(R_plt, H_atm, P_atm, VMR_atm, T_atm, ID, Nlayer,
+    = calc_layer(R_plt, H_atm, P_atm,  T_atm, VMR_atm, ID, Nlayer,
     H_base=None, path_angle=0, layer_type=1, H_0=0.0, interp_type=1, P_base=None,
     integration_type=1, NSIMPS=101)
 

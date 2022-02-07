@@ -10,6 +10,22 @@ from scipy.interpolate import interp1d
 
 from nemesispy.data.constants import K_B
 from nemesispy.radtran.utils import calc_mmw
+def f(a,b=1):
+    """
+    Parameters
+    ----------
+    a : TYPE
+        DESCRIPTION.
+    b : TYPE, optional
+        DESCRIPTION. The default is 1.
+
+    Returns
+    -------
+    int
+        DESCRIPTION.
+
+    """
+    return 0
 
 def interp(x_data, y_data, x_input, interp_type=1):
     """
@@ -19,18 +35,19 @@ def interp(x_data, y_data, x_input, interp_type=1):
     Parameters
     ----------
     x_data : ndarray
-        Independent variable data.
+        Independent variable data in a 1D array.
 
     y_data : ndarray
-        Dependent variable data.
+        Dependent variable data in a 1D array..
 
     x_input : real
         Input independent variable.
 
-    interp_type : int
+    interp_type : int, optional
         1=linear interpolation
         2=quadratic spline interpolation
         3=cubic spline interpolation
+        The default is 1.
 
     Returns
     -------
@@ -49,7 +66,7 @@ def interp(x_data, y_data, x_input, interp_type=1):
     return y_output
 
 def split(H_model, P_model, NLAYER, layer_type=1, H_0=0.0, interp_type=1,
-          path_angle=0.0, planet_radius=None, H_base=None, P_base=None):
+        path_angle=0.0, planet_radius=None, H_base=None, P_base=None):
     """
     Splits an atmospheric model into layers by returning layer base altitudes
     and layer base pressures.
@@ -67,7 +84,7 @@ def split(H_model, P_model, NLAYER, layer_type=1, H_0=0.0, interp_type=1,
         Unit: Pa
     NLAYER : int
         Number of layers to split the atmospheric model into.
-    layer_type : int, default 1
+    layer_type : int, optional
         Integer specifying how to split up the layers.
         0 = split by equal changes in pressure
         1 = split by equal changes in log pressure
@@ -76,28 +93,34 @@ def split(H_model, P_model, NLAYER, layer_type=1, H_0=0.0, interp_type=1,
         4 = split by layer base pressure levels specified in P_base
         5 = split by layer base height levels specified in H_base
         Note 4 and 5 force NLAYER = len(P_base) or len(H_base).
-    H_0 : real, default 0.0
+        The default is 1.
+    H_0 : real, optional
         Altitude of the lowest point in the atmospheric model.
         This is defined with respect to the reference planetary radius, i.e.
         the altitude at planet_radius is 0.
-    interp_type : int, default 1
+        The default is 0.0.
+    interp_type : int, optional
         Interger specifying interpolation scheme.
         1=linear, 2=quadratic spline, 3=cubic spline.
+        The default is 1.
     path_angle : real, optional
         Required only for layer type 3.
         Zenith angle in degrees defined at the base of the lowest layer.
         The default is 0.0.
-    planet_radius : real
-        Reference planetary planet_radius where H_model=0.  Usually set at
-        surface for terrestrial planets, or at 1 bar pressure level for gas
-        giants.
+    planet_radius : real, optional
+        Reference planetary planet_radius where H_model is set to be 0.  Usually
+        set at surface for terrestrial planets, or at 1 bar pressure level for
+        gas giants.
         Required only for layer type 3.
+        The default is None.
     H_base(NLAYER) : ndarray, optional
         Required only for layer type 5.
-        Altitudes of the layer bases defined by user. The default is None.
+        Altitudes of the layer bases defined by user.
+        The default is None.
     P_base(NLAYER) : ndarray, optional
         Required only for layer type 4.
-        Pressures of the layer bases defined by user. The default is None
+        Pressures of the layer bases defined by user.
+        The default is None
 
     Returns
     -------
@@ -105,11 +128,6 @@ def split(H_model, P_model, NLAYER, layer_type=1, H_0=0.0, interp_type=1,
         Heights of the layer bases.
     P_base(NLAYER) : ndarray
         Pressures of the layer bases.
-
-    Notes
-    -----
-    When used by itself, pressure and length units can be arbitrarily chosen.
-    To ensure smooth integration with other functions, use SI units.
     """
     assert (H_0>=H_model[0]) and (H_0<H_model[-1]) , \
         'Lowest layer base altitude not contained in atmospheric model'
@@ -159,17 +177,17 @@ def split(H_model, P_model, NLAYER, layer_type=1, H_0=0.0, interp_type=1,
         raise Exception('Layering scheme not defined')
     return H_base, P_base
 
-def average(planet_radius, H_model, P_model, T_model, VMR_model, ID, H_base, path_angle=0.0,
-            H_0=0.0, integration_type=1, NSIMPS=101):
+def average(planet_radius, H_model, P_model, T_model, VMR_model, ID, H_base,
+        path_angle, H_0=0.0, integration_type=1, NSIMPS=101):
     """
     Calculates average atmospheric layer properties.
 
     Inputs
     ------
     planet_radius : real
-        Reference planetary planet_radius where H_model=0.  Usually set at
-        surface for terrestrial planets, or at 1 bar pressure level for gas
-        giants.
+        Reference planetary planet_radius where H_model is set to be 0.  Usually
+        set at surface for terrestrial planets, or at 1 bar pressure level for
+        gas giants.
     H_model(NMODEL) : ndarray
         Altitudes at which the atmospheric model is defined.
         (At altitude H_model[i] the pressure is P_model[i].)
@@ -182,7 +200,7 @@ def average(planet_radius, H_model, P_model, T_model, VMR_model, ID, H_base, pat
         Temperature profile defined in the atmospheric model.
     ID : ndarray
         Gas identifiers.
-    VMR_model : ndarray
+    VMR_model(NMODEL,NGAS) : ndarray
         Volume mixing ratios of gases defined in the atmospheric model.
         VMR_model[i,j] is the Volume Mixing Ratio of jth gas at ith profile point.
         The jth column corresponds to the gas with RADTRANS ID ID[j].
@@ -194,12 +212,14 @@ def average(planet_radius, H_model, P_model, T_model, VMR_model, ID, H_base, pat
         Altitude of the lowest point in the atmospheric model.
         This is defined with respect to the reference planetary radius, i.e.
         the altitude at planet_radius is 0.
-    integration_type : int
+    integration_type : int, optional
         Layer integration scheme
         0 = use properties at mid-path at each layer
         1 = use absorber amount weighted average values
-    NSIMPS : int
+        The default is 1.
+    NSIMPS : int, optional
         Number of Simpson's integration points to be used if integration_type=1.
+        The default is 101.
 
     Returns
     -------
@@ -318,8 +338,8 @@ def average(planet_radius, H_model, P_model, T_model, VMR_model, ID, H_base, pat
 
     return H_layer,P_layer,T_layer,VMR_layer,U_layer,Gas_layer,scale,del_S
 
-def calc_layer(planet_radius, H_model, P_model, VMR_model, T_model, ID, NLAYER, H_base=None,
-    path_angle=0.0, layer_type=1, H_0=0.0, interp_type=1, P_base=None,
+def calc_layer(planet_radius, H_model, P_model, T_model, VMR_model, ID, NLAYER,
+    H_base=None, path_angle=0.0, layer_type=1, H_0=0.0, interp_type=1, P_base=None,
     integration_type=1, NSIMPS=101):
     """
     Top level routine that calculates the layer properties from an atmospehric
@@ -328,9 +348,9 @@ def calc_layer(planet_radius, H_model, P_model, VMR_model, T_model, ID, NLAYER, 
     Parameters
     ----------
     planet_radius : real
-        Reference planetary planet_radius where H_model=0.  Usually set at
-        surface for terrestrial planets, or at 1 bar pressure level for gas
-        giants.
+        Reference planetary planet_radius where H_model is set to be 0.  Usually
+        set at surface for terrestrial planets, or at 1 bar pressure level for
+        gas giants.
     H_model(NMODEL) : ndarray
         Altitudes at which the atmospheric model is defined.
         (At altitude H_model[i] the pressure is P_model[i].)
