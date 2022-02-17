@@ -7,9 +7,8 @@ from nemesispy.radtran.utils import calc_mmw
 from nemesispy.radtran.models import Model2
 from nemesispy.radtran.path import calc_layer # average
 from nemesispy.radtran.read import read_kls
-from nemesispy.radtran.radiance import radtran, calc_planck
+from nemesispy.radtran.radiance import calc_radiance, calc_planck
 from nemesispy.radtran.read import read_cia
-
 
 lowres_files = ['/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/h2o',
          '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/co2',
@@ -89,11 +88,55 @@ H_layer,P_layer,T_layer,VMR_layer,U_layer,Gas_layer,scale,del_S\
     integration_type=1, NSIMPS=101)
 print('scale',scale)
 
+"""
+before jit
+1000 nemesis ver:381.06474781036377
+1000 chimera ver:341.1965470314026
+
+after jit
+
+1. jit just for interp
+1000 nemesis ver : f_combined is fucking things up
+1000 chimera ver : 32.83659029006958
+
+2. jit for interp and radiance
+
+
+FULLY JIT
+runtime 1000 = 0.004322124004364014 per
+runtime 10000 = 0.002207125186920166
+"""
+
+SPECOUT = calc_radiance(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
+        P_grid, T_grid, del_g, ScalingFactor=scale,
+        RADIUS=R_plt, solspec=StarSpectrum,
+        k_cia=K_CIA,ID=ID,NU_GRID=CIA_NU_GRID,CIA_TEMPS=CIA_TEMPS, DEL_S=del_S)
+
+
+import time
+run_number = 10000
+start = time.time()
+for i in range(run_number):
 # Radiative Transfer
-SPECOUT = radtran(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
+    SPECOUT = calc_radiance(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
             P_grid, T_grid, del_g, ScalingFactor=scale,
             RADIUS=R_plt, solspec=StarSpectrum,
             k_cia=K_CIA,ID=ID,NU_GRID=CIA_NU_GRID,CIA_TEMPS=CIA_TEMPS, DEL_S=del_S)
+
+end = time.time()
+print('run time = ', (end-start)/run_number)
+
+
+
+
+
+
+# 1e-4 h2o, pure H2, fixed ground radiation at 45 zenith angle
+fortran_model = [2.0095757e+22, 1.9855963e+22, 2.4384866e+22, 3.0096336e+22, 3.1821019e+22,
+ 2.6848518e+22, 1.1246998e+22, 7.8110916e+21, 7.0568513e+21, 7.7212110e+21,
+ 9.0706302e+21, 1.1298792e+22, 1.4093987e+22, 1.6893329e+22, 1.8325981e+22,
+ 4.0654737e+21, 2.0768640e+21]
+
 
 # 1e-4 h2o, pure H2, fixed ground radiation at 0 zenith angle
 fortran_model = [2.3386727e+22, 2.3223329e+22, 2.7884951e+22, 3.3525034e+22, 3.5133009e+22,
@@ -101,19 +144,19 @@ fortran_model = [2.3386727e+22, 2.3223329e+22, 2.7884951e+22, 3.3525034e+22, 3.5
  1.0637932e+22, 1.3140588e+22, 1.6189699e+22, 1.9094999e+22, 2.0491682e+22,
  4.3127540e+21, 2.1802355e+21]
 
-# 1e-4 h2o, pure H2, fixed ground radiation at 45 zenith angle
-fortran_model = [2.8620871e+22, 2.8380491e+22, 3.3898887e+22, 4.0607526e+22, 4.2549604e+22,
- 3.6542824e+22, 1.5758073e+22, 1.1191856e+22, 1.0017755e+22, 1.0942468e+22,
- 1.2814779e+22, 1.5990998e+22, 2.0164856e+22, 2.5100488e+22, 2.9190714e+22,
- 4.9054536e+21, 2.4231562e+21]
+diff = (SPECOUT-fortran_model)
+plt.scatter(wave_grid, diff,label='diff',marker='x',color='r',s=20)
+diff = (SPECOUT-fortran_model)/SPECOUT
+
 # start plot
 plt.title('debug')
-plt.plot(wave_grid,SPECOUT)
-plt.scatter(wave_grid,SPECOUT,marker='o',color='b',linewidth=0.5,s=1, label='python')
+# lt.plot(wave_grid,SPECOUT)
+
+plt.scatter(wave_grid,SPECOUT,marker='o',color='b',linewidth=0.5,s=10, label='python')
 plt.scatter(wave_grid,fortran_model,label='fortran',marker='x',color='k',s=20)
 
-BB = calc_planck(wave_grid,2285.991)*np.pi*4.*np.pi*(74065.70*1e5)**2
-plt.plot(wave_grid,BB,label='black body',marker='*')
+# BB = calc_planck(wave_grid,2285.991)*np.pi*4.*np.pi*(74065.70*1e5)**2
+# plt.plot(wave_grid,BB,label='black body',marker='*')
 
 plt.xlabel(r'wavelength($\mu$m)')
 plt.ylabel(r'total radiance(W sr$^{-1}$ $\mu$m$^{-1})$')
@@ -123,8 +166,8 @@ plt.plot()
 plt.grid()
 # plt.savefig('comparison.pdf',dpi=400)
 plt.show()
-plt.close()
+# plt.close()
 
-diff = (SPECOUT-fortran_model)/SPECOUT
+
 print(diff)
 print(max(diff))
