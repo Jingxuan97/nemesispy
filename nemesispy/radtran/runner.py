@@ -109,10 +109,7 @@ global_model_lat_lon = np.array([[  0.,   0.],
 
 def interpolate_to_lat_lon(fov_lat_lon, global_model, global_model_lat_lon):
     """
-    fov_lat_lon : a array of [lattitude, longitude]
-
-    Interpolate the input atmospheric model to the field of view averaging
-    lattitudes and longitudes
+    fov_lat_lon(NLOC,2) : a array of [lattitude, longitude]
 
     Snapped the global model for various physical quantities to the chosen
     set of locations on the planet with specified lattitudes and longitudes
@@ -169,10 +166,25 @@ def interpolate_to_lat_lon(fov_lat_lon, global_model, global_model_lat_lon):
     return fov_model_output
 
 
-def disc_avarage(wave_grid,wav,TP_grid_interped):
+"""LAT        LON         StarZen      EmiZen      StarAzi  Weight
+    0.0000     18.4349    161.5651     63.4349      0.0000  0.07701087
+   35.1970     11.8202    143.1155     63.4349     49.3939  0.15402173
+   61.8232    333.7203    115.0488     63.4349     50.2848  0.15402173
+   50.5081    269.6843     89.7992     63.4349     37.5965  0.19146977
+    0.0000    251.5651     71.5651     63.4349      0.0000  0.11445891
+    0.0000    315.0000    135.0000      0.0000    180.0000  0.30901699
+"""
+
+
+def disc_avarage(
+    wave_grid,
+    wav,TP_grid_interped):
     """
 
     """
+    NLOC = 1
+    for iloc in range(NLOC):
+
 
 
 
