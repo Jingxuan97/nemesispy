@@ -50,11 +50,11 @@ def interp_k(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t):
         # range of the ktable TP grid
         if T > T_grid[-1]:
             T = T_grid[-1]#-1
-        if T < T_grid[0]:
+        if T <= T_grid[0]:
             T = T_grid[0]+1e-3
         if P > P_grid[-1]:
             P = P_grid[-1]#-1
-        if P < P_grid[0]:
+        if P <= P_grid[0]:
             P = P_grid[0]+1e-3
         # find the points on the k table TP grid that sandwich the
         # atmospheric layer TP

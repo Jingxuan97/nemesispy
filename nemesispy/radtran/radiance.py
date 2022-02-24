@@ -41,7 +41,7 @@ def find_nearest(input_array, target_value):
 @jit(nopython=True)
 def calc_tau_cia(wave_grid,K_CIA,ISPACE,
     ID,TOTAM,T_layer,P_layer,VMR_layer,DELH,
-    NU_GRID,TEMPS,INORMAL,NPAIR=9):
+    cia_nu_grid,TEMPS,INORMAL,NPAIR=9):
     """
     Parameters
     ----------
@@ -58,7 +58,7 @@ def calc_tau_cia(wave_grid,K_CIA,ISPACE,
         wavenumbers (0) or wavelength (1)
     K_CIA(NPAIR,NTEMP,NWAVE) : ndarray
          CIA cross sections for each pair at each temperature level and wavenumber.
-    NU_GRID : TYPE
+    cia_nu_grid : TYPE
         DESCRIPTION.
     INORMAL : int
 
@@ -135,7 +135,7 @@ def calc_tau_cia(wave_grid,K_CIA,ISPACE,
         isort = np.argsort(WAVEN)
         WAVEN = WAVEN[isort] # ascending wavenumbers
 
-    if WAVEN.min() < NU_GRID.min() or WAVEN.max()>NU_GRID.max():
+    if WAVEN.min() < cia_nu_grid.min() or WAVEN.max()>cia_nu_grid.max():
         print('warning in CIA :: Calculation wavelengths expand a larger range than in .cia file')
 
     # calculate the CIA opacity at the correct temperature and wavenumber
@@ -179,23 +179,23 @@ def calc_tau_cia(wave_grid,K_CIA,ISPACE,
         kt = ktlo * (1.-fhl) + kthi * (1.-fhh)
 
         # checking that interpolation can be performed to the calculation wavenumbers
-        inwave = np.where( (NU_GRID>=WAVEN.min()) & (NU_GRID<=WAVEN.max()) )
+        inwave = np.where( (cia_nu_grid>=WAVEN.min()) & (cia_nu_grid<=WAVEN.max()) )
         inwave = inwave[0]
 
         if len(inwave)>0:
 
             k_cia = np.zeros((NWAVEC,NPAIR))
-            inwave1 = np.where( (WAVEN>=NU_GRID.min())&(WAVEN<=NU_GRID.max()) )
+            inwave1 = np.where( (WAVEN>=cia_nu_grid.min())&(WAVEN<=cia_nu_grid.max()) )
             inwave1 = inwave1[0]
 
             for ipair in range(NPAIR):
 
                 # wavenumber interpolation
-                # f = interpolate.interp1d(NU_GRID,kt[ipair,:])
+                # f = interpolate.interp1d(cia_nu_grid,kt[ipair,:])
                 # k_cia[inwave1,ipair] = f(WAVEN[inwave1])
 
                 # use numpy for numba integration
-                k_cia[inwave1,ipair] = np.interp(WAVEN[inwave1],NU_GRID,kt[ipair,:])
+                k_cia[inwave1,ipair] = np.interp(WAVEN[inwave1],cia_nu_grid,kt[ipair,:])
 
             #Combining the CIA absorption of the different pairs (included in .cia file)
             sum1 = np.zeros(NWAVEC)
@@ -350,7 +350,7 @@ def calc_tau_rayleighj(wave_grid,TOTAM,ISPACE=1):
 
 @jit(nopython=True)
 def calc_tau_gas(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
-            P_grid, T_grid, del_g):
+    P_grid, T_grid, del_g):
     """
       Parameters
       ----------
@@ -397,7 +397,7 @@ def calc_tau_gas(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
 @jit(nopython=True)
 def calc_radiance(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
     P_grid, T_grid, del_g, ScalingFactor, RADIUS, solspec,
-    k_cia, ID, NU_GRID, CIA_TEMPS, DEL_S):
+    k_cia, ID, cia_nu_grid, cia_T_grid, DEL_S):
     """
     Calculate emission spectrum using the correlated-k method.
 
@@ -467,7 +467,7 @@ def calc_radiance(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t
     # Collision induced absorptioin optical path (NWAVE x NLAYER)
     tau_cia = calc_tau_cia(wave_grid=wave_grid,K_CIA=k_cia,ISPACE=1,
         ID=ID,TOTAM=U_layer,T_layer=T_layer,P_layer=P_layer,VMR_layer=VMR_layer,DELH=DEL_S,
-        NU_GRID=NU_GRID,TEMPS=CIA_TEMPS,INORMAL=0,NPAIR=9)
+        cia_nu_grid=cia_nu_grid,TEMPS=cia_T_grid,INORMAL=0,NPAIR=9)
 
 
     # Dust scattering optical path (NWAVE x NLAYER)
@@ -528,6 +528,8 @@ def calc_radiance(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t
             spectrum[iwave] += spec_out[iwave,ig]*del_g[ig]
 
     return spectrum * xfac
+
+
 
 """
 # Incompatible methods with numba jit

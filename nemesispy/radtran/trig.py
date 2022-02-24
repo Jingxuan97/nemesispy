@@ -411,3 +411,92 @@ def gauss_lobatto_weights(phase, nmu):
         wav[5,i]=wav[5,i]/sum
 
     return nav, np.around(wav,8)
+
+def interpolate_to_lat_lon(chosen_location, global_model,
+    global_model_longitudes, global_model_lattitudes):
+    """
+    Given a global model of some physical quantity defined at a range of
+    locations specified by their longitudes and lattitudes,
+    interpolate the model to the desired chosen_locations using bilinear
+    interpolation.
+
+    The model at (global_model_longitudes[i],global_model_lattitudes[j])
+    is global_model[i,j,:].
+
+    Parameters
+    ----------
+    chosen_location(NLOCOUT,2) : ndarray
+        A array of [lattitude, longitude] at which the global
+        model is to be interpolated.
+    global_model(NLONIN, NLATIN, NMODEL) : ndarray
+        Model defined at the global_model_locations.
+        NLATIN x NlONIN x NMODEL
+        NMODEL might be a tuple is the model is a 2D array.
+    global_model_longitudes(NLONIN) : ndarray
+        Longitude grid specifying where the model is define on the planet.
+    global_model_lattitudes(NLATIN) : ndarray
+        Longitude grid specifying where the model is define on the planet.
+
+    Returns
+    -------
+    interp_model(NLOCOUT,NMODEL) : ndarray
+        Model interpolated to the desired locations.
+
+    """
+
+    # NMODEL is the number of points in the MODEL
+    NLONIN, NLATIN = global_model.shape[:2]
+    NMODEL = global_model.shape[2:]
+    print('global_model',global_model)
+    print('NLONIN, NLATIN, NMODEL', NLONIN, NLATIN, NMODEL)
+    # add an extra data point for the periodic longitude
+    # global_model_location = np.append(global_model_location,)
+    # make sure there is a point at lon = 0
+    NLOCOUT = chosen_location.shape[0] # number of locations in the output
+    print('NLOCOUT',NLOCOUT)
+
+    # Interp MODEL : NLOCOUT x
+    interp_model_shape = (NLOCOUT,) + NMODEL
+    print('interp_model_shape',interp_model_shape)
+    interp_model =  np.zeros(interp_model_shape) # output model
+
+    lon_grid = global_model_longitudes
+    lat_grid = global_model_lattitudes
+    print('lon_grid',lon_grid)
+    print('lat_grid',lat_grid)
+    for ilocout, location in enumerate(chosen_location):
+        lon = location[1]
+        lat = location[0]
+        print('lon,lat',lon,lat)
+
+        if lon > np.max(lon_grid):
+            lon = np.max(lon_grid)
+        if lon <= np.min(lon_grid):
+            lon = np.min(lon_grid) + 1e-3
+        if lat > np.max(lat_grid):
+            lat = np.max(lat_grid)
+        if lat <= np.min(lat_grid):
+            lat = np.min(lat_grid) + 1e-3
+
+        lon_index_hi = np.where(lon_grid >= lon)[0][0]
+        lon_index_low = np.where(lon_grid < lon)[0][-1]
+        lat_index_hi = np.where(lat_grid >= lat)[0][0]
+        lat_index_low = np.where(lat_grid < lat)[0][-1]
+
+        lon_hi = lon_grid[lon_index_hi]
+        lon_low = lon_grid[lon_index_low]
+        lat_hi = lat_grid[lat_index_hi]
+        lat_low = lat_grid[lat_index_low]
+
+        Q11 = global_model[lon_index_low,lat_index_low,:]
+        Q12 = global_model[lon_index_hi,lat_index_low,:]
+        Q22 = global_model[lon_index_hi,lat_index_hi,:]
+        Q21 = global_model[lon_index_low,lat_index_hi,:]
+
+        fxy1 = (lat_hi-lat)/(lat_hi-lat_low)*Q11 + (lat-lat_low)/(lat_hi-lat_low)*Q21
+        fxy2 = (lat_hi-lat)/(lat_hi-lat_low)*Q12 + (lat-lat_low)/(lat_hi-lat_low)*Q22
+        fxy = (lon_hi-lon)/(lon_hi-lon_low)*fxy1 + (lon-lon_low)/(lon_hi-lon_low)*fxy2
+
+        interp_model[ilocout,:] = fxy
+
+    return interp_model
