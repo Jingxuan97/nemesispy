@@ -4,7 +4,7 @@
 import numpy as np
 from numba import jit
 
-@jit(nopython=True)
+# @jit(nopython=True)
 def interp_k(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t):
     """
     Adapted from chimera https://github.com/mrline/CHIMERA.
@@ -81,7 +81,7 @@ def interp_k(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t):
                     k_gas_w_g_l[igas, iwave, ig, ilayer] = fxy
     return k_gas_w_g_l
 
-@jit(nopython=True)
+# @jit(nopython=True)
 def new_k_overlap_two_gas(k_gas1_g, k_gas2_g, q1, q2, del_g):
     """
     Combines the absorption coefficient distributions of two gases with overlapping
@@ -188,7 +188,7 @@ def new_k_overlap_two_gas(k_gas1_g, k_gas2_g, q1, q2, del_g):
 
     return k_combined_g, q_combined
 
-@jit(nopython=True)
+# @jit(nopython=True)
 def new_k_overlap(k_gas_w_g_l,del_g,VMR):
     """
     Combines the absorption coefficient distributions of several gases with overlapping
@@ -248,7 +248,7 @@ def new_k_overlap(k_gas_w_g_l,del_g,VMR):
 
     return k_w_g_l, f_combined
 
-@jit(nopython=True)
+# @jit(nopython=True)
 def mix_two_gas_k(k_g1, k_g2, VMR1, VMR2, del_g, g_ord=None):
     """
     Adapted from chimera https://github.com/mrline/CHIMERA.
@@ -336,7 +336,7 @@ def mix_two_gas_k(k_g1, k_g2, VMR1, VMR2, del_g, g_ord=None):
 
     return k_g_combined, VMR_combined
 
-@jit(nopython=True)
+# @jit(nopython=True)
 def mix_multi_gas_k(k_gas_g, VMR, del_g, g_ord=None):
     """
       Adapted from chimera https://github.com/mrline/CHIMERA.

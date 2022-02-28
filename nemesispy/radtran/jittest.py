@@ -72,15 +72,50 @@ VMR2 = np.array([[1.000e-04, 5.000e-04, 0.000e+00, 5.000e-04, 0.000e+00, 9.999e-
        [1.000e-04, 5.000e-04, 0.000e+00, 5.000e-04, 0.000e+00, 9.999e-01],
        [1.000e-04, 5.000e-04, 0.000e+00, 5.000e-04, 0.000e+00, 9.999e-01]])
 
+H_model = np.array([      0.        ,  103729.52262529,  206324.36567436,
+        305647.55240969,  400004.79371999,  488339.78489464,
+        570330.13457951,  646803.61932618,  718436.36050467,
+        785922.45264359,  851171.53914926,  914444.30061094,
+        976483.72639045, 1037900.6392184 , 1099235.68378114,
+       1158860.78613342, 1220924.36001225, 1280551.63539084,
+       1340929.88568274, 1404644.74126812])
+
+P_model = np.array([2.00000000e+06, 1.18757213e+06, 7.05163778e+05, 4.18716424e+05,
+       2.48627977e+05, 1.47631828e+05, 8.76617219e+04, 5.20523088e+04,
+       3.09079355e+04, 1.83527014e+04, 1.08975783e+04, 6.47083012e+03,
+       3.84228874e+03, 2.28149751e+03, 1.35472142e+03, 8.04414701e+02,
+       4.77650239e+02, 2.83622055e+02, 1.68410824e+02, 1.00000000e+02])
+
+T_model = np.array([2294.22992596, 2275.6969865 , 2221.47715244, 2124.54034598,
+       1996.03839381, 1854.89105022, 1718.53840097, 1599.14877875,
+       1502.97091806, 1431.02161632, 1380.55915963, 1346.97802576,
+       1325.4993502 , 1312.138265  , 1303.97869558, 1299.05345022,
+       1296.10265374, 1294.34216453, 1293.29484249, 1292.67284094])
+
 global_VMR_model_shape = (nlon,nlat) + VMR1.shape
 global_VMR_model = np.ones(global_VMR_model_shape)*1e-4
+
+global_H_model_shape = (nlon,nlat) + H_model.shape
+global_H_model = np.ones(global_H_model_shape)*1e-4
+
+global_P_model_shape = (nlon,nlat) + P_model.shape
+global_P_model = np.ones(global_P_model_shape)*1e-4
+
+global_T_model_shape = (nlon,nlat) + T_model.shape
+global_T_model = np.ones(global_T_model_shape)*1e-4
+# for ilon in range(nlon):
+#     if ilon<=1:
+#         global_VMR_model[ilon,:] = VMR1
+#     elif ilon == 4:
+#         global_VMR_model[ilon,:] = VMR1
+#     else:
+#         global_VMR_model[ilon,:] = VMR2
+
 for ilon in range(nlon):
-    if ilon<=1:
-        global_VMR_model[ilon,:] = VMR1
-    elif ilon == 4:
-        global_VMR_model[ilon,:] = VMR1
-    else:
-        global_VMR_model[ilon,:] = VMR2
+    global_VMR_model[ilon,:] = VMR1
+    global_H_model[ilon,:] = H_model
+    global_P_model[ilon,:] = P_model
+    global_T_model[ilon,:] = T_model
 
 """
 lat_ax, lon_ax = np.meshgrid(lat_coord, lon_coord, indexing='ij')

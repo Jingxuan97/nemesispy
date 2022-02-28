@@ -283,6 +283,9 @@ class ForwardModel():
         fov_H_model = interpolate_to_lat_lon(fov_locations, global_H_model,
             global_model_longitudes, global_model_lattitudes)
 
+        fov_P_model = interpolate_to_lat_lon(fov_locations, global_P_model,
+            global_model_longitudes, global_model_lattitudes)
+
         fov_T_model = interpolate_to_lat_lon(fov_locations, global_T_model,
             global_model_longitudes, global_model_lattitudes)
 
@@ -292,8 +295,12 @@ class ForwardModel():
         disc_spectrum = np.zeros(len(self.wave_grid))
 
         for ilocation in range(nav):
+            print('ilocation',ilocation)
             H_model = fov_H_model[ilocation]
-            P_model = global_P_model[0]
+            print('fov_H_model',fov_H_model)
+            print('H_model', H_model)
+            P_model = fov_P_model[ilocation]
+            print('P_model',P_model)
             T_model = fov_T_model[ilocation]
             VMR_model = fov_VMR_model[ilocation]
             path_angle = fov_emission_angles[ilocation]
@@ -304,7 +311,6 @@ class ForwardModel():
             disc_spectrum += point_spectrum * weight
         return disc_spectrum
 
-    """TBD"""
     def run_point_spectrum(self, H_model, P_model, T_model,\
             VMR_model, path_angle, solspec=None):
         if self.is_planet_model_set == False:
@@ -315,15 +321,85 @@ class ForwardModel():
             VMR_model, path_angle, solspec=solspec)
         return point_spectrum
 
-    def run_disc_spectrum(self):
-        pass
+    """TBD"""
+    def run_disc_spectrum(self,phase,nmu,global_H_model,global_P_model,
+        global_T_model,global_VMR_model,global_model_longitudes,
+        global_model_lattitudes,solspec=None):
+        if self.is_planet_model_set == False:
+            raise('Planet model has not been set yet')
+        elif self.is_opacity_data_set == False:
+            raise('Opacity data has not been set yet')
+        disc_spectrum = self.calc_disc_spectrum(phase,nmu,global_H_model,
+            global_P_model, global_T_model,global_VMR_model,global_model_longitudes,
+            global_model_lattitudes,solspec=solspec)
+        return disc_spectrum
 
 Mod = ForwardModel()
-Mod.set_planet_model(M_plt,R_plt,R_star,T_star,semi_major_axis,gas_id_list,
+Mod.set_planet_model(M_plt,R_plt,R_star,T_star,semi_major_axis,ID,
     iso_id_list,NLAYER)
 Mod.set_opacity_data(kta_file_paths,cia_file_path)
 point_spectrum = Mod.run_point_spectrum(H_model, P_model, T_model, VMR_model,
     path_angle=0)
+print('point_spectrum',point_spectrum)
+
+VMR1 = np.array([[1.000e-04, 0.000e+00, 0.000e+00, 0.000e+00, 0.000e+00, 9.999e-01],
+       [1.000e-04, 0.000e+00, 0.000e+00, 0.000e+00, 0.000e+00, 9.999e-01],
+       [1.000e-04, 0.000e+00, 0.000e+00, 0.000e+00, 0.000e+00, 9.999e-01],
+       [1.000e-04, 0.000e+00, 0.000e+00, 0.000e+00, 0.000e+00, 9.999e-01],
+       [1.000e-04, 0.000e+00, 0.000e+00, 0.000e+00, 0.000e+00, 9.999e-01],
+       [1.000e-04, 0.000e+00, 0.000e+00, 0.000e+00, 0.000e+00, 9.999e-01],
+       [1.000e-04, 0.000e+00, 0.000e+00, 0.000e+00, 0.000e+00, 9.999e-01],
+       [1.000e-04, 0.000e+00, 0.000e+00, 0.000e+00, 0.000e+00, 9.999e-01],
+       [1.000e-04, 0.000e+00, 0.000e+00, 0.000e+00, 0.000e+00, 9.999e-01],
+       [1.000e-04, 0.000e+00, 0.000e+00, 0.000e+00, 0.000e+00, 9.999e-01],
+       [1.000e-04, 0.000e+00, 0.000e+00, 0.000e+00, 0.000e+00, 9.999e-01],
+       [1.000e-04, 0.000e+00, 0.000e+00, 0.000e+00, 0.000e+00, 9.999e-01],
+       [1.000e-04, 0.000e+00, 0.000e+00, 0.000e+00, 0.000e+00, 9.999e-01],
+       [1.000e-04, 0.000e+00, 0.000e+00, 0.000e+00, 0.000e+00, 9.999e-01],
+       [1.000e-04, 0.000e+00, 0.000e+00, 0.000e+00, 0.000e+00, 9.999e-01],
+       [1.000e-04, 0.000e+00, 0.000e+00, 0.000e+00, 0.000e+00, 9.999e-01],
+       [1.000e-04, 0.000e+00, 0.000e+00, 0.000e+00, 0.000e+00, 9.999e-01],
+       [1.000e-04, 0.000e+00, 0.000e+00, 0.000e+00, 0.000e+00, 9.999e-01],
+       [1.000e-04, 0.000e+00, 0.000e+00, 0.000e+00, 0.000e+00, 9.999e-01],
+       [1.000e-04, 0.000e+00, 0.000e+00, 0.000e+00, 0.000e+00, 9.999e-01]])
+
+lon_coord = np.linspace(0,360,num=5)
+lat_coord = np.linspace(0,90,num=10)
+nlon = len(lon_coord )
+nlat = len(lat_coord)
+
+
+global_VMR_model_shape = (nlon,nlat) + VMR_model.shape
+global_VMR_model = np.ones(global_VMR_model_shape)*1e-4
+
+global_H_model_shape = (nlon,nlat) + H_model.shape
+global_H_model = np.ones(global_H_model_shape)
+
+global_P_model_shape = (nlon,nlat) + P_model.shape
+global_P_model = np.ones(global_P_model_shape)
+
+global_T_model_shape = (nlon,nlat) + T_model.shape
+global_T_model = np.ones(global_T_model_shape)
+
+# for ilon in range(nlon):
+#     if ilon<=1:
+#         global_VMR_model[ilon,:] = VMR1
+#     elif ilon == 4:
+#         global_VMR_model[ilon,:] = VMR1
+#     else:
+#         global_VMR_model[ilon,:] = VMR2
+
+for ilon in range(nlon):
+    global_VMR_model[ilon,:] = VMR1
+    global_H_model[ilon,:] = H_model
+    global_P_model[ilon,:] = P_model
+    global_T_model[ilon,:] = T_model
+
+phase = 0
+nmu = 2
+disc_spec = Mod.run_disc_spectrum(phase,nmu,global_H_model,global_P_model,
+    global_T_model,global_VMR_model,global_model_longitudes=lon_coord,
+    global_model_lattitudes=lat_coord,solspec=None)
 
 """
 Mod.M_plt == M_plt

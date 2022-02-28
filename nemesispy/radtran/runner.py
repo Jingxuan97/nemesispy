@@ -511,14 +511,18 @@ class ForwardModel():
         return point_spectrum
 
     def run_disc_spectrum(self):
+
         pass
 
 
 
 
+class RetrievalModel():
+    def __init__(self) -> None:
+        pass
 
-
-
+    def set_atmosphere_model(self,atm_model_parameters):
+        pass
 
 
 

@@ -12,9 +12,9 @@ from nemesispy.radtran.interp import mix_multi_gas_k
 # from nemesispy.radtran.cia import find_nearest
 from scipy import interpolate
 from numba import jit
-# @jit(nopython=True)
+# # @jit(nopython=True)
 
-@jit(nopython=True)
+# @jit(nopython=True)
 def find_nearest(input_array, target_value):
     """
     Find the closest value in an array
@@ -38,7 +38,7 @@ def find_nearest(input_array, target_value):
     idx = (np.abs(array - target_value)).argmin()
     return array[idx], idx
 
-@jit(nopython=True)
+# @jit(nopython=True)
 def calc_tau_cia(wave_grid,K_CIA,ISPACE,
     ID,TOTAM,T_layer,P_layer,VMR_layer,DELH,
     cia_nu_grid,TEMPS,INORMAL,NPAIR=9):
@@ -242,7 +242,7 @@ def calc_tau_cia(wave_grid,K_CIA,ISPACE,
 
     return tau_cia_layer
 
-@jit(nopython=True)
+# @jit(nopython=True)
 def calc_planck(wave,temp,ispace=1):
     """
     Calculate the blackbody radiation given by the Planck function
@@ -282,7 +282,7 @@ def calc_planck(wave,temp,ispace=1):
 
     return bb
 
-@jit(nopython=True)
+# @jit(nopython=True)
 def calc_tau_rayleighj(wave_grid,TOTAM,ISPACE=1):
     """
     Calculate the Rayleigh scattering opacity in each atmospheric layer for
@@ -348,7 +348,7 @@ def calc_tau_rayleighj(wave_grid,TOTAM,ISPACE=1):
 
     return tau_rayleigh
 
-@jit(nopython=True)
+# @jit(nopython=True)
 def calc_tau_gas(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
     P_grid, T_grid, del_g):
     """
@@ -394,7 +394,7 @@ def calc_tau_gas(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
             tau_w_g_l[iwave,:,ilayer] = k_g_l[:,ilayer]*Scaled_U_layer[ilayer]*VMR
     return tau_w_g_l
 
-@jit(nopython=True)
+# @jit(nopython=True)
 def calc_radiance(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
     P_grid, T_grid, del_g, ScalingFactor, RADIUS, solspec,
     k_cia, ID, cia_nu_grid, cia_T_grid, DEL_S):

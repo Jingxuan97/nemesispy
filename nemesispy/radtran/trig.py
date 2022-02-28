@@ -447,27 +447,27 @@ def interpolate_to_lat_lon(chosen_location, global_model,
     # NMODEL is the number of points in the MODEL
     NLONIN, NLATIN = global_model.shape[:2]
     NMODEL = global_model.shape[2:]
-    print('global_model',global_model)
-    print('NLONIN, NLATIN, NMODEL', NLONIN, NLATIN, NMODEL)
+    # print('global_model',global_model)
+    # print('NLONIN, NLATIN, NMODEL', NLONIN, NLATIN, NMODEL)
     # add an extra data point for the periodic longitude
     # global_model_location = np.append(global_model_location,)
     # make sure there is a point at lon = 0
     NLOCOUT = chosen_location.shape[0] # number of locations in the output
-    print('NLOCOUT',NLOCOUT)
+    # print('NLOCOUT',NLOCOUT)
 
     # Interp MODEL : NLOCOUT x
     interp_model_shape = (NLOCOUT,) + NMODEL
-    print('interp_model_shape',interp_model_shape)
+    # print('interp_model_shape',interp_model_shape)
     interp_model =  np.zeros(interp_model_shape) # output model
 
     lon_grid = global_model_longitudes
     lat_grid = global_model_lattitudes
-    print('lon_grid',lon_grid)
-    print('lat_grid',lat_grid)
+    # print('lon_grid',lon_grid)
+    # print('lat_grid',lat_grid)
     for ilocout, location in enumerate(chosen_location):
         lon = location[1]
         lat = location[0]
-        print('lon,lat',lon,lat)
+        # print('lon,lat',lon,lat)
 
         if lon > np.max(lon_grid):
             lon = np.max(lon_grid)
