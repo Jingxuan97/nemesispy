@@ -177,6 +177,9 @@ print("Class methods")
 class ForwardModel():
 
     def __init__(self):
+        """
+        Attributes to store data that doesn't change during a retrieval
+        """
 
         # planet and planetary system data
         self.M_plt = None
@@ -225,8 +228,10 @@ class ForwardModel():
         """
         gas_id_list, iso_id_list, wave_grid, g_ord, del_g, k_table_P_grid,\
             k_table_T_grid, k_gas_w_g_p_t = read_kls(kta_file_paths)
-
-
+        """
+        Some gases (e.g. H2 and He) have no k table data so gas id lists need
+        to be passed somewhere else.
+        """
         # self.gas_id_list = gas_id_list
         # self.iso_id_list = iso_id_list
         self.wave_grid = wave_grid
@@ -250,7 +255,7 @@ class ForwardModel():
         Then calculate the spectrum at a single point on the disc.
         """
 
-        H_layer,P_layer,T_layer,VMR_layer,U_layer,Gas_layer,scale,del_S\
+        H_layer,P_layer,T_layer,VMR_layer,U_layer, Gas_layer,scale,del_S\
             = calc_layer(self.R_plt, H_model, P_model, T_model, VMR_model,
             self.gas_id_list, self.NLAYER, path_angle, layer_type=1, H_0=0.0, NSIMPS=101)
         if solspec == None:
@@ -260,7 +265,7 @@ class ForwardModel():
             self.k_table_T_grid, self.del_g, ScalingFactor=scale,
             RADIUS=self.R_plt, solspec=solspec, k_cia=self.k_cia_pair_t_w,
             ID=self.gas_id_list,cia_nu_grid=self.cia_nu_grid,
-            cia_T_grid=self.cia_T_grid,DEL_S=del_S)
+            cia_T_grid=self.cia_T_grid, DEL_S=del_S)
 
         return point_spectrum
 
@@ -269,8 +274,15 @@ class ForwardModel():
         global_model_lattitudes,solspec=None):
 
         nav, wav = gauss_lobatto_weights(phase, nmu)
-
+        print('calc_disc_spectrum')
+        print('nav, wav',nav,wav)
+        """Want a monotonic array for interpolation"""
         fov_longitudes = wav[1,:]
+        # convert to [-180,180]
+        for index, ilon in enumerate (fov_longitudes):
+            if ilon>180:
+                fov_longitudes[index] = ilon - 360
+
         fov_lattitudes = wav[0,:]
         fov_emission_angles = wav[3,:]
         fov_weights = wav[-1,:]
@@ -295,12 +307,12 @@ class ForwardModel():
         disc_spectrum = np.zeros(len(self.wave_grid))
 
         for ilocation in range(nav):
-            print('ilocation',ilocation)
+            # print('ilocation',ilocation)
             H_model = fov_H_model[ilocation]
-            print('fov_H_model',fov_H_model)
-            print('H_model', H_model)
+            # print('fov_H_model',fov_H_model)
+            # print('H_model', H_model)
             P_model = fov_P_model[ilocation]
-            print('P_model',P_model)
+            # print('P_model',P_model)
             T_model = fov_T_model[ilocation]
             VMR_model = fov_VMR_model[ilocation]
             path_angle = fov_emission_angles[ilocation]
@@ -334,6 +346,7 @@ class ForwardModel():
             global_model_lattitudes,solspec=solspec)
         return disc_spectrum
 
+"""# Basic test for the class
 Mod = ForwardModel()
 Mod.set_planet_model(M_plt,R_plt,R_star,T_star,semi_major_axis,ID,
     iso_id_list,NLAYER)
@@ -368,7 +381,6 @@ lat_coord = np.linspace(0,90,num=10)
 nlon = len(lon_coord )
 nlat = len(lat_coord)
 
-
 global_VMR_model_shape = (nlon,nlat) + VMR_model.shape
 global_VMR_model = np.ones(global_VMR_model_shape)*1e-4
 
@@ -396,10 +408,141 @@ for ilon in range(nlon):
     global_T_model[ilon,:] = T_model
 
 phase = 0
-nmu = 2
+nmu = 5
 disc_spec = Mod.run_disc_spectrum(phase,nmu,global_H_model,global_P_model,
     global_T_model,global_VMR_model,global_model_longitudes=lon_coord,
     global_model_lattitudes=lat_coord,solspec=None)
+
+# nmu = 5,
+# 1e-4 h2o, pure H2, fixed ground radiation at 0 zenith angle
+fortran_disc = np.array([1.8998773e+22, 1.8772364e+22, 2.3128123e+22, 2.8684045e+22, 3.0408838e+22,
+ 2.5618934e+22, 1.0726985e+22, 7.4668730e+21, 6.7616848e+21, 7.3960444e+21,
+ 8.6816295e+21, 1.0804962e+22, 1.3479171e+22, 1.6188206e+22, 1.7597941e+22,
+ 3.9828552e+21, 2.0438334e+21])
+
+disc_diff = (disc_spec-fortran_disc)
+plt.scatter(wave_grid, disc_diff,label='disc_diff',marker='x',color='r',s=20)
+disc_diff = (disc_spec-fortran_disc)/disc_spec
+
+# start plot
+plt.title('disc debug')
+# lt.plot(wave_grid,SPECOUT)
+
+plt.scatter(wave_grid,disc_spec,marker='o',color='b',linewidth=0.5,s=10, label='python disc')
+plt.scatter(wave_grid,fortran_disc,label='fortran disc',marker='x',color='k',s=20)
+
+# BB = calc_planck(wave_grid,2285.991)*np.pi*4.*np.pi*(74065.70*1e5)**2
+# plt.plot(wave_grid,BB,label='black body',marker='*')
+
+plt.xlabel(r'wavelength($\mu$m)')
+plt.ylabel(r'total radiance(W sr$^{-1}$ $\mu$m$^{-1})$')
+plt.legend()
+plt.tight_layout()
+plt.plot()
+plt.grid()
+plt.savefig('disc_comparison.pdf',dpi=400)
+plt.show()
+
+print('disc diff')
+print(disc_diff)
+print(max(disc_diff))
+print('disc spec')
+print(disc_diff)
+"""
+
+# Read GCM data
+f = open('process_vivien.txt')
+vivien_gcm = f.read()
+f.close()
+vivien_gcm = vivien_gcm.split()
+vivien_gcm = [float(i) for i in vivien_gcm]
+
+### Parse GCM data
+iread = 0
+nlon = int(vivien_gcm[iread])
+iread += 1
+nlat = int(vivien_gcm[iread])
+iread += 1
+xlon = np.zeros(nlon) # regular lon lat grid
+xlat = np.zeros(nlat)
+
+for i in range(nlon):
+    xlon[i] = vivien_gcm[iread]
+    iread+=1
+
+for i in range(nlat):
+    xlat[i] = vivien_gcm[iread]
+    iread+=1
+
+npv = int(vivien_gcm[iread])
+iread += 1
+
+pv = np.zeros(npv)
+for i in range(npv):
+    pv[i] = vivien_gcm[iread]
+    iread+=1
+pv = np.array([1.7064e+02, 1.2054e+02, 8.5152e+01, 6.0152e+01, 4.2492e+01,
+       3.0017e+01, 2.1204e+01, 1.4979e+01, 1.0581e+01, 7.4747e+00,
+       5.2802e+00, 3.7300e+00, 2.6349e+00, 1.8613e+00, 1.3148e+00,
+       9.2882e-01, 6.5613e-01, 4.6350e-01, 3.2742e-01, 2.3129e-01,
+       1.6339e-01, 1.1542e-01, 8.1532e-02, 5.7595e-02, 4.0686e-02,
+       2.8741e-02, 2.0303e-02, 1.4342e-02, 1.0131e-02, 7.1569e-03,
+       5.0557e-03, 3.5714e-03, 2.5229e-03, 1.7822e-03, 1.2589e-03,
+       8.8933e-04, 6.2823e-04, 4.4379e-04, 3.1350e-04, 2.2146e-04,
+       1.5644e-04, 1.1051e-04, 7.8066e-05, 5.5146e-05, 3.8956e-05,
+       2.7519e-05, 1.9440e-05, 1.3732e-05, 9.7006e-06, 6.8526e-06,
+       4.8408e-06, 3.4196e-06, 2.4156e-06])*1e5
+
+tmp = np.zeros((7,npv))
+tmap = np.zeros((nlon,nlat,npv))
+co2map = np.zeros((nlon,nlat,npv))
+h2map = np.zeros((nlon,nlat,npv))
+hemap = np.zeros((nlon,nlat,npv))
+ch4map = np.zeros((nlon,nlat,npv))
+comap = np.zeros((nlon,nlat,npv))
+h2omap = np.zeros((nlon,nlat,npv))
+
+for ilon in range(nlon):
+    for ilat in range(nlat):
+        for ipv in range(npv):
+            tmap[ilon,ilat,ipv] = vivien_gcm[iread]
+            h2omap[ilon,ilat,ipv] = vivien_gcm[iread+6]
+            co2map[ilon,ilat,ipv] = vivien_gcm[iread+1]
+            comap[ilon,ilat,ipv] = vivien_gcm[iread+5]
+            ch4map[ilon,ilat,ipv] = vivien_gcm[iread+4]
+            hemap[ilon,ilat,ipv] = vivien_gcm[iread+3]
+            h2map[ilon,ilat,ipv] = vivien_gcm[iread+2]
+            iread+=7
+
+pvmap = np.zeros((nlon,nlat,npv))
+for ilon in range(nlon):
+    for ilat in range(nlat):
+        pvmap[ilon,ilat,:] = pv
+
+vmrmap = np.zeros((nlon,nlat,npv,6))
+for ilon in range(nlon):
+    for ilat in range(nlat):
+        for ipv in range(npv):
+            vmrmap[ilon,ilat,ipv,0] = h2omap[ilon,ilat,ipv]
+            vmrmap[ilon,ilat,ipv,1] = co2map[ilon,ilat,ipv]
+            vmrmap[ilon,ilat,ipv,2] = comap[ilon,ilat,ipv]
+            vmrmap[ilon,ilat,ipv,3] = ch4map[ilon,ilat,ipv]
+            vmrmap[ilon,ilat,ipv,4] = hemap[ilon,ilat,ipv]
+            vmrmap[ilon,ilat,ipv,5] = h2map[ilon,ilat,ipv]
+
+phase = 0
+nmu = 2
+# global_H_model =
+Mod = ForwardModel()
+Mod.set_planet_model(M_plt,R_plt,R_star,T_star,semi_major_axis,ID,
+    iso_id_list,NLAYER)
+Mod.set_opacity_data(kta_file_paths,cia_file_path)
+Mod.calc_disc_spectrum(phase,nmu, global_H_model, global_P_model=pvmap,
+    global_T_model=tmap, global_VMR_model=vmrmap,
+    global_model_longitudes=xlon,
+    global_model_lattitudes=xlat,
+    solspec=None)
+
 
 """
 Mod.M_plt == M_plt

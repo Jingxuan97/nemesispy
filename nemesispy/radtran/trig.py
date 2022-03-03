@@ -430,7 +430,7 @@ def interpolate_to_lat_lon(chosen_location, global_model,
         model is to be interpolated.
     global_model(NLONIN, NLATIN, NMODEL) : ndarray
         Model defined at the global_model_locations.
-        NLATIN x NlONIN x NMODEL
+        NlONIN x NLATIN x NMODEL
         NMODEL might be a tuple is the model is a 2D array.
     global_model_longitudes(NLONIN) : ndarray
         Longitude grid specifying where the model is define on the planet.
@@ -488,6 +488,7 @@ def interpolate_to_lat_lon(chosen_location, global_model,
         lat_hi = lat_grid[lat_index_hi]
         lat_low = lat_grid[lat_index_low]
 
+        # problem here
         Q11 = global_model[lon_index_low,lat_index_low,:]
         Q12 = global_model[lon_index_hi,lat_index_low,:]
         Q22 = global_model[lon_index_hi,lat_index_hi,:]
