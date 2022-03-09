@@ -80,6 +80,7 @@ T_model = atm.temperature()
 # Get raw k table infos from files
 gas_id_list, iso_id_list, wave_grid, g_ord, del_g, P_grid, T_grid,\
         k_gas_w_g_p_t = read_kls(kta_file_paths)
+print('del_g',del_g)
 CIA_NU_GRID,CIA_TEMPS,K_CIA = read_cia(cia_file_path)
 wave_grid = np.array([1.1425, 1.1775, 1.2125, 1.2475, 1.2825, 1.3175, 1.3525,
 1.3875, 1.4225, 1.4575, 1.4925, 1.5275, 1.5625, 1.5975, 1.6325, 3.6, 4.5])
@@ -481,6 +482,7 @@ pv = np.zeros(npv)
 for i in range(npv):
     pv[i] = vivien_gcm[iread]
     iread+=1
+
 pv = np.array([1.7064e+02, 1.2054e+02, 8.5152e+01, 6.0152e+01, 4.2492e+01,
        3.0017e+01, 2.1204e+01, 1.4979e+01, 1.0581e+01, 7.4747e+00,
        5.2802e+00, 3.7300e+00, 2.6349e+00, 1.8613e+00, 1.3148e+00,
@@ -492,6 +494,18 @@ pv = np.array([1.7064e+02, 1.2054e+02, 8.5152e+01, 6.0152e+01, 4.2492e+01,
        1.5644e-04, 1.1051e-04, 7.8066e-05, 5.5146e-05, 3.8956e-05,
        2.7519e-05, 1.9440e-05, 1.3732e-05, 9.7006e-06, 6.8526e-06,
        4.8408e-06, 3.4196e-06, 2.4156e-06])*1e5
+
+
+pvmap = np.zeros((nlon,nlat,npv))
+for ilon in range(nlon):
+    for ilat in range(nlat):
+        pvmap[ilon,ilat,:] = pv
+
+fake_hv =  np.linspace(0, 1404644.74126812, num=53)
+fake_hvmap = np.zeros((nlon,nlat,npv))
+for ilon in range(nlon):
+    for ilat in range(nlat):
+        fake_hvmap[ilon,ilat,:] = fake_hv
 
 tmp = np.zeros((7,npv))
 tmap = np.zeros((nlon,nlat,npv))
@@ -514,11 +528,6 @@ for ilon in range(nlon):
             h2map[ilon,ilat,ipv] = vivien_gcm[iread+2]
             iread+=7
 
-pvmap = np.zeros((nlon,nlat,npv))
-for ilon in range(nlon):
-    for ilat in range(nlat):
-        pvmap[ilon,ilat,:] = pv
-
 vmrmap = np.zeros((nlon,nlat,npv,6))
 for ilon in range(nlon):
     for ilat in range(nlat):
@@ -530,20 +539,26 @@ for ilon in range(nlon):
             vmrmap[ilon,ilat,ipv,4] = hemap[ilon,ilat,ipv]
             vmrmap[ilon,ilat,ipv,5] = h2map[ilon,ilat,ipv]
 
+from nemesispy.radtran.hydrostatic import simple_hydro
+hvmap  = np.zeros((nlon,nlat,npv))
+for ilon in range(nlon):
+    for ilat in range(nlat):
+        hvmap[ilon,ilat,:] = simple_hydro(fake_hv[:],pvmap[ilon,ilat,:],tmap[ilon,ilat,:],
+            vmrmap[ilon,ilat,:,:],R_plt,M_plt)
+
 phase = 0
 nmu = 2
-# global_H_model =
 Mod = ForwardModel()
 Mod.set_planet_model(M_plt,R_plt,R_star,T_star,semi_major_axis,ID,
     iso_id_list,NLAYER)
 Mod.set_opacity_data(kta_file_paths,cia_file_path)
-Mod.calc_disc_spectrum(phase,nmu, global_H_model, global_P_model=pvmap,
+one_phase =  Mod.calc_disc_spectrum(phase,nmu, global_H_model=hvmap, global_P_model=pvmap,
     global_T_model=tmap, global_VMR_model=vmrmap,
     global_model_longitudes=xlon,
     global_model_lattitudes=xlat,
     solspec=None)
-
-
+plt.plot(wave_grid,one_phase)
+plt.show()
 """
 Mod.M_plt == M_plt
 Mod.R_plt == R_plt
@@ -564,3 +579,14 @@ Mod.cia_nu_grid == cia_nu_grid
 Mod.cia_T_grid == cia_T_grid
 Mod.k_cia_pair_t_w == k_cia_pair_t_w
 """
+
+### Code to actually simulate a phase curve
+wave_grid = np.array([1.1425, 1.1775, 1.2125, 1.2475, 1.2825, 1.3175, 1.3525, 1.3875,
+       1.4225, 1.4575, 1.4925, 1.5275, 1.5625, 1.5975, 1.6325, 3.6   ,
+       4.5   ])
+
+phase_grid = np.array([  0.        ,  25.71428571,  51.42857143,  77.14285714,
+       102.85714286, 128.57142857, 154.28571429, 180.        ,
+       205.71428571, 231.42857143, 257.14285714, 282.85714286,
+       308.57142857, 334.28571429])
+
