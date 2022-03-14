@@ -113,8 +113,8 @@ class ForwardModel():
         global_model_lattitudes,solspec=None):
 
         nav, wav = gauss_lobatto_weights(phase, nmu)
-        print('calc_disc_spectrum')
-        print('nav, wav',nav,wav)
+        # print('calc_disc_spectrum')
+        # print('nav, wav',nav,wav)
         """Want a monotonic array for interpolation"""
         fov_longitudes = wav[1,:]
         # convert to [-180,180]
