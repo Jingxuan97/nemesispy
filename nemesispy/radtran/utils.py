@@ -42,8 +42,8 @@ def calc_mmw(ID, VMR, ISO=None):
     specified in Reference/radtran_id.py. By default, terrestrial
     elative isotopic abundance is assumed.
 
-    Inputs
-    ------
+    Parameters
+    ----------
     ID: array,
         List of gases specified by their Radtran identifiers.
     VMR: array,
@@ -156,7 +156,7 @@ def test_blackbody_um():
 
 def planck_wave(v, T):
     """
-      Inputs
+      Parameters
       ------
       IWAVE: int
           Indicates wavenumbers (0) or wavelength(1) for units.

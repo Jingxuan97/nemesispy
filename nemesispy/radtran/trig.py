@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Generate sample point locations and corresponding weights on a planetary disc
-in order to calculate the disc-averaged radiance of a transitting planet
+Generate sample locations and corresponding weights on a planetary disc
+for calculating the disc-averaged radiance of a transitting planet
 at variable orbital phases.
 
 Solar zenith and azimuth angles of the sample points
