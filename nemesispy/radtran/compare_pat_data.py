@@ -730,20 +730,21 @@ for iphase,phase in enumerate(phase_grid):
 
     axs[ix,iy].errorbar(wave_grid, pat_phase_by_wave[iphase,:,0]*1e3,
                         yerr=pat_phase_by_wave[iphase,:,1]*1e3,
-                        marker='s',ms=0.1,ecolor='r',mfc='k',color='k',
-                        linewidth=0.5,label='fortran')
+                        fmt='none',
+                        marker='+',ms=1,ecolor='k',mfc='k',color='k',
+                        linewidth=0.5,label='data')
     axs[ix,iy].plot(wave_grid, my_phase_by_wave[iphase,:]*1e3,
                     marker='s',ms=0.1,mfc='b',color='b',
-                    linewidth=0.5,label='python')
-    axs[ix,iy].legend(loc='lower right',fontsize='small')
+                    linewidth=0.5,label='gcm (python)')
+    axs[ix,iy].legend(loc='upper left',fontsize=5)
     # axs[ix,iy].grid()
-    axs[ix,iy].text(1.5,3.5,'phase = {}'.format(phase),fontsize=12)
+    axs[ix,iy].text(1.5,3.2,'phase = {}'.format(phase),fontsize=5)
     iy += 1
     if iy == 3:
         iy = 0
         ix += 1
 # plt.show()
-plt.savefig('test_spectra.pdf')
+plt.savefig('test_spectra_new.pdf')
 
 
 # Plot phase curve at each wavelength

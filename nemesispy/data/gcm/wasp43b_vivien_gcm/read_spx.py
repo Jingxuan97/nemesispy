@@ -38,6 +38,24 @@ for iphase,phase in enumerate(phase_grid):
         phase_plot[iwave,iphase,0] = spec[iwave]
         phase_plot[iwave,iphase,1] = error[iwave]
         
-        
-    
 
+gcm_wave_by_phase = np.zeros((NWAVE,NPHASE))
+gcm_phase_by_wave = np.zeros((NPHASE,NWAVE))
+filename = 'synthetic2pt5Dnonoise_modvmr.txt'
+iline = 0
+for iphase,phase in enumerate(phase_grid):
+    nwave = int(np.loadtxt(filename, skiprows=iline, max_rows=1))
+    iline += 1
+    nfov = int(np.loadtxt(filename, skiprows=iline, max_rows=1))
+    iline += 1
+    fov_data = np.loadtxt(filename, skiprows=iline, max_rows=nfov)
+    iline += nfov
+    wave,spec,error = np.loadtxt(filename, unpack=True,
+                                 skiprows=iline, max_rows=nwave)
+    iline += nwave
+    
+    gcm_phase_by_wave[iphase,:] = spec
+    
+    for iwave in range(nwave):
+        gcm_wave_by_phase[iwave,iphase] = spec[iwave]
+    
