@@ -869,7 +869,7 @@ for iphase,phase in enumerate(phase_grid):
                     marker='s',ms=0.1,mfc='g',color='g',
                     linewidth=0.1,label='fortran')
 
-    axs[ix,iy].legend(loc='lower right',fontsize='small')
+    axs[ix,iy].legend(loc='upper left',fontsize='small')
     # axs[ix,iy].grid()
     axs[ix,iy].text(1.5,3.5,'phase = {}'.format(phase),fontsize=12)
     iy += 1
@@ -897,7 +897,7 @@ for iwave,wave in enumerate(wave_grid):
                         marker='s',ms=0.1,ecolor='r',mfc='k',color='k',linewidth=0.5)
     axs[iwave].plot(phase_grid, shifted_wave_by_phase[iwave,:]*1e3,
                         marker='s',ms=0.1,mfc='b',color='b',linewidth=0.5)
-    axs[iwave].plot(wave_grid, pat_gcm_phase_by_wave[iphase,:]*1e3,
+    axs[iwave].plot(phase_grid, pat_gcm_wave_by_phase[iwave,:]*1e3,
                     marker='s',ms=0.1,mfc='g',color='g',
                     linewidth=0.5,label='fortran')
 

@@ -4,9 +4,10 @@
 np.zeros need to be called with a tuple argument to work with numba jit
 """
 import numpy as np
-
+import sys
+sys.path.append('/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/')
 from numpy.core.defchararray import array
-from nemesispy.radtran.interp import new_k_overlap
+#from nemesispy.radtran.interp import new_k_overlap
 from nemesispy.radtran.interp import interp_k
 from nemesispy.radtran.interp import mix_multi_gas_k
 # from nemesispy.radtran.cia import find_nearest
@@ -21,27 +22,27 @@ def find_nearest(input_array, target_value):
 
     Parameters
     ----------
-        input_array : ndarray/list
-            An array of numbers.
-        target_value :
-            Value to search for
+    input_array : ndarray/list
+        An array of numbers.
+    target_value : real
+        Value to search for
 
 
     Returns
     -------
-        idx : ndarray
-            Index of closest_value within array
-        array[idx] : ndarray
-            Closest number to target_value in the input array
+    idx : ndarray
+        Index of closest_value within array
+    array[idx] : ndarray
+        Closest number to target_value in the input array
     """
     array = np.asarray(input_array)
     idx = (np.abs(array - target_value)).argmin()
     return array[idx], idx
 
 # @jit(nopython=True)
-def calc_tau_cia(wave_grid,K_CIA,ISPACE,
-    ID,TOTAM,T_layer,P_layer,VMR_layer,DELH,
-    cia_nu_grid,TEMPS,INORMAL,NPAIR=9):
+def calc_tau_cia(wave_grid, K_CIA, ISPACE,
+    ID, TOTAM, T_layer, P_layer, VMR_layer, DELH,
+    cia_nu_grid, TEMPS, INORMAL, NPAIR=9):
     """
     Parameters
     ----------
@@ -239,7 +240,7 @@ def calc_tau_cia(wave_grid,K_CIA,ISPACE,
     if ISPACE==1:
         # tau_cia_layer[:,:] = tau_cia_layer[isort,:]*1e47
         tau_cia_layer[:,:] = tau_cia_layer[isort,:]
-
+    # print('tau_cia_layer',tau_cia_layer)
     return tau_cia_layer
 
 # @jit(nopython=True)
@@ -392,6 +393,7 @@ def calc_tau_gas(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
             k_g_l[:,ilayer], VMR\
                 = mix_multi_gas_k(k_gas_g_l[:,:,ilayer],VMR_layer[ilayer,:],del_g)
             tau_w_g_l[iwave,:,ilayer] = k_g_l[:,ilayer]*Scaled_U_layer[ilayer]*VMR
+    # print('tau_gas',tau_w_g_l,np.amax(tau_w_g_l))
     return tau_w_g_l
 
 # @jit(nopython=True)
@@ -452,6 +454,7 @@ def calc_radiance(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t
     T_layer = T_layer[::-1]
     U_layer = U_layer[::-1]
     VMR_layer = VMR_layer[::-1,:]
+    DEL_S = DEL_S[::-1]
 
     # Record constants
     NGAS, NWAVE, NG, NPRESS, NTEMP = k_gas_w_g_p_t.shape
@@ -467,7 +470,7 @@ def calc_radiance(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t
     # Collision induced absorptioin optical path (NWAVE x NLAYER)
     tau_cia = calc_tau_cia(wave_grid=wave_grid,K_CIA=k_cia,ISPACE=1,
         ID=ID,TOTAM=U_layer,T_layer=T_layer,P_layer=P_layer,VMR_layer=VMR_layer,DELH=DEL_S,
-        cia_nu_grid=cia_nu_grid,TEMPS=cia_T_grid,INORMAL=0,NPAIR=9)
+        cia_nu_grid=cia_nu_grid,TEMPS=cia_T_grid,INORMAL=1,NPAIR=9)
 
 
     # Dust scattering optical path (NWAVE x NLAYER)
@@ -480,7 +483,7 @@ def calc_radiance(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t
     # Merge all different opacities
     for ig in range(NG):
         tau_total_w_g_l[:,ig,:] = tau_gas[:,ig,:] + tau_cia[:,:] + tau_dust[:,:] + tau_rayleigh[:,:]
-
+    # print(tau_cia)
     #Scale to the line-of-sight opacities
     tau_total_w_g_l = tau_total_w_g_l * ScalingFactor
 
@@ -490,7 +493,8 @@ def calc_radiance(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t
 
     # Defining the units of the output spectrum / divide by stellar spectrum
     # IFORM = 1
-    radextra = np.sum(DEL_S[:-1])
+    # radextra = np.sum(DEL_S[:-1])
+    radextra = 0
 
     xfac = np.pi*4.*np.pi*((RADIUS+radextra)*1e2)**2.
     xfac = xfac / solspec

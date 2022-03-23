@@ -11,8 +11,6 @@ from nemesispy.radtran.radiance import calc_radiance, calc_planck
 from nemesispy.radtran.read import read_cia
 from nemesispy.radtran.trig import gauss_lobatto_weights, interpolate_to_lat_lon
 
-
-
 class ForwardModel():
 
     def __init__(self):
@@ -24,9 +22,9 @@ class ForwardModel():
         self.M_plt = None
         self.R_plt = None
         self.M_star = None # currently not used
-        self.R_star = None
-        self.T_star = None
-        self.semi_major_axis = None
+        self.R_star = None # currently not used
+        self.T_star = None # currently not used
+        self.semi_major_axis = None # currently not used
         self.NLAYER = None
         self.is_planet_model_set = False
 
@@ -44,9 +42,12 @@ class ForwardModel():
         self.k_cia_pair_t_w = None
         self.is_opacity_data_set = False
 
+        # debug data
+        self.U_layer = None
+        self.del_S = None
 
-    def set_planet_model(self, M_plt, R_plt, R_star, T_star, semi_major_axis,
-        gas_id_list, iso_id_list, NLAYER):
+    def set_planet_model(self, M_plt, R_plt, gas_id_list, iso_id_list, NLAYER,
+        R_star=None, T_star=None, semi_major_axis=None):
         """
         Set the basic system parameters for running the
         """
@@ -87,6 +88,19 @@ class ForwardModel():
 
         self.is_opacity_data_set = True
 
+    def test_point_spectrum(self,U_layer,P_layer,T_layer,VMR_layer,del_S,
+        scale,solspec,path_angle=None):
+        """
+        wrapper for calc_radiance
+        """
+        point_spectrum = calc_radiance(self.wave_grid, U_layer, P_layer, T_layer,
+            VMR_layer, self.k_gas_w_g_p_t, self.k_table_P_grid,
+            self.k_table_T_grid, self.del_g, ScalingFactor=scale,
+            RADIUS=self.R_plt, solspec=solspec, k_cia=self.k_cia_pair_t_w,
+            ID=self.gas_id_list,cia_nu_grid=self.cia_nu_grid,
+            cia_T_grid=self.cia_T_grid, DEL_S=del_S)
+        return point_spectrum
+
     def calc_point_spectrum(self, H_model, P_model, T_model, VMR_model, path_angle,
         solspec=None):
         """
@@ -94,7 +108,7 @@ class ForwardModel():
         Then calculate the spectrum at a single point on the disc.
         """
 
-        H_layer,P_layer,T_layer,VMR_layer,U_layer, Gas_layer,scale,del_S\
+        H_layer,P_layer,T_layer,VMR_layer,U_layer,Gas_layer,scale,del_S\
             = calc_layer(self.R_plt, H_model, P_model, T_model, VMR_model,
             self.gas_id_list, self.NLAYER, path_angle, layer_type=1, H_0=0.0, NSIMPS=101)
         if solspec.any() == None:
@@ -105,7 +119,8 @@ class ForwardModel():
             RADIUS=self.R_plt, solspec=solspec, k_cia=self.k_cia_pair_t_w,
             ID=self.gas_id_list,cia_nu_grid=self.cia_nu_grid,
             cia_T_grid=self.cia_T_grid, DEL_S=del_S)
-
+        self.U_layer = U_layer
+        self.del_S = del_S
         return point_spectrum
 
     def calc_disc_spectrum(self,phase,nmu,global_H_model,global_P_model,
