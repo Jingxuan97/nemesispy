@@ -114,7 +114,7 @@ class Nemesis_api:
 
         self.input_spectrum = wasp43b_spx_dayside_single_angle_45
         self.stellar_spectrum =  'wasp43_stellar_newgrav.txt'
-        # self.stellar_spectrum =  'wasp43_stellar_newgrav_fake.txt'
+        self.stellar_spectrum =  'wasp43_stellar_newgrav_fake.txt'
 
         """
         # planet and planetary system data
@@ -182,6 +182,8 @@ class Nemesis_api:
         self.totam = None
         self.press = None
         self.temp = None
+        self.delH = None
+        self.scale = None
 
     def _name_apr(self): # this file is not used in multinest retrieval
         NVAR=1
@@ -440,11 +442,26 @@ class Nemesis_api:
             #     '{}.drv'.format(self.name),skiprows=skip)
             # iread += 4
             # print(line)
+        iread += 1
+        scale = np.zeros(self.NLAYER)
+
+        # note that layers are inverted
+        for ilayer in range(self.NLAYER):
+            skip = skiprows + iread
+            ilay, jlay, Tlay, scale_lay, indent, word1, word2, word3, word4, \
+                word5,word6 = np.loadtxt('{}.drv'.format(self.name),
+                skiprows=skip,unpack=True,max_rows=1,dtype=str)
+            scale[ilayer] = scale_lay
+            iread += 1
+
         self.totam = totam * 1e4 # convert to number per m2
         self.pressure = pressure * const['ATM'] # convertt to Pa
         self.temp = temp
         self.delH = delH *1e3 # conver to m
-        return delH*1e3,totam*1e4,pressure* const['ATM'],temp
+        self.scale = scale[::-1]
+
+        return delH*1e3,totam*1e4,pressure* const['ATM'],temp,scale[::-1]
+
 
 
 

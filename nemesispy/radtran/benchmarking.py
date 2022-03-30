@@ -37,7 +37,7 @@ stellar_spec = np.array([3.341320e+25, 3.215455e+25, 3.101460e+25, 2.987110e+25,
        2.505735e+25, 2.452230e+25, 2.391140e+25, 2.345905e+25,
        2.283720e+25, 2.203690e+25, 2.136015e+25, 1.234010e+24,
        4.422200e+23])
-#stellar_spec  = np.ones(len(stellar_spec))
+stellar_spec  = np.ones(len(stellar_spec))
 
 # Spectral output wavelengths in micron
 wave_grid = np.array([1.1425, 1.1775, 1.2125, 1.2475, 1.2825, 1.3175, 1.3525, 1.3875,
@@ -70,17 +70,17 @@ NMODEL = len(H)
 NLAYER = 20
 
 # Ground temperature in Kelvin and path angle
-T_ground = T[0]
+T_ground = 0
 path_angle = 0
 
 # Gas Volume Mixing Ratio, constant with height
 gas_id = np.array([ 1,  2,  5,  6, 40, 39])
 iso_id = np.array([0, 0, 0, 0, 0, 0])
 H2_ratio = 0.85
-VMR_H2O = 1.0E-4 # volume mixing ratio of H2O
+VMR_H2O = 1.0E-4*0 # volume mixing ratio of H2O
 VMR_CO2 = 1.0E-4*0 # volume mixing ratio of CO2
 VMR_CO = 1.0E-4*0 # volume mixing ratio of CO
-VMR_CH4 = 1.0E-4*0 # volume mixing ratio of CH4
+VMR_CH4 = 1.0E-4 # volume mixing ratio of CH4
 VMR_He = (np.ones(NMODEL)-VMR_H2O-VMR_CO2-VMR_CO-VMR_CH4)*(1-H2_ratio)
 VMR_H2 = (np.ones(NMODEL)-VMR_H2O-VMR_CO2-VMR_CO-VMR_CH4)*H2_ratio
 NVMR = 6
@@ -105,7 +105,7 @@ API.write_files(path_angle=path_angle, H_model=H, P_model=P, T_model=T,
     VMR_model=VMR)
 API.run_forward_model()
 wave, yerr, point_spectrum_fo = API.read_output()
-F_delH,F_totam,F_pres,F_temp = API.read_drv_file()
+F_delH,F_totam,F_pres,F_temp,scaling = API.read_drv_file()
 
 
 ### Benchmark Python forward model
@@ -119,44 +119,65 @@ FM.set_opacity_data(kta_file_paths=lowres_files, cia_file_path=cia_file_path)
 
 point_spectrum_py_old = FM.run_point_spectrum(H_model=H_hydro, P_model=P, T_model=T,\
             VMR_model=VMR, path_angle=path_angle, solspec=stellar_spec)
+    
 point_spectrum_py = FM.test_point_spectrum(U_layer=F_totam,P_layer=F_pres,
                         T_layer=F_temp, VMR_layer=VMR, del_S=F_delH,
-                        scale=np.ones(NLAYER),solspec=stellar_spec)
+                        scale=scaling,solspec=stellar_spec)
 
 ### Compare output
 # Fortran model plot
-plt.scatter(wave,point_spectrum_fo,marker='x',color='k',linewidth=1,s=10,label='fortran')
-plt.plot(wave,point_spectrum_fo,color='k',linewidth=0.5)
+
+fig, axs = plt.subplots(nrows=2,ncols=1,sharex=True,
+    dpi=800)
+# figsize=[8.25,11.75]
+
+
+axs[0].scatter(wave,point_spectrum_fo,marker='x',color='k',linewidth=1,s=10,
+    label='fortran')
+axs[0].plot(wave,point_spectrum_fo,color='k',linewidth=0.5)
 
 # Python model plot
-plt.scatter(wave_grid, point_spectrum_py, marker='o', color='b',
+"""
+axs[0].scatter(wave_grid, point_spectrum_py_old, marker='o', color='b',
     linewidth=1, s=10, label='python')
-plt.plot(wave_grid, point_spectrum_py, color='b', linewidth=0.5)
+axs[0].plot(wave_grid, point_spectrum_py_old, color='b', linewidth=0.5)
+"""
 
-plt.scatter(wave_grid, point_spectrum_py, marker='+', color='y',
-    linewidth=1, s=10, label='old')
-plt.plot(wave_grid, point_spectrum_py, color='y', linewidth=0.5)
+axs[0].scatter(wave_grid, point_spectrum_py, marker='.', color='y',
+    linewidth=1, s=10, label='python')
+axs[0].plot(wave_grid, point_spectrum_py, color='y', linewidth=0.5)
 
+axs[0].legend(loc='upper left')
+axs[0].grid()
+axs[0].set_ylabel(r'total radiance(W sr$^{-1}$ $\mu$m$^{-1})$')
+axs[0].set_title('{:.0e}H2O {:.0e}CO2 {:.0e}CO {:.0e}CH4 {:.0e}He {:.0e}H2'.format(
+    VMR_H2O,VMR_CO2,VMR_CO, VMR_CH4, VMR_He[0], VMR_H2[0]),fontsize=8)
+
+axs[0].ticklabel_format(axis="y", style="sci", scilimits=(0,0))
+axs[0].set_yscale('log')
 # Plot diff
 diff_1 = (point_spectrum_fo-point_spectrum_py)/point_spectrum_fo
-print('diff between python and fortran with same inputs',diff_1,np.amax([diff_1,-diff_1]))
-plt.scatter(wave_grid,point_spectrum_fo-point_spectrum_py,
-    marker='.',color='r')
+print('diff between python and fortran with same inputs',diff_1,np.amax(abs(diff_1)))
+axs[1].scatter(wave_grid,(point_spectrum_fo-point_spectrum_py)/point_spectrum_fo,
+    marker='.',color='r',label='diff')
+
+axs[1].legend(loc='upper left')
+axs[1].grid()
 
 diff_2 = (point_spectrum_fo-point_spectrum_py_old)/point_spectrum_fo
-print('diff between python and fortran (own layering)',diff_2,np.amax([diff_2,-diff_2]))
+print('diff between python and fortran (own layering)',diff_2,np.amax(abs(diff_2)))
 
 # Plot config
-plt.title('compare point spectra')
-plt.ticklabel_format(axis="y", style="sci", scilimits=(0,0))
 plt.xlabel(r'wavelength($\mu$m)')
-plt.ylabel(r'total radiance(W sr$^{-1}$ $\mu$m$^{-1})$')
+plt.ticklabel_format(axis="y", style="sci", scilimits=(0,0))
 plt.tight_layout()
+"""
 plt.legend()
 plt.grid()
-
-
-# plt.savefig('comparison.pdf',dpi=400)
+"""
+plt.tight_layout()
+plt.savefig('{:.0e}H2O_{:.0e}CO2_{:.0e}CO_{:.0e}CH4_{:.0e}He_{:.0e}H2.pdf'.format(
+    VMR_H2O,VMR_CO2,VMR_CO, VMR_CH4, VMR_He[0], VMR_H2[0]),dpi=400)
 plt.show()
 
 # Pure H2 He atm, H2 ratio 0.85

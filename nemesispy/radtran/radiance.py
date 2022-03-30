@@ -3,17 +3,17 @@
 """
 np.zeros need to be called with a tuple argument to work with numba jit
 """
+from copy import copy
 import numpy as np
 import sys
 sys.path.append('/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/')
-from numpy.core.defchararray import array
-#from nemesispy.radtran.interp import new_k_overlap
+# from numpy.core.defchararray import array
 from nemesispy.radtran.interp import interp_k
 from nemesispy.radtran.interp import mix_multi_gas_k
 # from nemesispy.radtran.cia import find_nearest
 from scipy import interpolate
 from numba import jit
-# # @jit(nopython=True)
+speed_up = False
 
 # @jit(nopython=True)
 def find_nearest(input_array, target_value):
@@ -383,8 +383,11 @@ def calc_tau_gas(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
     Scaled_U_layer = U_layer *1.0e-20 # absorber amounts (U_layer) is scaled by a factor 1e-20
     Scaled_U_layer *= 1.0e-4 # convert from absorbers per m^2 to per cm^2
 
+
     k_gas_w_g_l = interp_k(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t)
     Ngas, Nwave, Ng, Nlayer = k_gas_w_g_l.shape
+
+    # Method 1
     tau_w_g_l = np.zeros((Nwave,Ng,Nlayer))
     for iwave in range (Nwave):
         k_gas_g_l = k_gas_w_g_l[:,iwave,:,:]
@@ -393,7 +396,12 @@ def calc_tau_gas(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
             k_g_l[:,ilayer], VMR\
                 = mix_multi_gas_k(k_gas_g_l[:,:,ilayer],VMR_layer[ilayer,:],del_g)
             tau_w_g_l[iwave,:,ilayer] = k_g_l[:,ilayer]*Scaled_U_layer[ilayer]*VMR
-    # print('tau_gas',tau_w_g_l,np.amax(tau_w_g_l))
+    # print('VMR',VMR)
+
+    # # Method 2
+    # tau_w_g_l,f_combined = new_k_overlap(k_gas_w_g_l,del_g,VMR_layer)
+
+
     return tau_w_g_l
 
 # @jit(nopython=True)
@@ -463,17 +471,16 @@ def calc_radiance(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t
     # Initiate arrays to record optical paths (NWAVE x NG x NLAYER)
     tau_total_w_g_l = np.zeros((NWAVE,NG,NLAYER)) # Total Optical path
 
+    # Collision induced absorptioin optical path (NWAVE x NLAYER)
+    tau_cia = calc_tau_cia(wave_grid=wave_grid,K_CIA=k_cia,ISPACE=1,
+        ID=ID,TOTAM=U_layer,T_layer=T_layer,P_layer=P_layer,VMR_layer=VMR_layer,
+        DELH=DEL_S,cia_nu_grid=cia_nu_grid,TEMPS=cia_T_grid,INORMAL=1,NPAIR=9)
+
     # Rayleigh scattering optical path (NWAVE x NLAYER)
     tau_rayleigh = calc_tau_rayleighj(wave_grid=wave_grid,TOTAM=U_layer)
 
-
-    # Collision induced absorptioin optical path (NWAVE x NLAYER)
-    tau_cia = calc_tau_cia(wave_grid=wave_grid,K_CIA=k_cia,ISPACE=1,
-        ID=ID,TOTAM=U_layer,T_layer=T_layer,P_layer=P_layer,VMR_layer=VMR_layer,DELH=DEL_S,
-        cia_nu_grid=cia_nu_grid,TEMPS=cia_T_grid,INORMAL=1,NPAIR=9)
-
-
     # Dust scattering optical path (NWAVE x NLAYER)
+    """To be done"""
     tau_dust = np.zeros((NWAVE,NLAYER))
 
     # Active gas optical path (NWAVE x NG x NLAYER)
@@ -484,6 +491,7 @@ def calc_radiance(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t
     for ig in range(NG):
         tau_total_w_g_l[:,ig,:] = tau_gas[:,ig,:] + tau_cia[:,:] + tau_dust[:,:] + tau_rayleigh[:,:]
     # print(tau_cia)
+
     #Scale to the line-of-sight opacities
     tau_total_w_g_l = tau_total_w_g_l * ScalingFactor
 
@@ -505,33 +513,42 @@ def calc_radiance(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t
     spec_w_g = np.zeros((NWAVE,NG))
 
     for ilayer in range(NLAYER):
-
         tau_cumulative_w_g[:,:] =  tau_total_w_g_l[:,:,ilayer] + tau_cumulative_w_g[:,:]
-        tr_w_g = np.exp(-tau_cumulative_w_g) # transmission function
+        tr_w_g = np.exp(-tau_cumulative_w_g[:,:]) # transmission function
         bb = calc_planck(wave_grid, T_layer[ilayer]) # blackbody function
+
+        """# vectorised
         for ig in range(NG):
             spec_w_g[:,ig] = spec_w_g[:,ig]+(tr_old_w_g[:,ig]-tr_w_g[:,ig])*bb[:]
-        tr_old_w_g = tr_w_g
+        """
+        for iwave in range(NWAVE):
+            for ig in range(NG):
+                spec_w_g[iwave,ig] = spec_w_g[iwave,ig] \
+                    + (np.array((tr_old_w_g[iwave,ig]-tr_w_g[iwave,ig]),dtype=np.float32))*bb[iwave]
+
+        tr_old_w_g = copy(tr_w_g)
 
     # surface/bottom layer contribution
     p1 = P_layer[int(len(P_layer)/2-1)] #midpoint
     p2 = P_layer[-1] # lowest point in altitude/highest in pressure
+
 
     surface = None
     if p2 > p1: # i.e. if not a limb path
         if not surface:
             radground = calc_planck(wave_grid,T_layer[-1])
         for ig in range(NG):
-            spec_w_g[:,ig] = spec_w_g[:,ig] + tr_old_w_g[:,ig]*radground
+            spec_w_g[:,ig] = spec_w_g[:,ig] + np.array((tr_old_w_g[:,ig]),dtype=np.float32)*radground
 
     spec_out[:,:] = spec_w_g[:,:]
 
     spectrum = np.zeros((NWAVE))
     for iwave in range(NWAVE):
         for ig in range(NG):
-            spectrum[iwave] += spec_out[iwave,ig]*del_g[ig]
+            spectrum[iwave] += spec_w_g[iwave,ig]*del_g[ig]
 
-    return spectrum * xfac
+    spectrum *= xfac
+    return spectrum
 
 
 

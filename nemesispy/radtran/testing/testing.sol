@@ -1,1 +1,1 @@
-wasp43_stellar_newgrav.txt
+wasp43_stellar_newgrav_fake.txt
