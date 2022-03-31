@@ -12,7 +12,7 @@ dust model aerosol.prf
 dust spectra testing.xsc                                                        
   
 layer
-nlay  20
+nlay   2
 layht     0.00
 layang     0.00
 layint   1

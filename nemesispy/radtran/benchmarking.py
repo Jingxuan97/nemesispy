@@ -29,7 +29,8 @@ const = {
 ### Reference Planet Input
 M_plt = 3.8951064000000004e+27 # kg
 R_plt = 74065.70 * 1e3 # m
-R_star = 463892759.99999994 # m
+#R_star = 463892759.99999994 # m
+
 ### Reference Spectral Input
 # Stellar spectrum
 stellar_spec = np.array([3.341320e+25, 3.215455e+25, 3.101460e+25, 2.987110e+25,
@@ -69,6 +70,32 @@ T = np.array([2294.22993056, 2275.69702232, 2221.47726725, 2124.54056941,
 NMODEL = len(H)
 NLAYER = 20
 
+### Reference Atmospheric Model Input
+# Height in m
+H = np.array([      0.     ,  10000, 15000])
+
+# Pressure in pa, note 1 atm = 101325 pa
+P = np.array([2.00000000e+06, 5e+05, 1e5])
+
+# Temperature in Kelvin
+T = np.array([2000, 1800, 1500])
+
+NMODEL = len(H)
+NLAYER = 3
+
+### Reference Atmospheric Model Input
+# Height in m
+H = np.array([      0.     ,  10000])
+
+# Pressure in pa, note 1 atm = 101325 pa
+P = np.array([2.00000000e+06, 5e+05])
+
+# Temperature in Kelvin
+T = np.array([2000, 1500 ])
+
+NMODEL = len(H)
+NLAYER = 2
+
 # Ground temperature in Kelvin and path angle
 T_ground = 0
 path_angle = 0
@@ -76,10 +103,10 @@ path_angle = 0
 # Gas Volume Mixing Ratio, constant with height
 gas_id = np.array([ 1,  2,  5,  6, 40, 39])
 iso_id = np.array([0, 0, 0, 0, 0, 0])
-H2_ratio = 0.85
-VMR_H2O = 1.0E-4*0 # volume mixing ratio of H2O
-VMR_CO2 = 1.0E-4*0 # volume mixing ratio of CO2
-VMR_CO = 1.0E-4*0 # volume mixing ratio of CO
+H2_ratio = 0
+VMR_H2O = 1.0E-4 # volume mixing ratio of H2O
+VMR_CO2 = 1.0E-4 # volume mixing ratio of CO2
+VMR_CO = 1.0E-4 # volume mixing ratio of CO
 VMR_CH4 = 1.0E-4 # volume mixing ratio of CH4
 VMR_He = (np.ones(NMODEL)-VMR_H2O-VMR_CO2-VMR_CO-VMR_CH4)*(1-H2_ratio)
 VMR_H2 = (np.ones(NMODEL)-VMR_H2O-VMR_CO2-VMR_CO-VMR_CH4)*H2_ratio
@@ -147,7 +174,7 @@ axs[0].scatter(wave_grid, point_spectrum_py, marker='.', color='y',
     linewidth=1, s=10, label='python')
 axs[0].plot(wave_grid, point_spectrum_py, color='y', linewidth=0.5)
 
-axs[0].legend(loc='upper left')
+axs[0].legend(loc='upper right')
 axs[0].grid()
 axs[0].set_ylabel(r'total radiance(W sr$^{-1}$ $\mu$m$^{-1})$')
 axs[0].set_title('{:.0e}H2O {:.0e}CO2 {:.0e}CO {:.0e}CH4 {:.0e}He {:.0e}H2'.format(
@@ -160,6 +187,8 @@ diff_1 = (point_spectrum_fo-point_spectrum_py)/point_spectrum_fo
 print('diff between python and fortran with same inputs',diff_1,np.amax(abs(diff_1)))
 axs[1].scatter(wave_grid,(point_spectrum_fo-point_spectrum_py)/point_spectrum_fo,
     marker='.',color='r',label='diff')
+print('fortran',point_spectrum_fo)
+print('python',point_spectrum_py)
 
 axs[1].legend(loc='upper left')
 axs[1].grid()

@@ -7,7 +7,7 @@ All k-tables are assumed to share the same wavelength grid, pressure grid,
 temperature grid, g ordinates and quadrature weights.
 
 Note that the opacities in Nemesis k-tables are multiplied by a factor of 1e20,
-which need to be rescaled in the radiative transfer routine by multiplying
+which is balanced in the radiative transfer routine by multiplying
 absorber amounts by 1e-20.
 """
 import numpy as np

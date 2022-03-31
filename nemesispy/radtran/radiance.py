@@ -279,7 +279,7 @@ def calc_planck(wave,temp,ispace=1):
 
     tmp = c2 * y / temp
     b = np.exp(tmp) - 1
-    bb = a/b
+    bb = np.array((a/b),dtype=np.float32)
 
     return bb
 
@@ -493,7 +493,12 @@ def calc_radiance(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t
     # print(tau_cia)
 
     #Scale to the line-of-sight opacities
+
     tau_total_w_g_l = tau_total_w_g_l * ScalingFactor
+    # for ilayer in range(NLAYER):
+    #     tau_total_w_g_l[:,:,ilayer] \
+    #         = tau_total_w_g_l[:,:,ilayer] * ScalingFactor[ilayer]
+
 
 
     # Thermal Emission Calculation, IMOD = 3
@@ -504,9 +509,47 @@ def calc_radiance(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t
     # radextra = np.sum(DEL_S[:-1])
     radextra = 0
 
-    xfac = np.pi*4.*np.pi*((RADIUS+radextra)*1e2)**2.
-    xfac = xfac / solspec
+    xfac = np.pi*4.*np.pi*((RADIUS+radextra)*1e2)**2.*np.ones(NWAVE)
+    xfac = xfac / solspec[:]
 
+    """ # Fortran straight transcription
+    ### pray it works
+    bb = np.zeros((NWAVE,NLAYER))
+    spectrum = np.zeros((NWAVE))
+    spec_w_g = np.zeros((NWAVE,NG))
+    for iwave in range(NWAVE):
+        for ig in range(NG):
+            taud = 0.
+            trold = 1.
+            for ilayer in range(NLAYER):
+                taud = taud + tau_total_w_g_l[iwave,ig,ilayer]
+                tr = np.exp(-taud)
+                # print('taud',taud)
+                # print('tr',tr)
+                if ig == 0:
+                    bb[iwave,ilayer] = calc_planck(wave_grid[iwave],T_layer[ilayer])
+                # print('bb',bb)
+                # print('np.float32((trold-tr))',np.float32((trold-tr)))
+                # print('xfac',xfac)
+                # print(xfac*np.float32((trold-tr)) * bb[iwave,ilayer])
+
+                spec_w_g[iwave,ig] = spec_w_g[iwave,ig] \
+                    + xfac[iwave]*np.float32((trold-tr)) * bb[iwave,ilayer]
+                trold = tr
+            p1 = P_layer[int(len(P_layer)/2-1)] #midpoint
+            p2 = P_layer[-1] # lowest point in altitude/highest in pressure
+            surface = None
+            if p2 > p1:
+                radground = calc_planck(wave_grid[iwave],T_layer[-1])
+                spec_w_g[iwave,ig] = spec_w_g[iwave,ig] \
+                    + xfac[iwave]*np.float32(trold)*radground
+
+    for iwave in range(NWAVE):
+        for ig in range(NG):
+            spectrum[iwave] += spec_w_g[iwave,ig] * del_g[ig]
+    """
+
+    # old working method
     # Calculating atmospheric gases contribution
     tau_cumulative_w_g = np.zeros((NWAVE,NG))
     tr_old_w_g = np.ones((NWAVE,NG))
@@ -516,38 +559,45 @@ def calc_radiance(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t
         tau_cumulative_w_g[:,:] =  tau_total_w_g_l[:,:,ilayer] + tau_cumulative_w_g[:,:]
         tr_w_g = np.exp(-tau_cumulative_w_g[:,:]) # transmission function
         bb = calc_planck(wave_grid, T_layer[ilayer]) # blackbody function
+        # print(bb)
 
-        """# vectorised
-        for ig in range(NG):
-            spec_w_g[:,ig] = spec_w_g[:,ig]+(tr_old_w_g[:,ig]-tr_w_g[:,ig])*bb[:]
-        """
+        # # vectorised
+        # for ig in range(NG):
+        #     spec_w_g[:,ig] = spec_w_g[:,ig]+(tr_old_w_g[:,ig]-tr_w_g[:,ig])*bb[:]
+
         for iwave in range(NWAVE):
             for ig in range(NG):
                 spec_w_g[iwave,ig] = spec_w_g[iwave,ig] \
-                    + (np.array((tr_old_w_g[iwave,ig]-tr_w_g[iwave,ig]),dtype=np.float32))*bb[iwave]
+                    + np.float32(tr_old_w_g[iwave,ig]-tr_w_g[iwave,ig])\
+                    *bb[iwave]
 
         tr_old_w_g = copy(tr_w_g)
+
 
     # surface/bottom layer contribution
     p1 = P_layer[int(len(P_layer)/2-1)] #midpoint
     p2 = P_layer[-1] # lowest point in altitude/highest in pressure
 
-
     surface = None
     if p2 > p1: # i.e. if not a limb path
+
         if not surface:
             radground = calc_planck(wave_grid,T_layer[-1])
         for ig in range(NG):
-            spec_w_g[:,ig] = spec_w_g[:,ig] + np.array((tr_old_w_g[:,ig]),dtype=np.float32)*radground
+            spec_w_g[:,ig] = spec_w_g[:,ig] \
+                + np.array((tr_old_w_g[:,ig]),dtype=np.float32)*radground
+        pass
 
-    spec_out[:,:] = spec_w_g[:,:]
 
     spectrum = np.zeros((NWAVE))
     for iwave in range(NWAVE):
         for ig in range(NG):
             spectrum[iwave] += spec_w_g[iwave,ig]*del_g[ig]
 
+    # spectrum = np.tensordot(spec_w_g,del_g,axes=([1],[0]))
     spectrum *= xfac
+
+
     return spectrum
 
 

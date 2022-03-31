@@ -1,7 +1,7 @@
  Enter run name : checking files
  Reading reference file from : testing.ref                                                                                         
  Runname : testing.ref                                                                                         
- NPRO, NVMR :           20           6
+ NPRO, NVMR :            2           6
  Reading reference file from : testing.ref                                                                                         
  Files OK T
  Nemesis - corr-k calculation
@@ -90,32 +90,35 @@ Klist filename: testing.kls
   Percent Complete =    90.0000000    
   Percent Complete =    100.000000    
  ForwardavfovX: Npath,sol_ang,emiss_ang =            1   0.00000000       0.00000000    
-           1   1.00000000       3.19543296E+22   3.19543296E+22   3.19543296E+22
-           2   1.00000000       3.00756125E+22   3.00756125E+22   3.00756125E+22
-           3   1.00000000       3.69400779E+22   3.69400779E+22   3.69400779E+22
-           4   1.00000000       4.17830012E+22   4.17830012E+22   4.17830012E+22
-           5   1.00000000       4.11385586E+22   4.11385586E+22   4.11385586E+22
-           6   1.00000000       3.34970399E+22   3.34970399E+22   3.34970399E+22
-           7   1.00000000       2.50328780E+22   2.50328780E+22   2.50328780E+22
-           8   1.00000000       2.04869220E+22   2.04869220E+22   2.04869220E+22
-           9   1.00000000       2.18678405E+22   2.18678405E+22   2.18678405E+22
-          10   1.00000000       2.72268808E+22   2.72268808E+22   2.72268808E+22
-          11   1.00000000       3.09554785E+22   3.09554785E+22   3.09554785E+22
-          12   1.00000000       3.12472645E+22   3.12472645E+22   3.12472645E+22
-          13   1.00000000       2.82534539E+22   2.82534539E+22   2.82534539E+22
-          14   1.00000000       1.99140236E+22   1.99140236E+22   1.99140236E+22
-          15   1.00000000       1.17954014E+22   1.17954014E+22   1.17954014E+22
-          16   1.00000000       2.29683848E+21   2.29683848E+21   2.29683848E+21
-          17   1.00000000       2.49605620E+21   2.49605620E+21   2.49605620E+21
+           1   1.00000000       8.27659492E+21   8.27659492E+21   8.27659492E+21
+           2   1.00000000       8.64712915E+21   8.64712915E+21   8.64712915E+21
+           3   1.00000000       1.15930626E+22   1.15930626E+22   1.15930626E+22
+           4   1.00000000       1.43355780E+22   1.43355780E+22   1.43355780E+22
+           5   1.00000000       1.47928307E+22   1.47928307E+22   1.47928307E+22
+           6   1.00000000       1.22720669E+22   1.22720669E+22   1.22720669E+22
+           7   1.00000000       7.70105910E+21   7.70105910E+21   7.70105910E+21
+           8   1.00000000       7.46625380E+21   7.46625380E+21   7.46625380E+21
+           9   1.00000000       7.71708966E+21   7.71708966E+21   7.71708966E+21
+          10   1.00000000       8.02886767E+21   8.02886767E+21   8.02886767E+21
+          11   1.00000000       8.44654163E+21   8.44654163E+21   8.44654163E+21
+          12   1.00000000       9.48737080E+21   9.48737080E+21   9.48737080E+21
+          13   1.00000000       1.11785197E+22   1.11785197E+22   1.11785197E+22
+          14   1.00000000       1.11108881E+22   1.11108881E+22   1.11108881E+22
+          15   1.00000000       9.38270489E+21   9.38270489E+21   9.38270489E+21
+          16   1.00000000       3.76503997E+21   3.76503997E+21   3.76503997E+21
+          17   1.00000000       2.16370631E+21   2.16370631E+21   2.16370631E+21
  Calc_gain_matrix: Inverting...
  dinvertm: Cholesky decomposition
  dinvertm.f: Matrix inversion OK
  calc_phiret: phi1,phi2 =          Infinity   0.00000000    
  Assess:
- Average of diagonal elements of Kk*Sx*Kt :    1.0000009154076395E-010
+ Average of diagonal elements of Kk*Sx*Kt :    1.7679925468202257E+030
  Average of diagonal elements of Se :    1.0000009154076395E-010
- Ratio =    1.0000000000000000     
- Average of Kk*Sx*Kt/Se element ratio :    1.0000000000000000     
+ Ratio =    1.7679909283878233E+040
+ Average of Kk*Sx*Kt/Se element ratio :    1.7679909283878236E+040
+ ******************* ASSESS WARNING *****************
+ Insufficient constraint. Solution likely to be exact
+ ****************************************************
  iterred,kiter           1          -1
  chisq/ny is equal to :          Infinity
  Coreret: WARNING
@@ -123,7 +126,7 @@ Klist filename: testing.kls
  Calculating final covariance matrix
  Matrix calculated
  Writeout: ispace,iform,xfac :            1           1   1.00000000    
- D           3          20   0.00000000    
+ D           3           2   0.00000000    
  E           1
  Warning from nemesis/setup.f. Surface temperature must
  be greater than 0.0 for some parts of code that deal
@@ -156,4 +159,4 @@ Klist filename: testing.kls
  Reading reference file from : testing.ref                                                                                         
  gsetrad called OK
  Model run OK
- Elapsed time (s) =      1.1
+ Elapsed time (s) =      0.6

@@ -360,21 +360,26 @@ def mix_two_gas_k(k_g1, k_g2, VMR1, VMR2, del_g):
     if k_g1[-1] * VMR1 <= cut_off and k_g2[-1] * VMR2 <= cut_off:
         pass
     elif k_g1[-1] * VMR1 <= cut_off:
-        k_g_combined = k_g2*VMR2/VMR_combined
+        k_g_combined[:] = k_g2[:]*VMR2/VMR_combined
     elif k_g2[-1] * VMR2 <= cut_off:
-        k_g_combined = k_g1*VMR1/VMR_combined
+        k_g_combined[:] = k_g1[:]*VMR1/VMR_combined
     else:
         # Overlap Ng k-coeffs with Ng k-coeffs randomly: Ng x Ng possible pairs
         nloop = Ng**2
-        weight_mix = np.zeros(nloop)
-        k_g_mix = np.zeros(nloop)
+        weight_mix = np.zeros((nloop))
+        k_g_mix = np.zeros((nloop))
+        ix = 0
         # Mix k-coeffs of gases weighted by their relative VMR.
         for i in range(Ng):
             for j in range(Ng):
-                # equation 9 Amundsen 2017 (equation 20 Mollier 2015)
-                k_g_mix[i*Ng+j] = (k_g1[i]*VMR1+k_g2[j]*VMR2)/VMR_combined
-                # equation 10 Amundsen 2017
-                weight_mix[i*Ng+j] = del_g[i]*del_g[j]
+                # # equation 9 Amundsen 2017 (equation 20 Mollier 2015)
+                # k_g_mix[i*Ng+j] = (k_g1[i]*VMR1+k_g2[j]*VMR2)/VMR_combined
+                # # equation 10 Amundsen 2017
+                # weight_mix[i*Ng+j] = del_g[i]*del_g[j]
+
+                weight_mix[ix] = del_g[i] * del_g[j]
+                k_g_mix[ix] = (k_g1[i]*VMR1 + k_g2[j]*VMR2)/VMR_combined
+                ix += 1
 
         # getting the cumulative g ordinate
         g_ord = np.zeros(Ng+1)
@@ -396,8 +401,9 @@ def mix_two_gas_k(k_g1, k_g2, VMR1, VMR2, del_g):
 
         gdist = np.zeros(nloop)
         gdist[0] = weight_mix_sorted[0]
-        for iloop in range(1,nloop):
-            gdist[iloop] = weight_mix_sorted[iloop]+ gdist[iloop-1]
+        for iloop in range(nloop-1):
+            ix = iloop+1
+            gdist[ix] = weight_mix_sorted[ix]+ gdist[iloop]
 
         ig = 0
         sum1 = 0.0
@@ -414,7 +420,8 @@ def mix_two_gas_k(k_g1, k_g2, VMR1, VMR2, del_g):
                 ig += 1
                 if ig<=Ng-1:
                     sum1 = (1.-frac)*weight_mix_sorted[iloop]
-                    k_g_combined[ig] += (1-frac)*k_g_mix_sorted[iloop]*weight_mix[iloop]
+                    k_g_combined[ig] \
+                        += (1-frac)*k_g_mix_sorted[iloop]*weight_mix[iloop]
 
         if ig == Ng-1:
             k_g_combined[ig] = k_g_combined[ig]/sum1
