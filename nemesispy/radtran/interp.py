@@ -27,6 +27,75 @@ def find_nearest(input_array, target_value):
     idx = (np.abs(array - target_value)).argmin()
     return array[idx], idx
 
+def index(N):
+    return N-1
+
+def sort2g(RA):
+    """
+    Modified numerical recipes routine to sort a vector RA of length N
+    into ascending order. Integer vector IB is initially set to
+    1,2,3,... and on output keeps a record of how RA has been sorted.
+    """
+    # print('RA=',RA)
+    N = len(RA)
+    # print('N=',N)
+    IB = np.arange(1,N+1)
+    # print('IB',IB)
+    L = int(N/2)+1
+    # print('L',L)
+    IR = N
+    # print('IR',IR)
+
+    while True:
+        # print('list',RA)
+        # at least two elements
+        if L > 1:
+            # print('L>=1, L=', L)
+            L = L-1
+            # print('L=',L)
+            RRA = RA[index(L)]
+            # print('RRA=',RRA)
+            IRB = IB[index(L)]
+            # print('IRB=',IRB)
+        else:
+            # only one element
+            # print('else')
+            # print('IR=',IR)
+            RRA = RA[index(IR)]
+            IRB = IB[index(IR)]
+            RA[index(IR)] = RA[index(1)]
+            IB[index(IR)] = IB[index(1)]
+            IR = IR - 1
+            # print('IR=',IR)
+            if IR == 1:
+                RA[index(1)] = RRA
+                IB[index(1)] = IRB
+                # print('return')
+                return RA,IB-1
+            # end if
+        # end if
+        I = L
+        # print('I=',I)
+        J = L+L
+        # print('J=',J)
+
+        while J<=IR:
+            if J<IR:
+                if RA[index(J)]<=RA[index(J+1)]:
+                    J = J+1
+            if RRA < RA[index(J)]:
+                RA[index(I)] = RA[index(J)]
+                IB[index(I)] = IB[index(J)]
+                I = J
+                J = J+J
+            else:
+                J = IR+1
+            # end if
+        RA[index(I)] = RRA
+        IB[index(I)] = IRB
+        # print('end of loop')
+        # print('RA=', RA)
+
 
 # @jit(nopython=True)
 def interp_k_old(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t):
@@ -390,13 +459,16 @@ def mix_two_gas_k(k_g1, k_g2, VMR1, VMR2, del_g):
         # g_ord = np.cumsum(del_g)
         # g_ord = np.append([0],g_ord)
         # print('g_ord2',g_ord)
-        if g_ord[Ng]<1.0:
+        if g_ord[Ng] < 1.0:
             g_ord[Ng] = 1.0
 
         # Resort-rebin procedure: Sort new "mixed" k-coeff's from low to high
         # see Amundsen et al. 2016 or section B.2.1 in Molliere et al. 2015
+        # check sorting
         ascending_index = np.argsort(k_g_mix)
         k_g_mix_sorted = k_g_mix[ascending_index]
+
+        # k_g_mix_sorted, ascending_index = sort2g(k_g_mix)
         weight_mix_sorted = weight_mix[ascending_index]
 
         gdist = np.zeros(nloop)
@@ -414,17 +486,17 @@ def mix_two_gas_k(k_g1, k_g2, VMR1, VMR2, del_g):
                 sum1 = sum1 + weight_mix_sorted[iloop]
             else:
                 frac = (g_ord[ig+1]-gdist[iloop-1])/(gdist[iloop]-gdist[iloop-1])
-                k_g_combined[ig] += frac*k_g_mix_sorted[iloop]*weight_mix[iloop]
+                k_g_combined[ig] += np.float32(frac)*k_g_mix_sorted[iloop]*weight_mix[iloop]
                 sum1 = sum1 + weight_mix_sorted[iloop]
-                k_g_combined[ig] = k_g_combined[ig] / sum1
+                k_g_combined[ig] = k_g_combined[ig] / np.float32(sum1)
                 ig += 1
                 if ig<=Ng-1:
-                    sum1 = (1.-frac)*weight_mix_sorted[iloop]
+                    sum1 = np.float32((1.-frac))*weight_mix_sorted[iloop]
                     k_g_combined[ig] \
-                        += (1-frac)*k_g_mix_sorted[iloop]*weight_mix[iloop]
+                        += np.float32((1-frac))*k_g_mix_sorted[iloop]*weight_mix[iloop]
 
         if ig == Ng-1:
-            k_g_combined[ig] = k_g_combined[ig]/sum1
+            k_g_combined[ig] = k_g_combined[ig]/np.float32(sum1)
 
         """# Chimera
         #combining w/weights--see description on Molliere et al. 2015

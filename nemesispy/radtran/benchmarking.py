@@ -12,6 +12,24 @@ lowres_files = ['/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/d
          '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/ch4']
 cia_file_path='/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/cia/exocia_hitran12_200-3800K.tab'
 folder_name = 'testing'
+
+
+lowres_files = ['/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/h2o',
+         '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/co2',
+         '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/co',
+         '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/ch4']
+
+"""
+lowres_files = [ '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/co',
+         '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/co2',
+         '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/h2o',
+         '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/ch4']
+
+lowres_files = [ '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/co2',
+                '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/co',
+         '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/h2o',
+         '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/ch4']
+"""
 ### Reference Constants
 pi = np.pi
 const = {
@@ -43,7 +61,8 @@ stellar_spec  = np.ones(len(stellar_spec))
 # Spectral output wavelengths in micron
 wave_grid = np.array([1.1425, 1.1775, 1.2125, 1.2475, 1.2825, 1.3175, 1.3525, 1.3875,
        1.4225, 1.4575, 1.4925, 1.5275, 1.5625, 1.5975, 1.6325, 3.6   ,
-       4.5   ])
+       4.5   ],dtype=np.float32)
+
 
 ### Reference Atmospheric Model Input
 # Height in m
@@ -70,6 +89,17 @@ T = np.array([2294.22993056, 2275.69702232, 2221.47726725, 2124.54056941,
 NMODEL = len(H)
 NLAYER = 20
 
+"""
+A = 100
+H = np.linspace(     0.     , 1404762.36466,num=A)
+P = np.linspace(2.00000000e+06, 1.00000000e+02,num=A)
+T = np.linspace(2294, 1292,num=A)
+
+NMODEL = len(H)
+NLAYER = NMODEL
+"""
+
+"""
 ### Reference Atmospheric Model Input
 # Height in m
 H = np.array([      0.     ,  10000, 15000])
@@ -95,19 +125,19 @@ T = np.array([2000, 1500 ])
 
 NMODEL = len(H)
 NLAYER = 2
-
+"""
 # Ground temperature in Kelvin and path angle
 T_ground = 0
 path_angle = 0
 
 # Gas Volume Mixing Ratio, constant with height
-gas_id = np.array([ 1,  2,  5,  6, 40, 39])
+gas_id = np.array([  1, 2,  5,  6, 40, 39])
 iso_id = np.array([0, 0, 0, 0, 0, 0])
 H2_ratio = 0
 VMR_H2O = 1.0E-4 # volume mixing ratio of H2O
 VMR_CO2 = 1.0E-4 # volume mixing ratio of CO2
-VMR_CO = 1.0E-4 # volume mixing ratio of CO
-VMR_CH4 = 1.0E-4 # volume mixing ratio of CH4
+VMR_CO = 1.0E-4*0 # volume mixing ratio of CO
+VMR_CH4 = 1.0E-4*0 # volume mixing ratio of CH4
 VMR_He = (np.ones(NMODEL)-VMR_H2O-VMR_CO2-VMR_CO-VMR_CH4)*(1-H2_ratio)
 VMR_H2 = (np.ones(NMODEL)-VMR_H2O-VMR_CO2-VMR_CO-VMR_CH4)*H2_ratio
 NVMR = 6
@@ -146,10 +176,14 @@ FM.set_opacity_data(kta_file_paths=lowres_files, cia_file_path=cia_file_path)
 
 point_spectrum_py_old = FM.run_point_spectrum(H_model=H_hydro, P_model=P, T_model=T,\
             VMR_model=VMR, path_angle=path_angle, solspec=stellar_spec)
-    
+
 point_spectrum_py = FM.test_point_spectrum(U_layer=F_totam,P_layer=F_pres,
                         T_layer=F_temp, VMR_layer=VMR, del_S=F_delH,
-                        scale=scaling,solspec=stellar_spec)
+                        scale=scaling, solspec=stellar_spec)
+
+### Benchmark Juan's forward model 
+os.system("python3 /Users/jingxuanyang/Desktop/uptodate/NemesisPy-dist/NemesisPy/Programs/nemesisPY.py < testing.nam")
+wave, yerr, juan_version = API.read_output()
 
 ### Compare output
 # Fortran model plot
@@ -174,6 +208,10 @@ axs[0].scatter(wave_grid, point_spectrum_py, marker='.', color='y',
     linewidth=1, s=10, label='python')
 axs[0].plot(wave_grid, point_spectrum_py, color='y', linewidth=0.5)
 
+axs[0].scatter(wave_grid, juan_version, marker='.', color='r',
+    linewidth=1, s=10, label='juan_version')
+axs[0].plot(wave_grid, juan_version, color='r', linewidth=0.5)
+
 axs[0].legend(loc='upper right')
 axs[0].grid()
 axs[0].set_ylabel(r'total radiance(W sr$^{-1}$ $\mu$m$^{-1})$')
@@ -185,12 +223,18 @@ axs[0].set_yscale('log')
 # Plot diff
 diff_1 = (point_spectrum_fo-point_spectrum_py)/point_spectrum_fo
 print('diff between python and fortran with same inputs',diff_1,np.amax(abs(diff_1)))
+
+
+
 axs[1].scatter(wave_grid,(point_spectrum_fo-point_spectrum_py)/point_spectrum_fo,
-    marker='.',color='r',label='diff')
+    marker='.',color='b',label='diff (mine)')
+
+axs[1].scatter(wave_grid,(point_spectrum_fo-juan_version)/point_spectrum_fo,
+    marker='.',color='r',label='diff (juan)')
 print('fortran',point_spectrum_fo)
 print('python',point_spectrum_py)
 
-axs[1].legend(loc='upper left')
+axs[1].legend(loc='lower left')
 axs[1].grid()
 
 diff_2 = (point_spectrum_fo-point_spectrum_py_old)/point_spectrum_fo
@@ -208,6 +252,8 @@ plt.tight_layout()
 plt.savefig('{:.0e}H2O_{:.0e}CO2_{:.0e}CO_{:.0e}CH4_{:.0e}He_{:.0e}H2.pdf'.format(
     VMR_H2O,VMR_CO2,VMR_CO, VMR_CH4, VMR_He[0], VMR_H2[0]),dpi=400)
 plt.show()
+
+
 
 # Pure H2 He atm, H2 ratio 0.85
 """
@@ -276,4 +322,24 @@ diff2 = np.array([0.03534342, 0.03595814, 0.03827849, 0.03773715, 0.03565704,
        0.03547839, 0.0371991 , 0.04009606, 0.04331519, 0.04650137,
        0.04919452, 0.05115556, 0.05247831, 0.05311143, 0.05290782,
        0.00943512, 0.00149404])
+"""
+
+
+
+
+
+
+"""
+[ 5.25967581e-06 -2.76723438e-04 -4.14992082e-04 -8.25601241e-05
+ -6.96366419e-05 -8.37985996e-05 -3.53954143e-04 -4.90156681e-04
+  4.78637269e-05  1.59335672e-03  2.98267603e-05 -3.07812821e-04
+  1.91729393e-04 -1.25652374e-03 -1.50401884e-03  1.68878016e-04
+ -2.05801711e-02]  0.020580171078122943 # np.argsort
+
+[ 5.25967581e-06 -4.44398519e-04 -9.22294498e-05 -8.25601241e-05
+ -6.96366419e-05 -8.37985996e-05 -3.53954143e-04 -4.90156681e-04
+  4.78637269e-05  1.59335672e-03  2.98267603e-05 -3.07812821e-04
+  1.91729393e-04 -1.25652374e-03 -1.50401884e-03  1.68878016e-04
+ -2.05801711e-02] 0.020580171078122943 # fortran
+
 """

@@ -111,6 +111,7 @@ class Nemesis_api:
         self.name = name
         self.NLAYER = NLAYER
         self.wave_grid = wave_grid
+        self.NWAVE = len(wave_grid)
 
         self.input_spectrum = wasp43b_spx_dayside_single_angle_45
         self.stellar_spectrum =  'wasp43_stellar_newgrav.txt'
@@ -150,7 +151,7 @@ class Nemesis_api:
         # nemesis configuration
         # set up .fla file
         self.INORMAL = 1   # wether ortho/para-H2 ratio is in eqlm, (0=eqm, 1=normal) #
-        self.IRAY = 1      # Rayleigh optical depth calculation,1=gas giant,2=CO2 dominated,>2=N2,O2 dominated #
+        self.IRAY = 0      # Rayleigh optical depth calculation,1=gas giant,2=CO2 dominated,>2=N2,O2 dominated #
         self.IH2O = 0      # additional H2O continuum
         self.ICH4 = 0      # additional CH4 continuum
         self.IO3 = 0       # additional O3 continuum
@@ -200,11 +201,17 @@ class Nemesis_api:
     def _name_ref(self, H_model, P_model, T_model, VMR_model, AMFORM=1,
         LATITUDE=0.0, planet_id=87):
 
+        AMFORM = 1 # testing
+
         f = open('{}.ref'.format(self.name),'w')
         f.write('{}\n'.format(AMFORM))
         f.write('1\n')
-        f.write('{:4} {:4} {:4} {:4}\n'.format(planet_id, LATITUDE, self.NLAYER,
-            self.NVMR))
+        if AMFORM == 1:
+            f.write('{:4} {:4} {:4} {:4}\n'.format(planet_id, LATITUDE, self.NLAYER,
+                self.NVMR))
+        if AMFORM == 2:
+            f.write('{:4} {:4} {:4} {:4}\n'.format(planet_id, LATITUDE, self.NLAYER,
+                self.NVMR))
         for i in range(len(self.gas_id_list)):
             f.write('{:4} {:4}\n'.format(self.gas_id_list[i], self.iso_id_list[i]))
 
@@ -322,7 +329,7 @@ class Nemesis_api:
         LATITUDE = 0.0
         LONGITUDE = 0
         NGEOM = 1
-        NCONV = 17
+        NCONV = self.NWAVE
         NAV = 1
         FLAT = 0.0
         FLON = 0
@@ -418,7 +425,7 @@ class Nemesis_api:
 
     def read_output(self):
         wave, yerr, model = np.loadtxt("{}.mre".format(self.name), skiprows=5,
-            usecols=(1,3,5), unpack=True, max_rows=17)
+            usecols=(1,3,5), unpack=True, max_rows=self.NWAVE)
         return wave, yerr, model
 
     def read_drv_file(self):
@@ -434,7 +441,7 @@ class Nemesis_api:
             delH[ilayer],totam[ilayer],pressure[ilayer],temp[ilayer] = np.loadtxt(
                 '{}.drv'.format(self.name),skiprows=skip,usecols=(2,5,6,7),
                 unpack=True,max_rows=1)
-            # 
+            #
             # print(totam)
             iread += 4
 
@@ -454,7 +461,7 @@ class Nemesis_api:
             scale[ilayer] = scale_lay
             iread += 1
 
-        self.totam = totam * 1e4 # convert to number per m2
+        self.totam = totam * 1e4 # convert to number per m2
         self.pressure = pressure * const['ATM'] # convertt to Pa
         self.temp = temp
         self.delH = delH *1e3 # conver to m

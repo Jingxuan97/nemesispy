@@ -279,8 +279,8 @@ def calc_planck(wave,temp,ispace=1):
 
     tmp = c2 * y / temp
     b = np.exp(tmp) - 1
-    bb = np.array((a/b),dtype=np.float32)
-
+    # bb = np.array((a/b),dtype=np.float32)
+    bb = (a/b)
     return bb
 
 # @jit(nopython=True)
@@ -347,7 +347,7 @@ def calc_tau_rayleighj(wave_grid,TOTAM,ISPACE=1):
     for ilay in range(NLAYER):
         tau_rayleigh[:,ilay] = k_rayleighj[:] * TOTAM[ilay] #(NWAVE,NLAYER)
 
-    return tau_rayleigh
+    return tau_rayleigh*0
 
 # @jit(nopython=True)
 def calc_tau_gas(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
@@ -489,7 +489,8 @@ def calc_radiance(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t
 
     # Merge all different opacities
     for ig in range(NG):
-        tau_total_w_g_l[:,ig,:] = tau_gas[:,ig,:] + tau_cia[:,:] + tau_dust[:,:] + tau_rayleigh[:,:]
+        tau_total_w_g_l[:,ig,:] = tau_gas[:,ig,:] + tau_cia[:,:] \
+            + tau_dust[:,:] + tau_rayleigh[:,:]
     # print(tau_cia)
 
     #Scale to the line-of-sight opacities
@@ -569,7 +570,7 @@ def calc_radiance(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t
             for ig in range(NG):
                 spec_w_g[iwave,ig] = spec_w_g[iwave,ig] \
                     + np.float32(tr_old_w_g[iwave,ig]-tr_w_g[iwave,ig])\
-                    *bb[iwave]
+                    *bb[iwave]*xfac[iwave]
 
         tr_old_w_g = copy(tr_w_g)
 
@@ -585,9 +586,7 @@ def calc_radiance(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t
             radground = calc_planck(wave_grid,T_layer[-1])
         for ig in range(NG):
             spec_w_g[:,ig] = spec_w_g[:,ig] \
-                + np.array((tr_old_w_g[:,ig]),dtype=np.float32)*radground
-        pass
-
+                + np.float32(tr_old_w_g[:,ig])*radground *xfac
 
     spectrum = np.zeros((NWAVE))
     for iwave in range(NWAVE):
@@ -595,7 +594,7 @@ def calc_radiance(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t
             spectrum[iwave] += spec_w_g[iwave,ig]*del_g[ig]
 
     # spectrum = np.tensordot(spec_w_g,del_g,axes=([1],[0]))
-    spectrum *= xfac
+    # spectrum *= xfac
 
 
     return spectrum
