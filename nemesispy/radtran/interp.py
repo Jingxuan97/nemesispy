@@ -37,6 +37,7 @@ def sort2g(RA):
     1,2,3,... and on output keeps a record of how RA has been sorted.
     """
     # print('RA=',RA)
+    RA = np.array(RA)
     N = len(RA)
     # print('N=',N)
     IB = np.arange(1,N+1)
@@ -494,7 +495,10 @@ def mix_two_gas_k(k_g1, k_g2, VMR1, VMR2, del_g):
                     sum1 = np.float32((1.-frac))*weight_mix_sorted[iloop]
                     k_g_combined[ig] \
                         += np.float32((1-frac))*k_g_mix_sorted[iloop]*weight_mix[iloop]
-
+        print('ig')
+        print(ig)
+        print('Ng')
+        print(Ng)
         if ig == Ng-1:
             k_g_combined[ig] = k_g_combined[ig]/np.float32(sum1)
 
@@ -538,10 +542,10 @@ def mix_multi_gas_k(k_gas_g, VMR, del_g):
 
       Parameters
       ----------
-      k_gas_g : ndarray
+      k_gas_g[NGAS,NG] : ndarray
           array of k-coeffs for each gas at a given wavenumber and pressure level.
           Has dimension: Ngas x Ng.
-      VMR : ndarray
+      VMR[NGAS] : ndarray
           array of volume mixing ratios for Ngas.
       g_ord : ndarray
           g-ordinates, assumed same for all gases.
