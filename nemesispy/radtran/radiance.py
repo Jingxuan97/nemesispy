@@ -1,10 +1,14 @@
 #!/usr/local/bin/python3
 # -*- coding: utf-8 -*-
 """
-np.zeros need to be called with a tuple argument to work with numba jit
+Routines to calculate radiance from a planetary atmosphere taking account of:
+    - Thermal emission
+    - Collision-induced absorption from H2-H2, H2-he, H2-N2, N2-Ch4, N2-N2,
+        Ch4-Ch4, H2-Ch4
+    - Rayleigh scattering H2 molecules and He molecules
 """
 from copy import copy
-from locale import nl_langinfo
+# from locale import nl_langinfo
 import numpy as np
 import sys
 sys.path.append('/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/')
@@ -128,8 +132,6 @@ def calc_tau_cia(wave_grid, K_CIA, ISPACE,
     amag1 = TOTAM / XLEN / AMAGAT # number density
     tau = XLEN*amag1**2# optical path, why fiddle around with XLEN
 
-
-    # print('tau',tau)
     # define the calculatiion wavenumbers
     if ISPACE == 0: # input wavegrid is already in wavenumber (cm^-1)
         WAVEN = wave_grid
@@ -240,9 +242,8 @@ def calc_tau_cia(wave_grid, K_CIA, ISPACE,
             tau_cia_layer[:,ilay] = sum1[:] * tau[ilay]
 
     if ISPACE==1:
-        # tau_cia_layer[:,:] = tau_cia_layer[isort,:]*1e47
         tau_cia_layer[:,:] = tau_cia_layer[isort,:]
-    # print('tau_cia_layer',tau_cia_layer)
+
     return tau_cia_layer
 
 # @jit(nopython=True)
@@ -408,8 +409,8 @@ def calc_tau_gas(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
 def calc_tau_gas_fortran(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
     P_grid, T_grid, del_g):
     """
-      Parameters
-      ----------
+    Parameters
+    ----------
     k_gas_w_g_p_t(NGAS,NWAVE,NG,NPRESSKTA,NTEMPKTA) : ndarray
         Raw k-coefficients.
         Has dimension: NWAVE x NG x NPRESSKTA x NTEMPKTA.
@@ -435,7 +436,7 @@ def calc_tau_gas_fortran(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
         DESCRIPTION.
     """
 
-    Scaled_U_layer = U_layer *1.0e-20 # absorber amounts (U_layer) is scaled by a factor 1e-20
+    Scaled_U_layer = U_layer * 1.0e-20 # absorber amounts (U_layer) is scaled by a factor 1e-20
     Scaled_U_layer *= 1.0e-4 # convert from absorbers per m^2 to per cm^2
 
     k_gas_w_g_l = interp_k(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t)
@@ -444,9 +445,7 @@ def calc_tau_gas_fortran(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
     amount_layer = np.zeros((Nlayer,Ngas))
     for ilayer in range(Nlayer):
         amount_layer[ilayer,:] = Scaled_U_layer[ilayer] * VMR_layer[ilayer,:4]
-    #print('amount_layer')
-    #print(amount_layer)
-    # Method 1
+
     tau_w_g_l = np.zeros((Nwave,Ng,Nlayer))
     for iwave in range (Nwave):
         k_gas_g_l = k_gas_w_g_l[:,iwave,:,:]
@@ -455,10 +454,7 @@ def calc_tau_gas_fortran(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
             k_g_l[:,ilayer]\
                 = noverlapg(k_gas_g_l[:,:,ilayer],amount_layer[ilayer,:],del_g)
             tau_w_g_l[iwave,:,ilayer] = k_g_l[:,ilayer]
-    # print('k_g_l')
-    # print(k_g_l)
-    #print('tau_w_g_l')
-    #print(tau_w_g_l)
+
     return tau_w_g_l
 
 # @jit(nopython=True)
@@ -552,16 +548,9 @@ def calc_radiance(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t
     for ig in range(NG):
         tau_total_w_g_l[:,ig,:] = tau_gas[:,ig,:] + tau_cia[:,:] \
             + tau_dust[:,:] + tau_rayleigh[:,:]
-    # print(tau_cia)
 
     #Scale to the line-of-sight opacities
-
     tau_total_w_g_l = tau_total_w_g_l * ScalingFactor
-    # for ilayer in range(NLAYER):
-    #     tau_total_w_g_l[:,:,ilayer] \
-    #         = tau_total_w_g_l[:,:,ilayer] * ScalingFactor[ilayer]
-
-
 
     # Thermal Emission Calculation, IMOD = 3
     spec_out = np.zeros((NWAVE,NG))
@@ -573,43 +562,6 @@ def calc_radiance(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t
 
     xfac = np.pi*4.*np.pi*((RADIUS+radextra)*1e2)**2.*np.ones(NWAVE)
     xfac = xfac / solspec[:]
-
-    """ # Fortran straight transcription
-    ### pray it works
-    bb = np.zeros((NWAVE,NLAYER))
-    spectrum = np.zeros((NWAVE))
-    spec_w_g = np.zeros((NWAVE,NG))
-    for iwave in range(NWAVE):
-        for ig in range(NG):
-            taud = 0.
-            trold = 1.
-            for ilayer in range(NLAYER):
-                taud = taud + tau_total_w_g_l[iwave,ig,ilayer]
-                tr = np.exp(-taud)
-                # print('taud',taud)
-                # print('tr',tr)
-                if ig == 0:
-                    bb[iwave,ilayer] = calc_planck(wave_grid[iwave],T_layer[ilayer])
-                # print('bb',bb)
-                # print('np.float32((trold-tr))',np.float32((trold-tr)))
-                # print('xfac',xfac)
-                # print(xfac*np.float32((trold-tr)) * bb[iwave,ilayer])
-
-                spec_w_g[iwave,ig] = spec_w_g[iwave,ig] \
-                    + xfac[iwave]*np.float32((trold-tr)) * bb[iwave,ilayer]
-                trold = tr
-            p1 = P_layer[int(len(P_layer)/2-1)] #midpoint
-            p2 = P_layer[-1] # lowest point in altitude/highest in pressure
-            surface = None
-            if p2 > p1:
-                radground = calc_planck(wave_grid[iwave],T_layer[-1])
-                spec_w_g[iwave,ig] = spec_w_g[iwave,ig] \
-                    + xfac[iwave]*np.float32(trold)*radground
-
-    for iwave in range(NWAVE):
-        for ig in range(NG):
-            spectrum[iwave] += spec_w_g[iwave,ig] * del_g[ig]
-    """
 
     # old working method
     # Calculating atmospheric gases contribution
@@ -654,10 +606,6 @@ def calc_radiance(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t
         for ig in range(NG):
             spectrum[iwave] += spec_w_g[iwave,ig]*del_g[ig]
 
-    # spectrum = np.tensordot(spec_w_g,del_g,axes=([1],[0]))
-    # spectrum *= xfac
-
-
     return spectrum
 
 
@@ -669,6 +617,42 @@ def calc_radiance(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t
 # spec_out = spec_out.T[0]
 """
 
+""" # Fortran straight transcription
+### pray it works
+bb = np.zeros((NWAVE,NLAYER))
+spectrum = np.zeros((NWAVE))
+spec_w_g = np.zeros((NWAVE,NG))
+for iwave in range(NWAVE):
+    for ig in range(NG):
+        taud = 0.
+        trold = 1.
+        for ilayer in range(NLAYER):
+            taud = taud + tau_total_w_g_l[iwave,ig,ilayer]
+            tr = np.exp(-taud)
+            # print('taud',taud)
+            # print('tr',tr)
+            if ig == 0:
+                bb[iwave,ilayer] = calc_planck(wave_grid[iwave],T_layer[ilayer])
+            # print('bb',bb)
+            # print('np.float32((trold-tr))',np.float32((trold-tr)))
+            # print('xfac',xfac)
+            # print(xfac*np.float32((trold-tr)) * bb[iwave,ilayer])
+
+            spec_w_g[iwave,ig] = spec_w_g[iwave,ig] \
+                + xfac[iwave]*np.float32((trold-tr)) * bb[iwave,ilayer]
+            trold = tr
+        p1 = P_layer[int(len(P_layer)/2-1)] #midpoint
+        p2 = P_layer[-1] # lowest point in altitude/highest in pressure
+        surface = None
+        if p2 > p1:
+            radground = calc_planck(wave_grid[iwave],T_layer[-1])
+            spec_w_g[iwave,ig] = spec_w_g[iwave,ig] \
+                + xfac[iwave]*np.float32(trold)*radground
+
+for iwave in range(NWAVE):
+    for ig in range(NG):
+        spectrum[iwave] += spec_w_g[iwave,ig] * del_g[ig]
+"""
 # Fortran nemesis
 # def calc_tau_gas(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
 #     P_grid, T_grid, del_g):

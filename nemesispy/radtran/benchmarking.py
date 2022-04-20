@@ -5,6 +5,8 @@ import sys
 sys.path.append('/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/')
 from nemesispy.radtran.forward_model import ForwardModel
 from nemesispy.radtran.benchmarking_fortran import Nemesis_api
+import time 
+
 ### Reference Opacity Data
 lowres_files = ['/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/h2o',
          '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/co2',
@@ -179,9 +181,12 @@ point_spectrum_py_old = FM.run_point_spectrum(H_model=H_hydro, P_model=P, T_mode
             VMR_model=VMR, path_angle=path_angle, solspec=stellar_spec)
 
 
-point_spectrum_py = FM.test_point_spectrum(U_layer=F_totam,P_layer=F_pres,
-                        T_layer=F_temp, VMR_layer=VMR, del_S=F_delH,
-                        scale=scaling, solspec=stellar_spec)
+start = time.time()
+for i in range(10):
+    point_spectrum_py = FM.test_point_spectrum(U_layer=F_totam,P_layer=F_pres,
+                            T_layer=F_temp, VMR_layer=VMR, del_S=F_delH,
+                            scale=scaling, solspec=stellar_spec)
+end = time.time()
 
 ### Benchmark Juan's forward model
 # os.system("python3 /Users/jingxuanyang/Desktop/uptodate/NemesisPy-dist/NemesisPy/Programs/nemesisPY.py < testing.nam")
@@ -261,6 +266,7 @@ plt.savefig('{:.0e}H2O_{:.0e}CO2_{:.0e}CO_{:.0e}CH4_{:.0e}He_{:.0e}H2.pdf'.forma
 plt.savefig('comparison.pdf',dpi=400)
 plt.show()
 
+print('run time = ', end - start)
 
 
 # Pure H2 He atm, H2 ratio 0.85
