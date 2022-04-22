@@ -14,11 +14,11 @@ import sys
 sys.path.append('/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/')
 # from numpy.core.defchararray import array
 from nemesispy.radtran.interp import interp_k
-from nemesispy.radtran.interp import mix_multi_gas_k
-from nemesispy.radtran.interp_new import noverlapg
+from nemesispy.radtran.interp import noverlapg
 # from nemesispy.radtran.cia import find_nearest
 from scipy import interpolate
 from numba import jit
+import math
 speed_up = False
 
 # @jit(nopython=True)
@@ -140,8 +140,8 @@ def calc_tau_cia(wave_grid, K_CIA, ISPACE,
         isort = np.argsort(WAVEN)
         WAVEN = WAVEN[isort] # ascending wavenumbers
 
-    if WAVEN.min() < cia_nu_grid.min() or WAVEN.max()>cia_nu_grid.max():
-        print('warning in CIA :: Calculation wavelengths expand a larger range than in .cia file')
+    # if WAVEN.min() < cia_nu_grid.min() or WAVEN.max()>cia_nu_grid.max():
+    #     print('warning in CIA :: Calculation wavelengths expand a larger range than in .cia file')
 
     # calculate the CIA opacity at the correct temperature and wavenumber
     NWAVEC = len(wave_grid)  # Number of calculation wavelengths
@@ -353,59 +353,6 @@ def calc_tau_rayleighj(wave_grid,TOTAM,ISPACE=1):
     return tau_rayleigh*0 ### rayleigh is 0 for debug
 
 # @jit(nopython=True)
-def calc_tau_gas(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
-    P_grid, T_grid, del_g):
-    """
-      Parameters
-      ----------
-    k_gas_w_g_p_t(NGAS,NWAVE,NG,NPRESSKTA,NTEMPKTA) : ndarray
-        Raw k-coefficients.
-        Has dimension: NWAVE x NG x NPRESSKTA x NTEMPKTA.
-    P_layer(NLAYER) : ndarray
-        Atmospheric pressure grid.
-    T_layer(NLAYER) : ndarray
-        Atmospheric temperature grid.
-    VMR_layer(NLAYER,NGAS) : ndarray
-        Array of volume mixing ratios for NGAS.
-        Has dimensioin: NLAYER x NGAS
-    U_layer : ndarray
-        DESCRIPTION.
-    P_grid(NPRESSKTA) : ndarray
-        Pressure grid on which the k-coeff's are pre-computed.
-    T_grid(NTEMPKTA) : ndarray
-        Temperature grid on which the k-coeffs are pre-computed.
-    del_g : ndarray
-        DESCRIPTION.
-
-    Returns
-    -------
-    tau_w_g_l(NWAVE,NG,NLAYER) : ndarray
-        DESCRIPTION.
-    """
-
-    Scaled_U_layer = U_layer *1.0e-20 # absorber amounts (U_layer) is scaled by a factor 1e-20
-    Scaled_U_layer *= 1.0e-4 # convert from absorbers per m^2 to per cm^2
-
-
-    k_gas_w_g_l = interp_k(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t)
-    Ngas, Nwave, Ng, Nlayer = k_gas_w_g_l.shape
-
-    # Method 1
-    tau_w_g_l = np.zeros((Nwave,Ng,Nlayer))
-    for iwave in range (Nwave):
-        k_gas_g_l = k_gas_w_g_l[:,iwave,:,:]
-        k_g_l = np.zeros((Ng,Nlayer))
-        for ilayer in range(Nlayer):
-            k_g_l[:,ilayer], VMR\
-                = mix_multi_gas_k(k_gas_g_l[:,:,ilayer],VMR_layer[ilayer,:],del_g)
-            tau_w_g_l[iwave,:,ilayer] = k_g_l[:,ilayer]*Scaled_U_layer[ilayer]*VMR
-    # print('VMR',VMR)
-
-    # # Method 2
-    # tau_w_g_l,f_combined = new_k_overlap(k_gas_w_g_l,del_g,VMR_layer)
-
-    return tau_w_g_l
-
 def calc_tau_gas_fortran(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
     P_grid, T_grid, del_g):
     """
@@ -457,7 +404,7 @@ def calc_tau_gas_fortran(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
 
     return tau_w_g_l
 
-# @jit(nopython=True)
+# # @jit(nopython=True)
 def calc_radiance(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
     P_grid, T_grid, del_g, ScalingFactor, RADIUS, solspec,
     k_cia, ID, cia_nu_grid, cia_T_grid, DEL_S):

@@ -138,8 +138,8 @@ iso_id = np.array([0, 0, 0, 0, 0, 0])
 H2_ratio = 1
 VMR_H2O = 1.0E-4 # volume mixing ratio of H2O
 VMR_CO2 = 1.0E-1 # volume mixing ratio of CO2
-VMR_CO = 1.0E-4 # volume mixing ratio of CO
-VMR_CH4 = 1.0E-4 # volume mixing ratio of CH4
+VMR_CO = 1.0E-4 *0# volume mixing ratio of CO
+VMR_CH4 = 1.0E-4 *0# volume mixing ratio of CH4
 VMR_He = (np.ones(NMODEL)-VMR_H2O-VMR_CO2-VMR_CO-VMR_CH4)*(1-H2_ratio)
 VMR_H2 = (np.ones(NMODEL)-VMR_H2O-VMR_CO2-VMR_CO-VMR_CH4)*H2_ratio
 NVMR = 6
@@ -180,9 +180,11 @@ FM.set_opacity_data(kta_file_paths=lowres_files, cia_file_path=cia_file_path)
 point_spectrum_py_old = FM.run_point_spectrum(H_model=H_hydro, P_model=P, T_model=T,\
             VMR_model=VMR, path_angle=path_angle, solspec=stellar_spec)
 
-
+point_spectrum_py = FM.test_point_spectrum(U_layer=F_totam,P_layer=F_pres,
+                        T_layer=F_temp, VMR_layer=VMR, del_S=F_delH,
+                        scale=scaling, solspec=stellar_spec)
 start = time.time()
-for i in range(10):
+for i in range(1):
     point_spectrum_py = FM.test_point_spectrum(U_layer=F_totam,P_layer=F_pres,
                             T_layer=F_temp, VMR_layer=VMR, del_S=F_delH,
                             scale=scaling, solspec=stellar_spec)
