@@ -534,7 +534,6 @@ def calc_radiance(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t
 
         tr_old_w_g = copy(tr_w_g)
 
-
     # surface/bottom layer contribution
     p1 = P_layer[int(len(P_layer)/2-1)] #midpoint
     p2 = P_layer[-1] # lowest point in altitude/highest in pressure
@@ -554,94 +553,42 @@ def calc_radiance(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t
             spectrum[iwave] += spec_w_g[iwave,ig]*del_g[ig]
 
     return spectrum
-
-
-
 """
-# Incompatible methods with numba jit
+P_layer [1.64324427e+06 9.93973840e+05 6.01940750e+05 3.65018333e+05
+ 2.21622130e+05 1.34683200e+05 8.19073658e+04 4.98394780e+04
+ 3.03420279e+04 1.84831440e+04 1.12665474e+04 6.87272547e+03
+ 4.19545731e+03 2.56292562e+03 1.56660431e+03 9.58150160e+02
+ 5.86309442e+02 3.58937431e+02 2.19830565e+02 1.34684683e+02]
+P_layer [1.64055307e+06 9.92539170e+05 6.01171357e+05 3.64597747e+05
+ 2.21395125e+05 1.34559600e+05 8.18412158e+04 4.98022507e+04
+ 3.03215063e+04 1.84715475e+04 1.12602473e+04 6.86892308e+03
+ 4.19313248e+03 2.56149600e+03 1.56577522e+03 9.57683370e+02
+ 5.86023270e+02 3.58761427e+02 2.19733395e+02 1.34630527e+02]
 
-# spec_out = np.tensordot(spec_out, del_g, axes=([1],[0])) * xfac
-# spec_out = spec_out.T[0]
+T_layer [2286.09147304 2253.86866047 2186.10442837 2082.8512906  1956.4222181
+ 1823.02808334 1696.6440642  1586.71214849 1497.88165025 1430.66570863
+ 1382.63214885 1349.88170469 1328.34056676 1314.5345462  1305.84112322
+ 1300.42850462 1297.0838427  1295.02558632 1293.76229031 1292.98835235]
+T_layer [2286.031 2253.709 2185.85  2082.549 1956.123 1822.772 1696.444 1586.561
+ 1497.773 1430.593 1382.584 1349.852 1328.321 1314.522 1305.835 1300.424
+ 1297.081 1295.024 1293.761 1292.988]
+
+U_layer [5.09150263e+30 3.08511729e+30 1.87032862e+30 1.13551233e+30
+ 6.90375955e+29 4.20195987e+29 2.55919350e+29 1.55901764e+29
+ 9.49773337e+28 5.78629200e+28 3.52584525e+28 2.14958126e+28
+ 1.31137556e+28 8.00672248e+27 4.89196407e+27 2.99159910e+27
+ 1.83063066e+27 1.12107735e+27 6.87041360e+26 4.21287991e+26]
+U_layer [5.0862e+30 3.0826e+30 1.8692e+30 1.1350e+30 6.9017e+29 4.2012e+29
+ 2.5590e+29 1.5589e+29 9.4976e+28 5.7864e+28 3.5260e+28 2.1497e+28
+ 1.3114e+28 8.0071e+27 4.8924e+27 2.9919e+27 1.8308e+27 1.1212e+27
+ 6.8713e+26 4.2136e+26]
+
+del_S [562129.70510089 533022.94775755 498862.65361552 460547.31305169
+ 420916.88414793 383089.03993097 349322.31574516 320825.40682556
+ 297920.3264484  280196.42525044 266834.25748818 256864.84808146
+ 249351.05352987 243547.0369775  238868.80239676 234978.22598176
+ 231569.71453952 228517.2699914  225708.64932763 223048.12139662]
+
+del_S [99680. 98320. 95370. 90900. 85470. 79770. 74380. 69680. 65880. 62990.
+ 60910. 59480. 58540. 57930. 57540. 57300. 57150. 57050. 56980. 56930.]
 """
-
-""" # Fortran straight transcription
-### pray it works
-bb = np.zeros((NWAVE,NLAYER))
-spectrum = np.zeros((NWAVE))
-spec_w_g = np.zeros((NWAVE,NG))
-for iwave in range(NWAVE):
-    for ig in range(NG):
-        taud = 0.
-        trold = 1.
-        for ilayer in range(NLAYER):
-            taud = taud + tau_total_w_g_l[iwave,ig,ilayer]
-            tr = np.exp(-taud)
-            # print('taud',taud)
-            # print('tr',tr)
-            if ig == 0:
-                bb[iwave,ilayer] = calc_planck(wave_grid[iwave],T_layer[ilayer])
-            # print('bb',bb)
-            # print('np.float32((trold-tr))',np.float32((trold-tr)))
-            # print('xfac',xfac)
-            # print(xfac*np.float32((trold-tr)) * bb[iwave,ilayer])
-
-            spec_w_g[iwave,ig] = spec_w_g[iwave,ig] \
-                + xfac[iwave]*np.float32((trold-tr)) * bb[iwave,ilayer]
-            trold = tr
-        p1 = P_layer[int(len(P_layer)/2-1)] #midpoint
-        p2 = P_layer[-1] # lowest point in altitude/highest in pressure
-        surface = None
-        if p2 > p1:
-            radground = calc_planck(wave_grid[iwave],T_layer[-1])
-            spec_w_g[iwave,ig] = spec_w_g[iwave,ig] \
-                + xfac[iwave]*np.float32(trold)*radground
-
-for iwave in range(NWAVE):
-    for ig in range(NG):
-        spectrum[iwave] += spec_w_g[iwave,ig] * del_g[ig]
-"""
-# Fortran nemesis
-# def calc_tau_gas(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
-#     P_grid, T_grid, del_g):
-#     """
-#     Calculate the optical path due to gaseous absorbers.
-
-#     Parameters
-#     ----------
-#     k_gas_w_g_p_t(NGAS,NWAVE,NG,NPRESSKTA,NTEMPKTA) : ndarray
-#         Raw k-coefficients.
-#         Has dimension: NWAVE x NG x NPRESSKTA x NTEMPKTA.
-#     P_layer(NLAYER) : ndarray
-#         Atmospheric pressure grid.
-#     T_layer(NLAYER) : ndarray
-#         Atmospheric temperature grid.
-#     VMR_layer(NLAYER,NGAS) : ndarray
-#         Array of volume mixing ratios for NGAS.
-#         Has dimensioin: NLAYER x NGAS
-#     U_layer : ndarray
-#         DESCRIPTION.
-#     P_grid(NPRESSKTA) : ndarray
-#         Pressure grid on which the k-coeff's are pre-computed.
-#     T_grid(NTEMPKTA) : ndarray
-#         Temperature grid on which the k-coeffs are pre-computed.
-#     del_g : ndarray
-#         DESCRIPTION.
-
-#     Returns
-#     -------
-#     tau_w_g_l(NWAVE,NG,NLAYER) : ndarray
-#         DESCRIPTION.
-#     """
-
-#     U_layer *= 1.0e-20 # absorber amounts (U_layer) is scaled by a factor 1e-20
-#     U_layer *= 1.0e-4 # convert from absorbers per m^2 to per cm^2
-
-#     k_gas_w_g_l = interp_k(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t) # NGAS,NWAVE,NG,NLAYER
-
-#     k_w_g_l,f_combined = new_k_overlap(k_gas_w_g_l, del_g, VMR_layer) # NWAVE,NG,NLAYER
-
-#     utotl = U_layer
-
-#     tau_gas = k_w_g_l * utotl * f_combined  # NWAVE, NG, NLAYER
-
-#     return tau_gas

@@ -29,8 +29,6 @@
  Snapping to first latitude
  XX. ISCALE =            1           1           1           1           1           1
  XhydrostatH: JZERO =            1
- XhydrostatH: JZERO =            1
- XhydrostatH: JZERO =            1
   
  IPAR =            1
  ISCALE :            0           1           1           1           1           1
@@ -90,33 +88,33 @@ Klist filename: testing.kls
   Percent Complete =    80.0000000    
   Percent Complete =    90.0000000    
   Percent Complete =    100.000000    
- ForwardavfovX: Npath,sol_ang,emiss_ang =            1   0.00000000       0.00000000    
-           1   1.00000000       3.57784937E+22   3.57784937E+22   3.57784937E+22
-           2   1.00000000       3.59653683E+22   3.59653683E+22   3.59653683E+22
-           3   1.00000000       2.85804715E+22   2.85804715E+22   2.85804715E+22
-           4   1.00000000       1.40421088E+22   1.40421088E+22   1.40421088E+22
-           5   1.00000000       2.05592678E+22   2.05592678E+22   2.05592678E+22
-           6   1.00000000       2.75730793E+22   2.75730793E+22   2.75730793E+22
-           7   1.00000000       1.65609856E+22   1.65609856E+22   1.65609856E+22
-           8   1.00000000       1.46162479E+22   1.46162479E+22   1.46162479E+22
-           9   1.00000000       1.32485712E+22   1.32485712E+22   1.32485712E+22
-          10   1.00000000       6.23719556E+21   6.23719556E+21   6.23719556E+21
-          11   1.00000000       3.98421806E+21   3.98421806E+21   3.98421806E+21
-          12   1.00000000       5.98216516E+21   5.98216516E+21   5.98216516E+21
-          13   1.00000000       7.89028910E+21   7.89028910E+21   7.89028910E+21
-          14   1.00000000       4.22877309E+21   4.22877309E+21   4.22877309E+21
-          15   1.00000000       3.95612601E+21   3.95612601E+21   3.95612601E+21
-          16   1.00000000       3.73664027E+21   3.73664027E+21   3.73664027E+21
-          17   1.00000000       1.31789920E+21   1.31789920E+21   1.31789920E+21
+ ForwardavfovX: Npath,sol_ang,emiss_ang =            1   0.00000000       80.0000000    
+           1   1.00000000       1.04813074E+22   1.04813074E+22   1.04813074E+22
+           2   1.00000000       1.02932708E+22   1.02932708E+22   1.02932708E+22
+           3   1.00000000       1.35837718E+22   1.35837718E+22   1.35837718E+22
+           4   1.00000000       1.82945810E+22   1.82945810E+22   1.82945810E+22
+           5   1.00000000       2.00937555E+22   2.00937555E+22   2.00937555E+22
+           6   1.00000000       1.64504920E+22   1.64504920E+22   1.64504920E+22
+           7   1.00000000       6.48793347E+21   6.48793347E+21   6.48793347E+21
+           8   1.00000000       4.48126290E+21   4.48126290E+21   4.48126290E+21
+           9   1.00000000       4.18164405E+21   4.18164405E+21   4.18164405E+21
+          10   1.00000000       4.57902141E+21   4.57902141E+21   4.57902141E+21
+          11   1.00000000       5.37572507E+21   5.37572507E+21   5.37572507E+21
+          12   1.00000000       6.72249389E+21   6.72249389E+21   6.72249389E+21
+          13   1.00000000       8.54551161E+21   8.54551161E+21   8.54551161E+21
+          14   1.00000000       1.06749543E+22   1.06749543E+22   1.06749543E+22
+          15   1.00000000       1.19799983E+22   1.19799983E+22   1.19799983E+22
+          16   1.00000000       3.34465118E+21   3.34465118E+21   3.34465118E+21
+          17   1.00000000       1.78558169E+21   1.78558169E+21   1.78558169E+21
  Calc_gain_matrix: Inverting...
  dinvertm: Cholesky decomposition
  dinvertm.f: Matrix inversion OK
  calc_phiret: phi1,phi2 =          Infinity   0.00000000    
  Assess:
- Average of diagonal elements of Kk*Sx*Kt :    1.7372364736931769E+031
+ Average of diagonal elements of Kk*Sx*Kt :    1.5484537688400903E+031
  Average of diagonal elements of Se :    1.0000009154076395E-010
- Ratio =    1.7372348834150931E+041
- Average of Kk*Sx*Kt/Se element ratio :    1.7372348834150931E+041
+ Ratio =    1.5484523513749785E+041
+ Average of Kk*Sx*Kt/Se element ratio :    1.5484523513749786E+041
  ******************* ASSESS WARNING *****************
  Insufficient constraint. Solution likely to be exact
  ****************************************************
@@ -132,15 +130,13 @@ Klist filename: testing.kls
  Warning from nemesis/setup.f. Surface temperature must
  be greater than 0.0 for some parts of code that deal
  with sensitivity to surface temperature
- Angles :    0.00000000       0.00000000       0.00000000    
+ Angles :    0.00000000       80.0000000       0.00000000    
  nf =            1
  calling gsetrad
  gsetrad, lin =            0
  NLATREF =            1
  Snapping to first latitude
  XX. ISCALE =            1           1           1           1           1           1
- XhydrostatH: JZERO =            1
- XhydrostatH: JZERO =            1
  XhydrostatH: JZERO =            1
   
  IPAR =            1
@@ -161,4 +157,4 @@ Klist filename: testing.kls
  Reading reference file from : testing.ref                                                                                         
  gsetrad called OK
  Model run OK
- Elapsed time (s) =      0.6
+ Elapsed time (s) =      0.7

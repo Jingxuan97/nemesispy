@@ -110,6 +110,7 @@ class Nemesis_api:
 
         self.name = name
         self.NLAYER = NLAYER
+        self.NMODEL = 0
         self.wave_grid = wave_grid
         self.NWAVE = len(wave_grid)
 
@@ -225,6 +226,8 @@ class Nemesis_api:
             for ivmr in range(self.NVMR):
                 f.write('{:14.5E}'.format(VMR_model[ilayer,ivmr]))
         f.close()
+
+        self.NMODEL = len(H_model)
 
     def write_atmospheric_files(self, H_model, P_model, T_model, VMR_model):
         """
@@ -428,6 +431,22 @@ class Nemesis_api:
             usecols=(1,3,5), unpack=True, max_rows=self.NWAVE)
         return wave, yerr, model
 
+    def read_prf_file(self):
+        skiprows = 2 + self.NVMR + 1
+        height = np.zeros(self.NMODEL)
+        press = np.zeros(self.NMODEL)
+        temp = np.zeros(self.NMODEL)
+
+        iread = 0
+        for imodel in range(self.NMODEL):
+            skip = skiprows + iread
+            height[imodel], press[imodel], temp[imodel] \
+                = np.loadtxt('{}.prf'.format(self.name),skiprows=skip,
+                usecols=(0,1,2), unpack=True, max_rows=1)
+            iread += 1
+
+        return height*1e3, press* const['ATM'], temp
+
     def read_drv_file(self):
         skiprows = 7 + 2*self.NVMR + 4
         iread = 0
@@ -441,8 +460,7 @@ class Nemesis_api:
             delH[ilayer],totam[ilayer],pressure[ilayer],temp[ilayer] = np.loadtxt(
                 '{}.drv'.format(self.name),skiprows=skip,usecols=(2,5,6,7),
                 unpack=True,max_rows=1)
-            #
-            # print(totam)
+
             iread += 4
 
             # line = np.loadtxt(

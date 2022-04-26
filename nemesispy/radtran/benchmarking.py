@@ -130,16 +130,16 @@ NLAYER = 2
 """
 # Ground temperature in Kelvin and path angle
 T_ground = 0
-path_angle = 0
+path_angle = 80
 
 # Gas Volume Mixing Ratio, constant with height
 gas_id = np.array([  1, 2,  5,  6, 40, 39])
 iso_id = np.array([0, 0, 0, 0, 0, 0])
 H2_ratio = 1
 VMR_H2O = 1.0E-4 # volume mixing ratio of H2O
-VMR_CO2 = 1.0E-1 # volume mixing ratio of CO2
-VMR_CO = 1.0E-4 *0# volume mixing ratio of CO
-VMR_CH4 = 1.0E-4 *0# volume mixing ratio of CH4
+VMR_CO2 = 1.0E-4*0  # volume mixing ratio of CO2
+VMR_CO = 1.0E-4*0 # volume mixing ratio of CO
+VMR_CH4 = 1.0E-4*0 # volume mixing ratio of CH4
 VMR_He = (np.ones(NMODEL)-VMR_H2O-VMR_CO2-VMR_CO-VMR_CH4)*(1-H2_ratio)
 VMR_H2 = (np.ones(NMODEL)-VMR_H2O-VMR_CO2-VMR_CO-VMR_CH4)*H2_ratio
 NVMR = 6
@@ -166,6 +166,7 @@ API.run_forward_model()
 wave, yerr, point_spectrum_fo = API.read_output()
 F_delH,F_totam,F_pres,F_temp,scaling = API.read_drv_file()
 
+H_prf, P_prf, T_prf = API.read_prf_file()
 
 ### Benchmark Python forward model
 H_hydro = np.loadtxt('{}.prf'.format(folder_name),skiprows=9,unpack=True,
@@ -176,9 +177,14 @@ FM.set_planet_model(M_plt=M_plt, R_plt=R_plt, gas_id_list=gas_id,
     iso_id_list=iso_id, NLAYER=NLAYER)
 FM.set_opacity_data(kta_file_paths=lowres_files, cia_file_path=cia_file_path)
 
-
+"""
+# use .ref file directly, might not be hydro adjusted
 point_spectrum_py_old = FM.run_point_spectrum(H_model=H_hydro, P_model=P, T_model=T,\
             VMR_model=VMR, path_angle=path_angle, solspec=stellar_spec)
+"""
+# use .prf file, hydro adjusted
+point_spectrum_py_old = FM.run_point_spectrum(H_model=H_prf, P_model=P_prf, 
+            T_model=T_prf, VMR_model=VMR, path_angle=path_angle, solspec=stellar_spec)
 
 point_spectrum_py = FM.test_point_spectrum(U_layer=F_totam,P_layer=F_pres,
                         T_layer=F_temp, VMR_layer=VMR, del_S=F_delH,
@@ -216,6 +222,10 @@ axs[0].plot(wave_grid, point_spectrum_py_old, color='b', linewidth=0.5)
 axs[0].scatter(wave_grid, point_spectrum_py, marker='.', color='y',
     linewidth=1, s=10, label='python')
 axs[0].plot(wave_grid, point_spectrum_py, color='y', linewidth=0.5)
+axs[0].scatter(wave_grid, point_spectrum_py_old, marker='.', color='r',
+    linewidth=1, s=10, label='layer')
+axs[0].plot(wave_grid, point_spectrum_py_old, color='r', linewidth=0.5)
+
 
 
 # axs[0].scatter(wave_grid, juan_version, marker='.', color='r',
@@ -235,7 +245,7 @@ axs[0].ticklabel_format(axis="y", style="sci", scilimits=(0,0))
 diff_1 = (point_spectrum_fo-point_spectrum_py)/point_spectrum_fo
 # diff_2 = (point_spectrum_fo-juan_version)/point_spectrum_fo
 axs[1].scatter(wave_grid,(point_spectrum_fo-point_spectrum_py)/point_spectrum_fo,
-    marker='.',color='b',label='diff (mine)')
+    marker='.',color='y',label='diff (mine)')
 
 # axs[1].scatter(wave_grid,(point_spectrum_fo-juan_version)/point_spectrum_fo,
 #     marker='.',color='r',label='diff (juan)')
@@ -249,10 +259,10 @@ axs[1].legend(loc='lower left')
 axs[1].grid()
 plt.grid()
 
-
 diff_3 = (point_spectrum_fo-point_spectrum_py_old)/point_spectrum_fo
 print('diff between python and fortran (own layering)',diff_3,np.amax(abs(diff_3)))
-
+axs[1].scatter(wave_grid,(point_spectrum_fo-point_spectrum_py_old)/point_spectrum_fo,
+    marker='.',color='r',label='diff (layer)')
 
 # Plot config
 plt.xlabel(r'wavelength($\mu$m)')

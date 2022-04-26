@@ -3,30 +3,6 @@
 """Calculate the opacity of a mixture of gases using ktables."""
 import numpy as np
 from numba import jit
-from math import log
-
-def find_nearest(input_array, target_value):
-    """
-    Find the closest value in an array
-
-    Parameters
-    ----------
-    input_array : ndarray/list
-        An array of numbers.
-    target_value : real
-        Value to search for
-
-
-    Returns
-    -------
-    idx : ndarray
-        Index of closest_value within array
-    array[idx] : ndarray
-        Closest number to target_value in the input array
-    """
-    array = np.asarray(input_array)
-    idx = (np.abs(array - target_value)).argmin()
-    return array[idx], idx
 
 # @jit(nopython=True)
 def interp_k1(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t, wavecalc=None):
@@ -76,7 +52,7 @@ def interp_k1(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t, wavecalc=None):
         temp1 = T_layer[ilayer]
 
         # find the Pressure levels just above and below that of current layer
-        lpress = log(press1)
+        lpress = np.log(press1)
         # press0, ip = find_nearest(P_grid,press1)
         ip = abs(P_grid-press1).argmin()
         press0 = P_grid[ip]
@@ -84,7 +60,7 @@ def interp_k1(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t, wavecalc=None):
         if P_grid[ip] >= press1:
             iphi = ip
             if ip == 0:
-                lpress = log(P_grid[0])
+                lpress = np.log(P_grid[0])
                 ipl = 0
                 iphi = 1
             else:
@@ -92,7 +68,7 @@ def interp_k1(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t, wavecalc=None):
         elif P_grid[ip]<press1:
             ipl = ip
             if ip == NPRESS -1:
-                lpress = log(P_grid[NPRESS-1])
+                lpress = np.log(P_grid[NPRESS-1])
                 iphi = NPRESS - 1
                 ipl = NPRESS - 2
             else:
@@ -121,8 +97,8 @@ def interp_k1(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t, wavecalc=None):
                 ithi = it + 1
 
         # interpolation
-        plo = log(P_grid[ipl])
-        phi = log(P_grid[iphi])
+        plo = np.log(P_grid[ipl])
+        phi = np.log(P_grid[iphi])
         tlo = T_grid[itl]
         thi = T_grid[ithi]
 
@@ -253,80 +229,38 @@ def interp_k(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t):
 # @jit(nopython=True)
 def rankg(weight, cont, del_g):
     """
+    Combine the randomly overlapped k distributions of two gases into a single
+    k distribution.
+
     Parameters
     ----------
-    gw(maxg)            REAL    Required weights of final k-dist.
-    ng                  INTEGER Number of weights.
-    weight(maxrank)     REAL    Weights of points in random k-dist
-    cont(maxrank)       REAL    Random k-coeffs.
+    weight(NG) : ndarray
+        Weights of points in the random k-dist
+    cont(NG) : ndarray
+        Random k-coeffs in the k-dist.
+    del_g(NG) : ndarray
+        Required weights of final k-dist.
 
     Returns
     -------
-    k_g(maxg)       REAL    Mean k-dist.
+    k_g(NG) : ndarray
+        Combined k-dist.
     """
-
     ng = len(del_g)
     nloop = ng*ng
 
-    """
-    gw = del_g
-    g_ord = np.zeros(ng+1)
-    g_ord[0] = 0.0
     # sum delta gs to get cumulative g ordinate
-    for ig in range(ng):
-        g_ord[ig+1] = g_ord[ig] + gw[ig]
-
-    if g_ord[ng] < 1.0:
-        g_ord[ng] = 1
-    """
-    """
-    g_ord = np.cumsum(del_g)
-    g_ord = np.insert(g_ord,0,0)
-    g_ord[ng] = 1
-    # if g_ord[ng] < 1.0:
-    #     g_ord[ng] = 1
-    """
     g_ord = np.zeros(ng+1)
     g_ord[1:] = np.cumsum(del_g)
     g_ord[ng] = 1
 
     # Sort random k-coeffs into ascending order. Integer array ico records
     # which swaps have been made so that we can also re-order the weights.
-    # cont, ico = sort2g(cont)
     ico = np.argsort(cont)
     cont = cont[ico]
-
-    # sort weights accordingly
-    weight = weight[ico]
-
-    """
-    gdist = np.zeros(nloop)
-    gdist[0] = weight[0]
-    for iloop in range(1,nloop):
-        gdist[iloop] = weight[iloop] + gdist[iloop-1]
-    """
+    weight = weight[ico] # sort weights accordingly
     gdist = np.cumsum(weight)
     k_g = np.zeros(ng)
-
-
-    """
-    ig = 0
-    sum1 = 0.0
-    for iloop in range(nloop):
-        if gdist[iloop] < g_ord[ig+1]:
-            k_g[ig] = k_g[ig] + cont[iloop]*weight[iloop]
-            sum1 = sum1 + weight[iloop]
-        else:
-            frac = (g_ord[ig+1] - gdist[iloop-1])/(gdist[iloop]-gdist[iloop-1])
-            k_g[ig] = k_g[ig] + np.float32(frac)*cont[iloop]*weight[iloop]
-
-            sum1 = sum1 + frac * weight[iloop]
-            k_g[ig] = k_g[ig]/np.float32(sum1)
-
-            ig = ig +1
-            sum1 = (1.0-frac)*weight[iloop]
-            k_g[ig] = np.float32(1.0-frac)*cont[iloop]*weight[iloop]
-    """
 
     ig = 0
     sum1 = 0.0
@@ -349,26 +283,6 @@ def rankg(weight, cont, del_g):
     if ig == ng-1:
         k_g[ig] = k_g[ig]/np.float32(sum1)
 
-
-    """
-    icut_old = 0
-    sum1 = np.zeros(ng)
-    cont_weight = cont * weight
-    for ig in range(ng-1):
-        # array index just before a g_ord
-        icut = np.max(np.where(gdist < g_ord[ig+1])[0])
-        k_g[ig] = k_g[ig] + np.sum(cont_weight[icut_old:(icut+1)])
-        sum1[ig] = np.sum(weight[icut_old:(icut+1)])
-        frac = (g_ord[ig+1] - gdist[icut]) / (gdist[icut+1]-gdist[icut])
-        k_g[ig] = k_g[ig] + np.float32(frac)*cont_weight[icut+1]
-        sum1[ig] = sum1[ig] + frac * weight[icut+1]
-        k_g[ig] = k_g[ig]/np.float32(sum1[ig])
-        sum1[ig+1] = (1.0-frac)*weight[icut+1]
-
-    k_g[-1] = k_g[-1] + np.sum(cont_weight[icut+1:])
-    sum1[-1] = sum1[-1] + np.sum(weight[icut+1:])
-    k_g[-1] = k_g[-1]/np.float32(sum1[-1])
-    """
     return k_g
 
 # @jit(nopython=True)
@@ -401,7 +315,6 @@ C                               gases.
                 k_g = k_g2*a2
             # skip if second k-distribution = 0.0
             elif k_g2[NG-1]*a2 == 0.0:
-                # print('2nd')
                 k_g = k_g1*a1
             else:
                 nloop = 0
