@@ -4,8 +4,8 @@ import os
 import sys
 sys.path.append('/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/')
 from nemesispy.radtran.forward_model import ForwardModel
-from nemesispy.radtran.benchmarking_fortran import Nemesis_api
-import time 
+from nemesispy.radtran.point_benchmarking_fortran import Nemesis_api
+import time
 
 ### Reference Opacity Data
 lowres_files = ['/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/h2o',
@@ -130,16 +130,16 @@ NLAYER = 2
 """
 # Ground temperature in Kelvin and path angle
 T_ground = 0
-path_angle = 80
+path_angle = 0
 
 # Gas Volume Mixing Ratio, constant with height
 gas_id = np.array([  1, 2,  5,  6, 40, 39])
 iso_id = np.array([0, 0, 0, 0, 0, 0])
 H2_ratio = 1
 VMR_H2O = 1.0E-4 # volume mixing ratio of H2O
-VMR_CO2 = 1.0E-4*0  # volume mixing ratio of CO2
-VMR_CO = 1.0E-4*0 # volume mixing ratio of CO
-VMR_CH4 = 1.0E-4*0 # volume mixing ratio of CH4
+VMR_CO2 = 1.0E-4  # volume mixing ratio of CO2
+VMR_CO = 1.0E-4 # volume mixing ratio of CO
+VMR_CH4 = 1.0E-4 # volume mixing ratio of CH4
 VMR_He = (np.ones(NMODEL)-VMR_H2O-VMR_CO2-VMR_CO-VMR_CH4)*(1-H2_ratio)
 VMR_H2 = (np.ones(NMODEL)-VMR_H2O-VMR_CO2-VMR_CO-VMR_CH4)*H2_ratio
 NVMR = 6
@@ -160,12 +160,15 @@ os.chdir(file_path+'/'+folder_name) # move to designated process folder
 
 API = Nemesis_api(name=folder_name, NLAYER=NLAYER, gas_id_list=gas_id,
     iso_id_list=iso_id, wave_grid=wave_grid)
+
+F_start = time.time()
 API.write_files(path_angle=path_angle, H_model=H, P_model=P, T_model=T,
     VMR_model=VMR)
 API.run_forward_model()
 wave, yerr, point_spectrum_fo = API.read_output()
-F_delH,F_totam,F_pres,F_temp,scaling = API.read_drv_file()
+F_end = time.time()
 
+F_delH,F_totam,F_pres,F_temp,scaling = API.read_drv_file()
 H_prf, P_prf, T_prf = API.read_prf_file()
 
 ### Benchmark Python forward model
@@ -183,14 +186,16 @@ point_spectrum_py_old = FM.run_point_spectrum(H_model=H_hydro, P_model=P, T_mode
             VMR_model=VMR, path_angle=path_angle, solspec=stellar_spec)
 """
 # use .prf file, hydro adjusted
-point_spectrum_py_old = FM.run_point_spectrum(H_model=H_prf, P_model=P_prf, 
+point_spectrum_py_old = FM.run_point_spectrum(H_model=H_prf, P_model=P_prf,
             T_model=T_prf, VMR_model=VMR, path_angle=path_angle, solspec=stellar_spec)
 
 point_spectrum_py = FM.test_point_spectrum(U_layer=F_totam,P_layer=F_pres,
                         T_layer=F_temp, VMR_layer=VMR, del_S=F_delH,
                         scale=scaling, solspec=stellar_spec)
+
+iteration = 100
 start = time.time()
-for i in range(1):
+for i in range(iteration):
     point_spectrum_py = FM.test_point_spectrum(U_layer=F_totam,P_layer=F_pres,
                             T_layer=F_temp, VMR_layer=VMR, del_S=F_delH,
                             scale=scaling, solspec=stellar_spec)
@@ -278,94 +283,15 @@ plt.savefig('{:.0e}H2O_{:.0e}CO2_{:.0e}CO_{:.0e}CH4_{:.0e}He_{:.0e}H2.pdf'.forma
 plt.savefig('comparison.pdf',dpi=400)
 plt.show()
 
-print('run time = ', end - start)
-
-
-# Pure H2 He atm, H2 ratio 0.85
-"""
-driver file fix
-
-Before unifying input amounts, (fortran - python)/fortran
-diff1 = np.array([0.03534349, 0.03595834, 0.03827849, 0.03773726, 0.03565747,
-       0.03547866, 0.03719903, 0.04009602, 0.0433155 , 0.04650146,
-       0.04919436, 0.05115559, 0.05247834, 0.05311147, 0.05290781,
-       0.00943529, 0.00149393])
-
-After unifying input
-diff2 = np.array([0.03551326, 0.03613319, 0.03846284, 0.03792167, 0.03583657,
-       0.03565834, 0.03738532, 0.04029268, 0.04352485, 0.04672423,
-       0.04943028, 0.05140472, 0.05273983, 0.05338396, 0.05318995,
-       0.00959471, 0.00164575])
-"""
-"""
-T_ground fix
-"""
-"""
-INORMAL fix
-Python had inormal set to 0, whereas fortran had inormal set to 1
-
-inormal = 0
-diff
-array([0.02823954, 0.02992544, 0.03319957, 0.0333664 , 0.03183606,
-       0.03217831, 0.03439334, 0.03774233, 0.04135752, 0.04488327,
-       0.04786373, 0.05006302, 0.05158092, 0.0523718 , 0.0522957 ,
-       0.00942252, 0.00149046])
-
-inormal = 1
-array([0.02823954, 0.02992544, 0.03319957, 0.0333664 , 0.03183606,
-       0.03217831, 0.03439334, 0.03774233, 0.04135752, 0.04488327,
-       0.04786373, 0.05006302, 0.05158092, 0.0523718 , 0.0522957 ,
-       0.00942252, 0.00149046])
-"""
+print('run time = ', (end - start)/iteration)
+print('Fortran run time = ', F_end-F_start)
 
 """
-Change IRAY fix
-Pytho IRAY is on
-Fortran IRAY = 1 (rayleigh is on)
-np.array([0.02823954, 0.02992544, 0.03319957, 0.0333664 , 0.03183606,
-       0.03217831, 0.03439334, 0.03774233, 0.04135752, 0.04488327,
-       0.04786373, 0.05006302, 0.05158092, 0.0523718 , 0.0522957 ,
-       0.00942252, 0.00149046])
-Fortran IRAY = 0 (rayleigh is off)
-np.array([0.03534349, 0.03595834, 0.03827849, 0.03773726, 0.03565747,
-       0.03547866, 0.03719903, 0.04009602, 0.0433155 , 0.04650146,
-       0.04919436, 0.05115559, 0.05247834, 0.05311147, 0.05290781,
-       0.00943529, 0.00149393])
-Behaved as expected. Rayleight scattering significant. Rayleigh scattering
-reduces emission.
-"""
-
-"""
-star spectrum fix
-
-real spec:
-diff1 = np.array([0.03534349, 0.03595834, 0.03827849, 0.03773726, 0.03565747,
-       0.03547866, 0.03719903, 0.04009602, 0.0433155 , 0.04650146,
-       0.04919436, 0.05115559, 0.05247834, 0.05311147, 0.05290781,
-       0.00943529, 0.00149393])
-fake spec (ones):
-diff2 = np.array([0.03534342, 0.03595814, 0.03827849, 0.03773715, 0.03565704,
-       0.03547839, 0.0371991 , 0.04009606, 0.04331519, 0.04650137,
-       0.04919452, 0.05115556, 0.05247831, 0.05311143, 0.05290782,
-       0.00943512, 0.00149404])
-"""
-
-
-
-
-
-
-"""
-[ 5.25967581e-06 -2.76723438e-04 -4.14992082e-04 -8.25601241e-05
- -6.96366419e-05 -8.37985996e-05 -3.53954143e-04 -4.90156681e-04
-  4.78637269e-05  1.59335672e-03  2.98267603e-05 -3.07812821e-04
-  1.91729393e-04 -1.25652374e-03 -1.50401884e-03  1.68878016e-04
- -2.05801711e-02]  0.020580171078122943 # np.argsort
-
-[ 5.25967581e-06 -4.44398519e-04 -9.22294498e-05 -8.25601241e-05
- -6.96366419e-05 -8.37985996e-05 -3.53954143e-04 -4.90156681e-04
-  4.78637269e-05  1.59335672e-03  2.98267603e-05 -3.07812821e-04
-  1.91729393e-04 -1.25652374e-03 -1.50401884e-03  1.68878016e-04
- -2.05801711e-02] 0.020580171078122943 # fortran
-
+    tmp = c2 * y / temp
+    tmp = np.atleast_1d(tmp)
+    b = np.zeros(len(tmp))
+    for index,valluue in enumerate(tmp):
+        b[index] = np.exp(tmp[index]) - 1
+    # bb = np.array((a/b),dtype=np.float32)
+    bb = (a/b)
 """

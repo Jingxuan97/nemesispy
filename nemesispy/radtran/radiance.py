@@ -21,7 +21,7 @@ from numba import jit
 import math
 speed_up = False
 
-# @jit(nopython=True)
+@jit(nopython=True)
 def find_nearest(input_array, target_value):
     """
     Find the closest value in an array
@@ -45,7 +45,7 @@ def find_nearest(input_array, target_value):
     idx = (np.abs(array - target_value)).argmin()
     return array[idx], idx
 
-# @jit(nopython=True)
+@jit(nopython=True)
 def calc_tau_cia(wave_grid, K_CIA, ISPACE,
     ID, TOTAM, T_layer, P_layer, VMR_layer, DELH,
     cia_nu_grid, TEMPS, INORMAL, NPAIR=9):
@@ -246,7 +246,20 @@ def calc_tau_cia(wave_grid, K_CIA, ISPACE,
 
     return tau_cia_layer
 
-# @jit(nopython=True)
+# has jit problem
+"""
+TypingError: Cannot unify array(float32, 1d, C) and array(float64, 1d, C) for 'y.2', defined at /Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/radtran/radiance.py (283)
+
+File "../radiance.py", line 283:
+def calc_planck(wave,temp,ispace=1):
+    <source elided>
+
+    tmp = c2 * y / temp
+    ^
+
+During: typing of assignment at /Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/radtran/radiance.py (283)
+"""
+@jit(nopython=True)
 def calc_planck(wave,temp,ispace=1):
     """
     Calculate the blackbody radiation given by the Planck function
@@ -269,8 +282,8 @@ def calc_planck(wave,temp,ispace=1):
         Unit: (0) W cm-2 sr-1 (cm-1)-1
               (1) W cm-2 sr-1 um-1
     """
-    c1 = 1.1911e-12
-    c2 = 1.439
+    c1 = np.array([1.1911e-12])
+    c2 = np.array([1.439])
     if ispace==0:
         y = wave
         a = c1 * (y**3.)
@@ -280,13 +293,21 @@ def calc_planck(wave,temp,ispace=1):
     else:
         raise Exception('error in calc_planck: ISPACE must be either 0 or 1')
 
+    # print('temp',temp,temp.dtype)
+    # print('c2',c2,c2.dtype)
+    # print('y',y,y.dtype)
+
     tmp = c2 * y / temp
+    # # print('c2',c2,type(c2))
+    # # print('y',y,type(y))
+    # # print('tmp',tmp,type(tmp))
     b = np.exp(tmp) - 1
-    # bb = np.array((a/b),dtype=np.float32)
+    # # bb = np.array((a/b),dtype=np.float32)
     bb = (a/b)
+
     return bb
 
-# @jit(nopython=True)
+@jit(nopython=True)
 def calc_tau_rayleighj(wave_grid,TOTAM,ISPACE=1):
     """
     Calculate the Rayleigh scattering opacity in each atmospheric layer for
@@ -350,9 +371,9 @@ def calc_tau_rayleighj(wave_grid,TOTAM,ISPACE=1):
     for ilay in range(NLAYER):
         tau_rayleigh[:,ilay] = k_rayleighj[:] * TOTAM[ilay] #(NWAVE,NLAYER)
 
-    return tau_rayleigh*0 ### rayleigh is 0 for debug
+    return tau_rayleigh
 
-# @jit(nopython=True)
+@jit(nopython=True)
 def calc_tau_gas_fortran(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
     P_grid, T_grid, del_g):
     """
@@ -404,7 +425,7 @@ def calc_tau_gas_fortran(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
 
     return tau_w_g_l
 
-# # @jit(nopython=True)
+@jit(nopython=True)
 def calc_radiance(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
     P_grid, T_grid, del_g, ScalingFactor, RADIUS, solspec,
     k_cia, ID, cia_nu_grid, cia_T_grid, DEL_S):
@@ -462,7 +483,7 @@ def calc_radiance(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t
     T_layer = T_layer[::-1]
     U_layer = U_layer[::-1]
     VMR_layer = VMR_layer[::-1,:]
-    DEL_S = DEL_S[::-1]
+    DEL_S = DEL_S[::-1] # * ScalingFactor
 
     # Record constants
     NGAS, NWAVE, NG, NPRESS, NTEMP = k_gas_w_g_p_t.shape
@@ -480,12 +501,13 @@ def calc_radiance(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t
     tau_rayleigh = calc_tau_rayleighj(wave_grid=wave_grid,TOTAM=U_layer)
 
     # Dust scattering optical path (NWAVE x NLAYER)
-    """To be done"""
+    # """To be done"""
     tau_dust = np.zeros((NWAVE,NLAYER))
 
     # # Active gas optical path (NWAVE x NG x NLAYER)
     # tau_gas = calc_tau_gas(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
     #         P_grid, T_grid, del_g)
+
 
     # FORTRAN straight transcript
     tau_gas = calc_tau_gas_fortran(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
@@ -495,6 +517,7 @@ def calc_radiance(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t
     for ig in range(NG):
         tau_total_w_g_l[:,ig,:] = tau_gas[:,ig,:] + tau_cia[:,:] \
             + tau_dust[:,:] + tau_rayleigh[:,:]
+
 
     #Scale to the line-of-sight opacities
     tau_total_w_g_l = tau_total_w_g_l * ScalingFactor
@@ -509,6 +532,8 @@ def calc_radiance(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t
 
     xfac = np.pi*4.*np.pi*((RADIUS+radextra)*1e2)**2.*np.ones(NWAVE)
     xfac = xfac / solspec[:]
+
+    # checked
 
     # old working method
     # Calculating atmospheric gases contribution
@@ -532,63 +557,33 @@ def calc_radiance(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t
                     + np.float32(tr_old_w_g[iwave,ig]-tr_w_g[iwave,ig])\
                     *bb[iwave]*xfac[iwave]
 
-        tr_old_w_g = copy(tr_w_g)
+        tr_old_w_g = tr_w_g
+
+    # checked
 
     # surface/bottom layer contribution
     p1 = P_layer[int(len(P_layer)/2-1)] #midpoint
     p2 = P_layer[-1] # lowest point in altitude/highest in pressure
+
 
     surface = None
     if p2 > p1: # i.e. if not a limb path
 
         if not surface:
             radground = calc_planck(wave_grid,T_layer[-1])
-        for ig in range(NG):
-            spec_w_g[:,ig] = spec_w_g[:,ig] \
-                + np.float32(tr_old_w_g[:,ig])*radground *xfac
 
+    # checked
+
+        for ig in range(NG):
+            # spec_w_g[:,ig] = spec_w_g[:,ig] \
+            #     + np.float32(tr_old_w_g[:,ig])*radground *xfac
+            spec_w_g[:,ig] = spec_w_g[:,ig] \
+                + tr_old_w_g[:,ig]*radground *xfac
+
+    # checked
     spectrum = np.zeros((NWAVE))
     for iwave in range(NWAVE):
         for ig in range(NG):
             spectrum[iwave] += spec_w_g[iwave,ig]*del_g[ig]
 
     return spectrum
-"""
-P_layer [1.64324427e+06 9.93973840e+05 6.01940750e+05 3.65018333e+05
- 2.21622130e+05 1.34683200e+05 8.19073658e+04 4.98394780e+04
- 3.03420279e+04 1.84831440e+04 1.12665474e+04 6.87272547e+03
- 4.19545731e+03 2.56292562e+03 1.56660431e+03 9.58150160e+02
- 5.86309442e+02 3.58937431e+02 2.19830565e+02 1.34684683e+02]
-P_layer [1.64055307e+06 9.92539170e+05 6.01171357e+05 3.64597747e+05
- 2.21395125e+05 1.34559600e+05 8.18412158e+04 4.98022507e+04
- 3.03215063e+04 1.84715475e+04 1.12602473e+04 6.86892308e+03
- 4.19313248e+03 2.56149600e+03 1.56577522e+03 9.57683370e+02
- 5.86023270e+02 3.58761427e+02 2.19733395e+02 1.34630527e+02]
-
-T_layer [2286.09147304 2253.86866047 2186.10442837 2082.8512906  1956.4222181
- 1823.02808334 1696.6440642  1586.71214849 1497.88165025 1430.66570863
- 1382.63214885 1349.88170469 1328.34056676 1314.5345462  1305.84112322
- 1300.42850462 1297.0838427  1295.02558632 1293.76229031 1292.98835235]
-T_layer [2286.031 2253.709 2185.85  2082.549 1956.123 1822.772 1696.444 1586.561
- 1497.773 1430.593 1382.584 1349.852 1328.321 1314.522 1305.835 1300.424
- 1297.081 1295.024 1293.761 1292.988]
-
-U_layer [5.09150263e+30 3.08511729e+30 1.87032862e+30 1.13551233e+30
- 6.90375955e+29 4.20195987e+29 2.55919350e+29 1.55901764e+29
- 9.49773337e+28 5.78629200e+28 3.52584525e+28 2.14958126e+28
- 1.31137556e+28 8.00672248e+27 4.89196407e+27 2.99159910e+27
- 1.83063066e+27 1.12107735e+27 6.87041360e+26 4.21287991e+26]
-U_layer [5.0862e+30 3.0826e+30 1.8692e+30 1.1350e+30 6.9017e+29 4.2012e+29
- 2.5590e+29 1.5589e+29 9.4976e+28 5.7864e+28 3.5260e+28 2.1497e+28
- 1.3114e+28 8.0071e+27 4.8924e+27 2.9919e+27 1.8308e+27 1.1212e+27
- 6.8713e+26 4.2136e+26]
-
-del_S [562129.70510089 533022.94775755 498862.65361552 460547.31305169
- 420916.88414793 383089.03993097 349322.31574516 320825.40682556
- 297920.3264484  280196.42525044 266834.25748818 256864.84808146
- 249351.05352987 243547.0369775  238868.80239676 234978.22598176
- 231569.71453952 228517.2699914  225708.64932763 223048.12139662]
-
-del_S [99680. 98320. 95370. 90900. 85470. 79770. 74380. 69680. 65880. 62990.
- 60910. 59480. 58540. 57930. 57540. 57300. 57150. 57050. 56980. 56930.]
-"""

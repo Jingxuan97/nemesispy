@@ -114,7 +114,7 @@ def read_kta(filepath):
     k_w_g_p_t = np.float32(k_w_g_p_t)
     # close file
     f.close()
-    return gas_id, iso_id, wave_grid, g_ord, del_g, P_grid, T_grid, k_w_g_p_t
+    return gas_id, iso_id, np.float64(wave_grid), g_ord, del_g, P_grid, T_grid, k_w_g_p_t
 
 def read_kls(filepaths):
     """

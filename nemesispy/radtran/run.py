@@ -90,7 +90,7 @@ StarSpectrum = np.ones(len(wave_grid)) # *4*(R_star)**2*np.pi # NWAVE
 
 # DO Gauss Labatto quadrature averaging
 # angles = np.array([80.4866,61.4500,42.3729,23.1420,0.00000])
-H_layer,P_layer,T_layer,VMR_layer,U_layer,Gas_layer,scale,del_S\
+H_layer,P_layer,T_layer,VMR_layer,U_layer,Gas_layer,scale,del_S,del_H\
     = calc_layer(R_plt, H_model, P_model, T_model, VMR_model, ID, NLAYER,
     path_angle=0, layer_type=1, H_0=0.0, NSIMPS=101)
 print('scale',scale)
@@ -415,7 +415,7 @@ for iphase, phase in enumerate(phase_grid):
 for iwave in range(len(wave_grid)):
     for iphase in range(len(phase_grid)):
         wave_by_phase[iwave,iphase] = phase_by_wave[iphase,iwave]
-        
+
 # plt.plot(wave_grid,one_phase)
 plt.show()
 print('disc averaged spec',one_phase)

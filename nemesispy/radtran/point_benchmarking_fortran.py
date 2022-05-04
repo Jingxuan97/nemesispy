@@ -3,7 +3,7 @@ sys.path.append('/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/')
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-from nemesispy.radtran.benchmarking_utils import phase_curve_fil,wasp43b_spx_dayside_single_angle_45
+from nemesispy.radtran.point_benchmarking_utils import phase_curve_fil,wasp43b_spx_dayside_single_angle_45
 """
 folder_name = 'testing'
 if not os.path.isdir(folder_name):
@@ -325,9 +325,6 @@ class Nemesis_api:
         f.close()
 
     def _name_spx(self,path_angle):
-        # f = open('{}.spx'.format(self.name),'w')
-        # f.write(self.input_spectrum)
-        # f.close()
         FWHM = 0.0
         LATITUDE = 0.0
         LONGITUDE = 0

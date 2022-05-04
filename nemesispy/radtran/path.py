@@ -48,7 +48,7 @@ def interp(x_data, y_data, x_input):
 # @jit(nopython=True)
 def split(H_model, P_model, NLAYER, layer_type=1, H_0=0.0,
     planet_radius=None, custom_path_angle=0.0,
-    custom_H_base=None, custom_P_base=None):
+    custom_H_base=np.array([0,0]), custom_P_base=np.array([0,0])):
     """
     Splits an atmospheric model into layers by returning layer base altitudes
     and layer base pressures.
@@ -149,24 +149,24 @@ def split(H_model, P_model, NLAYER, layer_type=1, H_0=0.0,
         logP_base = np.interp(H_base,H_model,np.log(P_model))
         P_base = np.exp(logP_base)
 
-    elif layer_type == 4: # split by specifying input base pressures
-        assert np.all(custom_P_base!=None),'Need input layer base pressures'
-        assert  (custom_P_base[-1] > P_model[-1]) \
-            and (custom_P_base[0] <= P_model[0]), \
-            'Input layer base pressures out of range of atmosphere profile'
-        NLAYER = len(custom_P_base)
-        # np.interp need ascending x-coord
-        P_model = P_model[::-1]
-        H_model = H_model[::-1]
-        H_base = np.interp(custom_P_base,P_model,H_model)
+    # elif layer_type == 4: # split by specifying input base pressures
+    #     # assert np.all(custom_P_base!=None),'Need input layer base pressures'
+    #     assert  (custom_P_base[-1] > P_model[-1]) \
+    #         and (custom_P_base[0] <= P_model[0]), \
+    #         'Input layer base pressures out of range of atmosphere profile'
+    #     NLAYER = len(custom_P_base)
+    #     # np.interp need ascending x-coord
+    #     P_model = P_model[::-1]
+    #     H_model = H_model[::-1]
+    #     H_base = np.interp(custom_P_base,P_model,H_model)
 
-    elif layer_type == 5: # split by specifying input base heights
-        assert np.all(custom_H_base!=None), 'Need input layer base heighs'
-        assert (custom_H_base[-1] < H_model[-1]) \
-            and (custom_H_base[0] >= H_model[0]), \
-            'Input layer base heights out of range of atmosphere profile'
-        NLAYER = len(custom_H_base)
-        P_base = np.interp(custom_H_base,H_model,P_model)
+    # elif layer_type == 5: # split by specifying input base heights
+    #     # assert np.all(custom_H_base!=None), 'Need input layer base heighs'
+    #     assert (custom_H_base[-1] < H_model[-1]) \
+    #         and (custom_H_base[0] >= H_model[0]), \
+    #         'Input layer base heights out of range of atmosphere profile'
+    #     NLAYER = len(custom_H_base)
+    #     P_base = np.interp(custom_H_base,H_model,P_model)
     else:
         raise Exception('Layering scheme not defined')
     return H_base, P_base
@@ -305,7 +305,7 @@ def average(planet_radius, H_model, P_model, T_model, VMR_model, ID, H_base,
     U_layer = U_layer / scale
     Gas_layer = (Gas_layer.T * scale**-1 ).T
 
-    return H_layer,P_layer,T_layer,VMR_layer,U_layer,Gas_layer,scale,del_S
+    return H_layer,P_layer,T_layer,VMR_layer,U_layer,Gas_layer,scale,del_S,del_H
 
 # @jit(nopython=True)
 def calc_layer(planet_radius, H_model, P_model, T_model, VMR_model, ID, NLAYER,
@@ -407,9 +407,9 @@ def calc_layer(planet_radius, H_model, P_model, T_model, VMR_model, ID, NLAYER,
         custom_path_angle=custom_path_angle, custom_H_base=custom_H_base,
         custom_P_base=custom_P_base)
 
-    H_layer,P_layer,T_layer,VMR_layer,U_layer,Gas_layer,scale,del_S\
+    H_layer,P_layer,T_layer,VMR_layer,U_layer,Gas_layer,scale,del_S,del_H\
         = average(planet_radius, H_model, P_model, T_model, VMR_model, ID,
             H_base, path_angle=path_angle,
             H_0=H_0, NSIMPS=NSIMPS)
 
-    return H_layer,P_layer,T_layer,VMR_layer,U_layer,Gas_layer,scale,del_S
+    return H_layer,P_layer,T_layer,VMR_layer,U_layer,Gas_layer,scale,del_S,del_H

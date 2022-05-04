@@ -44,6 +44,7 @@ class ForwardModel():
         # debug data
         self.U_layer = None
         self.del_S = None
+        self.del_H = None
 
     def set_planet_model(self, M_plt, R_plt, gas_id_list, iso_id_list, NLAYER,
         R_star=None, T_star=None, semi_major_axis=None):
@@ -92,7 +93,7 @@ class ForwardModel():
         """
         wrapper for calc_radiance
         """
-        print('test scale',scale)
+        # print('test scale',scale)
         point_spectrum = calc_radiance(self.wave_grid, U_layer, P_layer, T_layer,
             VMR_layer, self.k_gas_w_g_p_t, self.k_table_P_grid,
             self.k_table_T_grid, self.del_g, ScalingFactor=scale,
@@ -100,10 +101,10 @@ class ForwardModel():
             ID=self.gas_id_list,cia_nu_grid=self.cia_nu_grid,
             cia_T_grid=self.cia_T_grid, DEL_S=del_S)
         # debug
-        print('P_layer',P_layer)
-        print('T_layer',T_layer)
-        print('U_layer',U_layer)
-        print('del_S',del_S)
+        # print('P_layer',P_layer)
+        # print('T_layer',T_layer)
+        # print('U_layer',U_layer)
+        # print('del_S',del_S)
         return point_spectrum
 
     def calc_point_spectrum(self, H_model, P_model, T_model, VMR_model, path_angle,
@@ -113,16 +114,16 @@ class ForwardModel():
         Then calculate the spectrum at a single point on the disc.
         """
 
-        H_layer,P_layer,T_layer,VMR_layer,U_layer,Gas_layer,scale,del_S\
+        H_layer,P_layer,T_layer,VMR_layer,U_layer,Gas_layer,scale,del_S,del_H\
             = calc_layer(self.R_plt, H_model, P_model, T_model, VMR_model,
             self.gas_id_list, self.NLAYER, path_angle, layer_type=1, H_0=0.0, NSIMPS=101)
         # debug
-        # print('H_layer',H_layer)
-        print('own layering')
-        print('P_layer',P_layer)
-        print('T_layer',T_layer)
-        print('U_layer',U_layer)
-        print('del_S',del_S)
+        # # print('H_layer',H_layer)
+        # print('own layering')
+        # print('P_layer',P_layer)
+        # print('T_layer',T_layer)
+        # print('U_layer',U_layer)
+        # print('del_S',del_S)
         # scale = np.around(scale,4)
         # print('scale',scale)
         """
@@ -162,9 +163,11 @@ class ForwardModel():
             self.k_table_T_grid, self.del_g, ScalingFactor=scale,
             RADIUS=self.R_plt, solspec=solspec, k_cia=self.k_cia_pair_t_w,
             ID=self.gas_id_list,cia_nu_grid=self.cia_nu_grid,
-            cia_T_grid=self.cia_T_grid, DEL_S=del_S)
+            # cia_T_grid=self.cia_T_grid, DEL_S=del_S)
+            cia_T_grid=self.cia_T_grid, DEL_S=del_H)
         self.U_layer = U_layer
         self.del_S = del_S
+        self.del_H = del_H
         return point_spectrum
 
     def calc_disc_spectrum(self,phase,nmu,global_H_model,global_P_model,
