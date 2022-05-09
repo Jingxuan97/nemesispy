@@ -11,6 +11,103 @@ from nemesispy.radtran.radiance import calc_radiance, calc_planck
 from nemesispy.radtran.read import read_cia
 from nemesispy.radtran.trig import gauss_lobatto_weights, interpolate_to_lat_lon
 
+from scipy.special import legendre
+def calc_grav(h, lat, M_plt, R_plt,
+    J2=0, J3=0, J4=0, flatten=0, rotation=1e5):
+    """
+
+
+    Parameters
+    ----------
+    h : TYPE
+        DESCRIPTION.
+    lat : TYPE
+        DESCRIPTION.
+    M_plt : TYPE
+        DESCRIPTION.
+    R_plt : TYPE
+        DESCRIPTION.
+    J2 : TYPE, optional
+        DESCRIPTION. The default is 0.
+    J3 : TYPE, optional
+        DESCRIPTION. The default is 0.
+    J4 : TYPE, optional
+        DESCRIPTION. The default is 0.
+    flatten : TYPE, optional
+        DESCRIPTION. The default is 0.
+    rotation : TYPE, optional
+        DESCRIPTION. The default is 1e5.
+
+    Returns
+    -------
+    gtot : TYPE
+        DESCRIPTION.
+
+    """
+
+    G = 6.67430e-11
+    xgm = G*M_plt
+    xomega = 2.*np.pi/(rotation*24*3600)
+    xellip = 1/(1-flatten)
+    xcoeff = np.zeros(3)
+    xcoeff[0] = J2
+    xcoeff[1] = J3
+    xcoeff[2] = J4
+    xradius = R_plt
+
+
+    # account for latitude dependence
+    lat = 2 * np.pi * lat/360 # convert to radiance
+    ## assume for now that we use planetocentric latitude to begin with?
+    # latc = np.arctan(np.tan(lat)/xellip**2.)   #Converts planetographic latitude to planetocentric
+    # slatc = np.sin(latc)
+    # clatc = np.cos(latc)
+    slat = np.sin(lat)
+    clat = np.cos(lat)
+    # calculate the ratio of radius at equator to radius at current latitude
+    Rr = np.sqrt(clat**2 + (xellip**2. * slat**2))
+    # print('Rr',Rr)
+    r = (h+xradius)/Rr
+    radius = (xradius/Rr)
+
+    # calculate legendre polynomials
+    pol = np.zeros(6)
+    for i in range(6):
+        Pn = legendre(i+1)
+        pol[i] = Pn(slat)
+    # print('pol',pol)
+
+    # Evaulate radial contribution from summation for first three terms
+    # then suubtract centrifugal effects
+
+    # note that if Jcoeffs are 0 then the following calculation can be
+    # skipped, i.e. g = 1 if Jcoeffs are 0 and period is 1e5 (i.e. unknown)
+    g = 1
+    for i in range(3):
+        ix = i + 1
+        g = g - ((2*ix+1)*Rr**(2*ix)*xcoeff[ix-1]*pol[2*ix-1])
+
+    gradial = (g*xgm/r**2) - (r*xomega**2 * clat**2.)
+    # print('graial',gradial)
+
+    # Evaluate latitudinal conttribution for first three terms,
+    # then add centriifugal effects
+
+    gtheta1 = 0.
+    for i in range(3):
+        ix = i+1
+        gtheta1 = gtheta1 \
+        -(4*ix**2*Rr**(2*ix)*xcoeff[ix-1]*(pol[2*ix-1-1]-slat*pol[2*ix-1])/clat)
+
+    # print('xomega',xomega)
+    # print('gtheta1',gtheta1)
+    gtheta = (gtheta1 * xgm/r**2) + (r*xomega**2 * clat * slat)
+
+    # combine the two components
+    gtot = np.sqrt(gradial**2 + gtheta**2)
+
+    return gtot
+
 class ForwardModel():
 
     def __init__(self):

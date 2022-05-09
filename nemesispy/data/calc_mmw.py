@@ -37,12 +37,13 @@ def calc_mmw(ID, VMR, ISO=None):
         MMW += VMR[i] * MASS
     return MMW
 
-ID = [1,2,3]
-ISO = None
-VMR = [0.1,0.1,0.8]
-mmw = calc_mmw(ID,VMR,ISO)
-
 """Test
+
+# ID = [1,2,3]
+# ISO = None
+# VMR = [0.1,0.1,0.8]
+# mmw = calc_mmw(ID,VMR,ISO)
+
 ID = [1,2,3]
 ISO = [1,1,1]
 VMR = [0.1,0.1,0.8]

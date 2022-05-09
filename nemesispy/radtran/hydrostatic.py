@@ -28,10 +28,11 @@ def find_nearest(input_array, target_value):
     return array[idx], idx
 
 def NEWGRAV(h, radius, mass, lat_in=None):
-    """TBD
-      Sets the gravitational acceleration based on selected planet and
-      latitude. Gravity is calculated normal to the surface, and corrected
-      for rotational effects. The input latitude is assumed planetographic.
+    """
+    TBD
+    Sets the gravitational acceleration based on selected planet and
+    latitude. Gravity is calculated normal to the surface, and corrected
+    for rotational effects. The input latitude is assumed planetographic.
 
     Parameters
     ----------
@@ -44,73 +45,104 @@ def NEWGRAV(h, radius, mass, lat_in=None):
     gravity = g
     return gravity
 
-def calc_grav(M_plt,):
-    G = 6.67430e-11
+from scipy.special import legendre
+def calc_grav(h, lat, M_plt, R_plt,
+    J2=0, J3=0, J4=0, flatten=0, rotation=1e5):
+    """
 
-def XHYDROSTATH(AMFORM,IPLANET,LATITUDE,NPRO,NVMR,MOLWT,
-    IDGAS,ISOGAS,H,P,T,VMR,SCALE,
-    radius,mass):
-    XDEPTH = 2
-    while XDEPTH > 1:
-        # NPRO and NVMR no need to be passed
-        ATDEPTH = H[-1] - H[0] # NPRO = len(H)
-
-        # First find level closest ot zero altitude
-        DELH = 1000.0
-        for I in range(NPRO):
-            X = abs(H[I])
-            if X < DELH:
-                DELH = X
-                JZERO = I
-
-            """# alternatively...
-            min_index = np.argmin(abs(H))
-            if H[min_index] < DELH:
-                DELH = X
-            """
-            # VMR = NPRO x NVMR
-            XVMR = np.zeros(NVMR)
-            for J in range(NVMR):
-                XVMR[J] = VMR[I,J]
-
-            """
-            need to flesh out
-            """
-            g = NEWGRAV(H[I],radius,mass,lat_in=None)
-
-            XMOLWT = 2.3 * AMU
-
-            scale_height = K_B * T[I]/(XMOLWT*g)
-
-        if JZERO > 1 and JZERO < NPRO:
-            H[JZERO] = 0.0
-
-        for K in np.range(JZERO+1,NPRO):
-            """SH average scale height"""
-            SH = 0.5*(scale_height[K-1]+scale_height[I+1])
-            """hydrostatic equilibrium"""
-            H[K] = H[K+1] - SH*np.log(P[K]/P[K+1])
-
-        ATDEPTH1 = H[-1] - H[0]
-        XDEPTH = 100 * abs((ATDEPTH1-ATDEPTH)/ATDEPTH)
-
-
-def simple_grav(h, radius, mass):
-    """TBD
-      Sets the gravitational acceleration based on selected planet and
-      latitude. Gravity is calculated normal to the surface, and corrected
-      for rotational effects. The input latitude is assumed planetographic.
 
     Parameters
     ----------
+    h : TYPE
+        DESCRIPTION.
+    lat : TYPE
+        DESCRIPTION.
+    M_plt : TYPE
+        DESCRIPTION.
+    R_plt : TYPE
+        DESCRIPTION.
+    J2 : TYPE, optional
+        DESCRIPTION. The default is 0.
+    J3 : TYPE, optional
+        DESCRIPTION. The default is 0.
+    J4 : TYPE, optional
+        DESCRIPTION. The default is 0.
+    flatten : TYPE, optional
+        DESCRIPTION. The default is 0.
+    rotation : TYPE, optional
+        DESCRIPTION. The default is 1e5.
 
     Returns
     -------
+    gtot : TYPE
+        DESCRIPTION.
+
     """
 
-    g = G*mass/(radius+h)**2
-    gravity = g
-    return gravity
+    G = 6.67430e-11
+    xgm = G*M_plt
+    xomega = 2.*np.pi/(rotation*24*3600)
+    xellip = 1/(1-flatten)
+    xcoeff = np.zeros(3)
+    xcoeff[0] = J2
+    xcoeff[1] = J3
+    xcoeff[2] = J4
+    xradius = R_plt
+
+
+    # account for latitude dependence
+    lat = 2 * np.pi * lat/360 # convert to radiance
+    ## assume for now that we use planetocentric latitude to begin with?
+    # latc = np.arctan(np.tan(lat)/xellip**2.)   #Converts planetographic latitude to planetocentric
+    # slatc = np.sin(latc)
+    # clatc = np.cos(latc)
+    slat = np.sin(lat)
+    clat = np.cos(lat)
+    # calculate the ratio of radius at equator to radius at current latitude
+    Rr = np.sqrt(clat**2 + (xellip**2. * slat**2))
+    # print('Rr',Rr)
+    r = (h+xradius)/Rr
+    radius = (xradius/Rr)
+
+    # calculate legendre polynomials
+    pol = np.zeros(6)
+    for i in range(6):
+        Pn = legendre(i+1)
+        pol[i] = Pn(slat)
+    # print('pol',pol)
+
+    # Evaulate radial contribution from summation for first three terms
+    # then suubtract centrifugal effects
+
+    # note that if Jcoeffs are 0 then the following calculation can be
+    # skipped, i.e. g = 1 if Jcoeffs are 0 and period is 1e5 (i.e. unknown)
+    g = 1
+    for i in range(3):
+        ix = i + 1
+        g = g - ((2*ix+1)*Rr**(2*ix)*xcoeff[ix-1]*pol[2*ix-1])
+
+    gradial = (g*xgm/r**2) - (r*xomega**2 * clat**2.)
+    # print('graial',gradial)
+
+    # Evaluate latitudinal conttribution for first three terms,
+    # then add centriifugal effects
+
+    gtheta1 = 0.
+    for i in range(3):
+        ix = i+1
+        gtheta1 = gtheta1 \
+        -(4*ix**2*Rr**(2*ix)*xcoeff[ix-1]*(pol[2*ix-1-1]-slat*pol[2*ix-1])/clat)
+
+    # print('xomega',xomega)
+    # print('gtheta1',gtheta1)
+    gtheta = (gtheta1 * xgm/r**2) + (r*xomega**2 * clat * slat)
+
+    # combine the two components
+    gtot = np.sqrt(gradial**2 + gtheta**2)
+
+    return gtot
+
+
 
 def simple_hydro(H,P,T,VMR,radius,mass):
     """
@@ -131,16 +163,18 @@ def simple_hydro(H,P,T,VMR,radius,mass):
     XMOLWT = 2.3 * AMU
 
     while XDEPTH > 1:
+
         h = np.zeros(NPRO)
         p = np.zeros(NPRO)
         h[:] = H
         p[:] = P
 
         #Calculating the atmospheric depth
-        ATDEPTH = H[-1] - H[0]
+        ATDEPTH = h[-1] - h[0]
 
         #Calculate the gravity at each altitude level
-        gravity =  simple_grav(H, radius, mass)
+        gravity =  calc_grav(h=,lat=,M_plt=,R_plt=)
+
 
         #Calculate the scale height
         scale = K_B*T/(XMOLWT*gravity)
@@ -170,171 +204,109 @@ def simple_hydro(H,P,T,VMR,radius,mass):
     return H
 
 
-        # FORTRAN TRANSCRIPTION
-        # DELH = 1000.0
-        # for I in range(NPRO):
-        #     X = abs(H[I])
-        #     if X < DELH:
-        #         DELH = X
-        #         JZERO = I
+# def XHYDROSTATH(AMFORM,IPLANET,LATITUDE,NPRO,NVMR,MOLWT,
+#     IDGAS,ISOGAS,H,P,T,VMR,SCALE,
+#     radius,mass):
+#     XDEPTH = 2
+#     while XDEPTH > 1:
+#         # NPRO and NVMR no need to be passed
+#         ATDEPTH = H[-1] - H[0] # NPRO = len(H)
 
-        #     """# alternatively...
-        #     min_index = np.argmin(abs(H))
-        #     if H[min_index] < DELH:
-        #         DELH = X
-        #     """
-        #     """
-        #     # VMR = NPRO x NVMR
-        #     XVMR = np.zeros(NVMR)
-        #     for J in range(NVMR):
-        #         XVMR[J] = VMR[I,J]
-        #     """
+#         # First find level closest ot zero altitude
+#         DELH = 1000.0
+#         for I in range(NPRO):
+#             X = abs(H[I])
+#             if X < DELH:
+#                 DELH = X
+#                 JZERO = I
 
-        #     """
-        #     need to flesh out
-        #     """
-        #     g = simple_grav(H[I],radius,mass)
+#             """# alternatively...
+#             min_index = np.argmin(abs(H))
+#             if H[min_index] < DELH:
+#                 DELH = X
+#             """
+#             # VMR = NPRO x NVMR
+#             XVMR = np.zeros(NVMR)
+#             for J in range(NVMR):
+#                 XVMR[J] = VMR[I,J]
 
-        #     XMOLWT = 2.3 * AMU
+#             """
+#             need to flesh out
+#             """
+#             g = NEWGRAV(H[I],radius,mass,lat_in=None)
 
-        #     scale_height[I] = K_B * T[I]/(XMOLWT*g)
+#             XMOLWT = 2.3 * AMU
 
-        # if JZERO > 1 and JZERO < NPRO:
-        #     H[JZERO] = 0.0
+#             scale_height = K_B * T[I]/(XMOLWT*g)
 
-        # # for K in np.arange(JZERO+1,NPRO):
-        # for K in np.arange(JZERO,NPRO-1):
-        #     """SH average scale height"""
-        #     SH = 0.5*(scale_height[K-1]+scale_height[I+1])
-        #     """hydrostatic equilibrium"""
-        #     H[K] = H[K+1] - SH*np.log(P[K]/P[K+1])
+#         if JZERO > 1 and JZERO < NPRO:
+#             H[JZERO] = 0.0
 
-        # ATDEPTH1 = H[-1] - H[0]
-        # XDEPTH = 100 * abs((ATDEPTH1-ATDEPTH)/ATDEPTH)
+#         for K in np.range(JZERO+1,NPRO):
+#             """SH average scale height"""
+#             SH = 0.5*(scale_height[K-1]+scale_height[I+1])
+#             """hydrostatic equilibrium"""
+#             H[K] = H[K+1] - SH*np.log(P[K]/P[K+1])
 
-    return H
-
-def adjust_hydrostatH(self):
-    """
-    Subroutine to rescale the heights of a H/P/T profile according to
-    the hydrostatic equation above and below the level where height=0.
-
-    Parameters
-    ----------
-    self.H
-    self.NP
-    self.P
-    self.calc_grav()
-    """
-
-    #First find the level closest to the 0m altitude
-    alt0,ialt = find_nearest(self.H,0.0)
-    if ( (alt0>0.0) & (ialt>0)):
-        ialt = ialt -1
-
-    xdepth = 100.
-    while xdepth>1:
-
-        h = np.zeros(self.NP)
-        p = np.zeros(self.NP)
-        h[:] = self.H
-        p[:] = self.P
-
-        #Calculating the atmospheric depth
-        atdepth = h[self.NP-1] - h[0]
-
-        #Calculate the gravity at each altitude level
-        self.calc_grav()
-
-        #Calculate the scale height
-        R = const["R"]
-        scale = R * self.T / (self.MOLWT * self.GRAV)   #scale height (m)
-
-        p[:] = self.P
-        if ((ialt>0) & (ialt<self.NP-1)):
-            h[ialt] = 0.0
-
-        nupper = self.NP - ialt - 1
-        for i in range(ialt+1,self.NP):
-            sh = 0.5 * (scale[i-1] + scale[i])
-            #self.H[i] = self.H[i-1] - sh * np.log(self.P[i]/self.P[i-1])
-            h[i] = h[i-1] - sh * np.log(p[i]/p[i-1])
-
-        for i in range(ialt-1,-1,-1):
-            sh = 0.5 * (scale[i+1] + scale[i])
-            #self.H[i] = self.H[i+1] - sh * np.log(self.P[i]/self.P[i+1])
-            h[i] = h[i+1] - sh * np.log(p[i]/p[i+1])
-
-        #atdepth1 = self.H[self.NP-1] - self.H[0]
-        atdepth1 = h[self.NP-1] - h[0]
-
-        xdepth = 100.*abs((atdepth1-atdepth)/atdepth)
-
-        self.H = h[:]
-
-        #Re-Calculate the gravity at each altitude level
-        self.calc_grav()
-
-def calc_grav(self):
-    """
-    Subroutine to calculate the gravity at each level following the method
-    of Lindal et al., 1986, Astr. J., 90 (6), 1136-1146
-    """
-
-    #Reading data and calculating some parameters
-    Grav = const["G"]
-    data = planet_info[str(self.IPLANET)]
-    xgm = data["mass"] * Grav * 1.0e24 * 1.0e6
-    xomega = 2.*np.pi / (data["rotation"]*24.*3600.)
-    xellip=1.0/(1.0-data["flatten"])
-    Jcoeff = data["Jcoeff"]
-    xcoeff = np.zeros(3)
-    xcoeff[0] = Jcoeff[0] / 1.0e3
-    xcoeff[1] = Jcoeff[1] / 1.0e6
-    xcoeff[2] = Jcoeff[2] / 1.0e8
-    xradius = data["radius"] * 1.0e5   #cm
-    isurf = data["isurf"]
-    name = data["name"]
+#         ATDEPTH1 = H[-1] - H[0]
+#         XDEPTH = 100 * abs((ATDEPTH1-ATDEPTH)/ATDEPTH)
 
 
-    #Calculating some values to account for the latitude dependence
-    lat = 2 * np.pi * self.LATITUDE/360.      #Latitude in rad
-    latc = np.arctan(np.tan(lat)/xellip**2.)   #Converts planetographic latitude to planetocentric
-    slatc = np.sin(latc)
-    clatc = np.cos(latc)
-    Rr = np.sqrt(clatc**2 + (xellip**2. * slatc**2.))  #ratio of radius at equator to radius at current latitude
-    r = (xradius+self.H*1.0e2)/Rr    #Radial distance of each altitude point to centre of planet (cm)
-    radius = (xradius/Rr)*1.0e-5     #Radius of the planet at the given distance (km)
+# def simple_grav(h, radius, mass):
+#     """TBD
+#       Sets the gravitational acceleration based on selected planet and
+#       latitude. Gravity is calculated normal to the surface, and corrected
+#       for rotational effects. The input latitude is assumed planetographic.
 
-    self.RADIUS = radius * 1.0e3
+#     Parameters
+#     ----------
 
-    #Calculating Legendre polynomials
-    pol = np.zeros(6)
-    for i in range(6):
-        Pn = legendre(i+1)
-        pol[i] = Pn(slatc)
+#     Returns
+#     -------
+#     """
 
-    #Evaluate radial contribution from summation
-    # for first three terms,
-    #then subtract centrifugal effect.
-    g = 1.
-    for i in range(3):
-        ix = i + 1
-        g = g - ((2*ix+1) * Rr**(2 * ix) * xcoeff[ix-1] * pol[2*ix-1])
+#     g = G*mass/(radius+h)**2
+#     gravity = g
+#     return gravity
 
-    gradial = (g * xgm/r**2.) - (r * xomega**2. * clatc**2.)
+# FORTRAN TRANSCRIPTION
+# DELH = 1000.0
+# for I in range(NPRO):
+#     X = abs(H[I])
+#     if X < DELH:
+#         DELH = X
+#         JZERO = I
 
-    #Evaluate latitudinal contribution for
-    # first three terms, then add centrifugal effects
+#     """# alternatively...
+#     min_index = np.argmin(abs(H))
+#     if H[min_index] < DELH:
+#         DELH = X
+#     """
+#     """
+#     # VMR = NPRO x NVMR
+#     XVMR = np.zeros(NVMR)
+#     for J in range(NVMR):
+#         XVMR[J] = VMR[I,J]
+#     """
 
-    gtheta1 = 0.
-    for i in range(3):
-        ix = i + 1
-        gtheta1 = gtheta1 - (4. * ix**2 * Rr**(2 * ix) * xcoeff[ix-1] * (pol[2*ix-1-1] - slatc * pol[2*ix-1])/clatc)
+#     """
+#     need to flesh out
+#     """
+#     g = simple_grav(H[I],radius,mass)
 
-    gtheta = (gtheta1 * xgm/r**2) + (r * xomega**2 * clatc * slatc)
+#     XMOLWT = 2.3 * AMU
 
-    #Combine the two components and write the result
-    gtot = np.sqrt(gradial**2. + gtheta**2.)*0.01   #m/s2
+#     scale_height[I] = K_B * T[I]/(XMOLWT*g)
 
-    self.GRAV = gtot
+# if JZERO > 1 and JZERO < NPRO:
+#     H[JZERO] = 0.0
+
+# # for K in np.arange(JZERO+1,NPRO):
+# for K in np.arange(JZERO,NPRO-1):
+#     """SH average scale height"""
+#     SH = 0.5*(scale_height[K-1]+scale_height[I+1])
+#     """hydrostatic equilibrium"""
+#     H[K] = H[K+1] - SH*np.log(P[K]/P[K+1])
+
+# ATDEPTH1 = H[-1] - H[0]
+# XDEPTH = 100 * abs((ATDEPTH1-ATDEPTH)/ATDEPTH)
