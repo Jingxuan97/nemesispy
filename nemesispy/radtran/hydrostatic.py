@@ -39,11 +39,13 @@ def NEWGRAV(h, radius, mass, lat_in=None):
     Returns
     -------
     """
-
+    G = 6.67430e-11
     g = G*mass/(radius+h)**2
     gravity = g
     return gravity
 
+def calc_grav(M_plt,):
+    G = 6.67430e-11
 
 def XHYDROSTATH(AMFORM,IPLANET,LATITUDE,NPRO,NVMR,MOLWT,
     IDGAS,ISOGAS,H,P,T,VMR,SCALE,
@@ -152,7 +154,7 @@ def simple_hydro(H,P,T,VMR,radius,mass):
             sh = 0.5 * (scale[i-1] + scale[i])
             #self.H[i] = self.H[i-1] - sh * np.log(self.P[i]/self.P[i-1])
             h[i] = h[i-1] - sh * np.log(p[i]/p[i-1])
-            
+
         for i in range(ialt-1,-1,-1):
             sh = 0.5 * (scale[i+1] + scale[i])
             #self.H[i] = self.H[i+1] - sh * np.log(self.P[i]/self.P[i+1])

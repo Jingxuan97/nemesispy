@@ -279,11 +279,15 @@ def gauss_lobatto_weights(phase, nmu):
         mu = [0.28523151648064509,0.7650553239294646,1.0000]
         wtmu = [0.5548583770354863,0.3784749562978469,0.06666666666666666]
     if nmu == 4:
-        mu = [0.2092992179024788,0.5917001814331423,0.8717401485096066,1.00000]
-        wtmu = [0.4124587946587038,0.3411226924835043,0.2107042271435060,0.035714285714285]
+        mu = [0.2092992179024788,0.5917001814331423,0.8717401485096066,
+              1.00000]
+        wtmu = [0.4124587946587038,0.3411226924835043,0.2107042271435060,
+                0.035714285714285]
     if nmu == 5:
-        mu = [0.165278957666387,0.477924949810444,0.738773865105505,0.919533908166459,1.00000000000000]
-        wtmu = [0.327539761183898,0.292042683679684,0.224889342063117,0.133305990851069,2.222222222222220E-002]
+        mu = [0.165278957666387,0.477924949810444,0.738773865105505,
+              0.919533908166459,1.00000000000000]
+        wtmu = [0.327539761183898,0.292042683679684,0.224889342063117,
+                0.133305990851069,2.222222222222220E-002]
 
 
     # # define a range of angles from 0 to 360
@@ -431,7 +435,7 @@ def interpolate_to_lat_lon(chosen_location, global_model,
     global_model(NLONIN, NLATIN, NMODEL) : ndarray
         Model defined at the global_model_locations.
         NlONIN x NLATIN x NMODEL
-        NMODEL might be a tuple is the model is a 2D array.
+        NMODEL might be a tuple if the model is a 2D array.
     global_model_longitudes(NLONIN) : ndarray
         Longitude grid specifying where the model is define on the planet.
     global_model_lattitudes(NLATIN) : ndarray
@@ -488,7 +492,7 @@ def interpolate_to_lat_lon(chosen_location, global_model,
         lat_hi = lat_grid[lat_index_hi]
         lat_low = lat_grid[lat_index_low]
 
-        # problem here
+        # problem here
         Q11 = global_model[lon_index_low,lat_index_low,:]
         Q12 = global_model[lon_index_hi,lat_index_low,:]
         Q22 = global_model[lon_index_hi,lat_index_hi,:]

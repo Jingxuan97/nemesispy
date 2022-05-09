@@ -4,7 +4,7 @@ import os
 import sys
 sys.path.append('/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/')
 from nemesispy.radtran.forward_model import ForwardModel
-from nemesispy.radtran.point_benchmarking_fortran import Nemesis_api
+from nemesispy.radtran.disc_benchmarking_fortran import Nemesis_api
 import time
 
 ### Reference Opacity Data
@@ -58,7 +58,7 @@ stellar_spec = np.array([3.341320e+25, 3.215455e+25, 3.101460e+25, 2.987110e+25,
        2.505735e+25, 2.452230e+25, 2.391140e+25, 2.345905e+25,
        2.283720e+25, 2.203690e+25, 2.136015e+25, 1.234010e+24,
        4.422200e+23])
-stellar_spec  = np.ones(len(stellar_spec))
+# stellar_spec  = np.ones(len(stellar_spec))
 
 # Spectral output wavelengths in micron
 wave_grid = np.array([1.1425, 1.1775, 1.2125, 1.2475, 1.2825, 1.3175, 1.3525, 1.3875,
@@ -135,7 +135,7 @@ path_angle = 0
 # Gas Volume Mixing Ratio, constant with height
 gas_id = np.array([  1, 2,  5,  6, 40, 39])
 iso_id = np.array([0, 0, 0, 0, 0, 0])
-H2_ratio = 1
+H2_ratio = 0.85
 VMR_H2O = 1.0E-4 # volume mixing ratio of H2O
 VMR_CO2 = 1.0E-4  # volume mixing ratio of CO2
 VMR_CO = 1.0E-4 # volume mixing ratio of CO
@@ -152,7 +152,7 @@ VMR[:,4] = VMR_He
 VMR[:,5] = VMR_H2
 
 ### Benchmark Fortran forward model
-folder_name = 'testing'
+folder_name = 'disc'
 if not os.path.isdir(folder_name):
     os.mkdir(folder_name)
 file_path = os.path.dirname(os.path.realpath(__file__))
@@ -171,6 +171,7 @@ F_end = time.time()
 F_delH,F_totam,F_pres,F_temp,scaling = API.read_drv_file()
 H_prf, P_prf, T_prf = API.read_prf_file()
 
+###############################################################################
 ### Benchmark Python forward model
 H_hydro = np.loadtxt('{}.prf'.format(folder_name),skiprows=9,unpack=True,
     usecols=(0))
@@ -179,21 +180,33 @@ FM = ForwardModel()
 FM.set_planet_model(M_plt=M_plt, R_plt=R_plt, gas_id_list=gas_id,
     iso_id_list=iso_id, NLAYER=NLAYER)
 FM.set_opacity_data(kta_file_paths=lowres_files, cia_file_path=cia_file_path)
-
+###############################################################################
 """
 # use .ref file directly, might not be hydro adjusted
 point_spectrum_py_old = FM.run_point_spectrum(H_model=H_hydro, P_model=P, T_model=T,\
             VMR_model=VMR, path_angle=path_angle, solspec=stellar_spec)
 """
 # use .prf file, hydro adjusted
-point_spectrum_py_old = FM.run_point_spectrum(H_model=H_prf, P_model=P_prf,
-            T_model=T_prf, VMR_model=VMR, path_angle=path_angle, solspec=stellar_spec)
+# point_spectrum_py_old = FM.run_point_spectrum(H_model=H_prf, P_model=P_prf,
+#             T_model=T_prf, VMR_model=VMR, path_angle=path_angle, solspec=stellar_spec)
 
-point_spectrum_py = FM.test_point_spectrum(U_layer=F_totam,P_layer=F_pres,
-                        T_layer=F_temp, VMR_layer=VMR, del_S=F_delH,
-                        scale=scaling, solspec=stellar_spec)
-
-iteration = 100
+# point_spectrum_py = FM.test_point_spectrum(U_layer=F_totam,P_layer=F_pres,
+#                         T_layer=F_temp, VMR_layer=VMR, del_S=F_delH,
+#                         scale=scaling, solspec=stellar_spec)
+"""
+phase = 0
+nmu = 2
+global_H_model =
+global_P_model =
+global_T_model =
+global_VMR_model =
+global_model_longitudes =
+global_model_lattitudes =
+point_spectrum_py = FM.calc_disc_spectrum(phase,nmu,global_H_model,global_P_model,
+        global_T_model,global_VMR_model,global_model_longitudes,
+        global_model_lattitudes,solspec=None)
+"""
+iteration = 1
 start = time.time()
 for i in range(iteration):
     point_spectrum_py = FM.test_point_spectrum(U_layer=F_totam,P_layer=F_pres,

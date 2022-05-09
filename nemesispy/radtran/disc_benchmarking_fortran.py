@@ -3,8 +3,104 @@ sys.path.append('/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/')
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-from nemesispy.radtran.point_benchmarking_utils import phase_curve_fil,wasp43b_spx_dayside_single_angle_45
+from nemesispy.radtran.disc_benchmarking_utils import phase_curve_fil,wasp43b_spx_dayside_single_angle_45
 ### Reference Opacity Data
+spx_2zenith = """0.00000      0.00000      0.00000      1
+17
+7
+    0.0000     40.9349    139.0651     63.4349      0.0000  0.06909830
+   31.7175     35.7825    133.6367     63.4349     18.1075  0.13819660
+   58.2825      9.2175    121.2613     63.4349     25.1995  0.13819660
+   58.2825    305.7825    107.9026     63.4349     22.4869  0.13819660
+   31.7175    279.2175     97.8314     63.4349     13.1237  0.13819660
+    0.0000    274.0651     94.0651     63.4349      0.0000  0.06909830
+    0.0000    337.5000    157.5000      0.0000    180.0000  0.30901699
+1.14250  6.00000e-05  6.60000e-05
+1.17750  5.50000e-05  6.10000e-05
+1.21250  6.60000e-05  5.80000e-05
+1.24750  8.60000e-05  5.60000e-05
+1.28250  5.30000e-05  5.70000e-05
+1.31750  9.00000e-05  5.30000e-05
+1.35250  2.00000e-06  5.50000e-05
+1.38750  2.90000e-05  5.20000e-05
+1.42250  3.50000e-05  5.60000e-05
+1.45750 -3.00000e-06  5.60000e-05
+1.49250  2.40000e-05  5.60000e-05
+1.52750 -3.00000e-06  5.50000e-05
+1.56250  2.20000e-05  5.80000e-05
+1.59750  4.80000e-05  5.80000e-05
+1.63250  8.70000e-05  6.30000e-05
+3.60000 -1.30000e-05  0.000103000
+4.50000  9.50000e-05  0.000133000
+"""
+spx_5zenith = """      0.00000      0.00000      0.00000      1
+      17
+      47
+      0.00000      57.9866      122.013      80.4866      0.00000   0.00377792
+      12.5013      57.7533      121.394      80.4866      5.64680   0.00755584
+      24.9841      56.9938      119.588      80.4866      10.8630   0.00755584
+      37.4216      55.4883      116.741      80.4866      15.3093   0.00755584
+      49.7604      52.6758      113.059      80.4866      18.7788   0.00755584
+      61.8601      46.9855      108.768      80.4866      21.1844   0.00755584
+      73.1854      32.6554      104.096      80.4866      22.5173   0.00755584
+      80.4055      344.920      99.2612      80.4866      22.8081   0.00755584
+      75.1711      287.725      94.4689      80.4866      22.1010   0.00755585
+      64.1890      269.809      89.9168      80.4866      20.4451   0.00770491
+      51.6919      262.964      85.6450      80.4866      17.7796   0.00785396
+      38.8888      259.760      82.0460      80.4866      14.2391   0.00785396
+      25.9677      258.093      79.3105      80.4866      9.95650   0.00785396
+      12.9943      257.266      77.5972      80.4866      5.12522   0.00785397
+      0.00000      257.013      77.0134      80.4866  1.36604e-05   0.00392698
+      0.00000      38.9500      141.050      61.4500      0.00000    0.0106375
+      12.1350      38.2351      140.168      61.4500      8.22016    0.0212750
+      24.0926      35.9305      137.663      61.4500      15.3110    0.0212750
+      35.6257      31.4870      133.880      61.4500      20.6139    0.0212750
+      46.2952      23.7352      129.235      61.4500      23.9919    0.0212750
+      55.2170      10.5941      124.107      61.4500      25.6041    0.0212750
+      60.6914      349.992      118.820      61.4500      25.6963    0.0212750
+      60.6914      325.008      113.642      61.4500      24.5005    0.0212750
+      55.2170      304.406      108.805      61.4500      22.2093    0.0212750
+      46.2952      291.265      104.512      61.4500      18.9851    0.0212750
+      35.6257      283.513      100.949      61.4500      14.9794    0.0212750
+      24.0926      279.069      98.2736      61.4500      10.3530    0.0212750
+      12.1350      276.765      96.6130      61.4500      5.28993    0.0212750
+      0.00000      276.050      96.0500      61.4500  1.36604e-05    0.0106375
+      0.00000      19.8729      160.127      42.3729  1.36604e-05    0.0164610
+      12.0206      18.4453      158.098      42.3729      18.4833    0.0329220
+      23.3371      13.9286      153.023      42.3729      29.7266    0.0329220
+      33.0410      5.70078      146.526      42.3729      34.1465    0.0329220
+      39.8640      353.243      139.662      42.3729      34.2127    0.0329220
+      42.3729      337.500      133.042      42.3729      31.5750    0.0329220
+      39.8640      321.757      127.074      42.3729      27.1397    0.0329220
+      33.0410      309.299      122.069      42.3729      21.4289    0.0329220
+      23.3371      301.071      118.287      42.3729      14.7996    0.0329220
+      12.0206      296.555      115.929      42.3729      7.55581    0.0329220
+      0.00000      295.127      115.127      42.3729  1.36604e-05    0.0164610
+      0.00000     0.641968      179.358      23.1420  0.000450792    0.0242898
+      13.3563      356.574      166.219      23.1420      70.7822    0.0485796
+      21.9486      345.024      153.639      23.1420      55.0517    0.0485796
+      21.9486      329.976      143.424      23.1420      37.6451    0.0485796
+      13.3563      318.426      136.708      23.1420      19.1491    0.0485796
+      0.00000      314.358      134.358      23.1420  1.36604e-05    0.0242898
+      0.00000      337.500      157.500      0.00000      180.000    0.0440346
+      1.14250  7.40268e-05  6.60000e-05
+      1.17750  0.000143689  6.10000e-05
+      1.21250  0.000235543  5.80000e-05
+      1.24750  0.000370310  5.60000e-05
+      1.28250  0.000321902  5.70000e-05
+      1.31750  0.000171065  5.30000e-05
+      1.35250  8.60438e-05  5.50000e-05
+      1.38750  1.85589e-05  5.20000e-05
+      1.42250  0.000111874  5.60000e-05
+      1.45750  4.77475e-05  5.60000e-05
+      1.49250  0.000160166  5.60000e-05
+      1.52750  9.82523e-05  5.50000e-05
+      1.56250  0.000140665  5.80000e-05
+      1.59750  0.000286794  5.80000e-05
+      1.63250  0.000429466  6.30000e-05
+      3.60000   0.00181714  0.000103000
+      4.50000   0.00203622  0.000133000"""
+
 lowres_files = ['/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/h2o',
          '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/co2',
          '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/co',
@@ -44,7 +140,7 @@ class Nemesis_api:
 
         self.input_spectrum = wasp43b_spx_dayside_single_angle_45
         self.stellar_spectrum =  'wasp43_stellar_newgrav.txt'
-        self.stellar_spectrum =  'wasp43_stellar_newgrav_fake.txt'
+        # self.stellar_spectrum =  'wasp43_stellar_newgrav_fake.txt'
 
         """
         # planet and planetary system data
@@ -253,27 +349,31 @@ class Nemesis_api:
         f.close()
 
     def _name_spx(self,path_angle):
-        FWHM = 0.0
-        LATITUDE = 0.0
-        LONGITUDE = 0
-        NGEOM = 1
-        NCONV = self.NWAVE
-        NAV = 1
-        FLAT = 0.0
-        FLON = 0
-        SOL_ANG = 0
-        EMISS_ANG = path_angle
-        AZI_ANG = 0
-        WEIGHT = 1.0
+        # FWHM = 0.0
+        # LATITUDE = 0.0
+        # LONGITUDE = 0
+        # NGEOM = 1
+        # NCONV = self.NWAVE
+        # NAV = 1
+        # FLAT = 0.0
+        # FLON = 0
+        # SOL_ANG = 0
+        # EMISS_ANG = path_angle
+        # AZI_ANG = 0
+        # WEIGHT = 1.0
+
+        # f = open('{}.spx'.format(self.name),'w')
+        # f.write('{:10.5f}{:10.5f}{:10.3f}{:10}\n'.format(FWHM,LATITUDE,LONGITUDE,NGEOM))
+        # f.write('{:10}\n'.format(NCONV))
+        # f.write('{:10}\n'.format(NAV))
+        # f.write('{:10.5f}{:10.5f}{:10.5f}{:10.5f}{:10.5f}{:10.6f}\n'.format(
+        #     FLAT,FLON,SOL_ANG,EMISS_ANG,AZI_ANG,WEIGHT
+        # ))
+        # for iwave,wave in enumerate(self.wave_grid):
+        #     f.write('{:14.6f} {:14.5E} {:14.3E}\n'.format(wave,1e-3,1e-5))
+        # f.close()
         f = open('{}.spx'.format(self.name),'w')
-        f.write('{:10.5f}{:10.5f}{:10.3f}{:10}\n'.format(FWHM,LATITUDE,LONGITUDE,NGEOM))
-        f.write('{:10}\n'.format(NCONV))
-        f.write('{:10}\n'.format(NAV))
-        f.write('{:10.5f}{:10.5f}{:10.5f}{:10.5f}{:10.5f}{:10.6f}\n'.format(
-            FLAT,FLON,SOL_ANG,EMISS_ANG,AZI_ANG,WEIGHT
-        ))
-        for iwave,wave in enumerate(self.wave_grid):
-            f.write('{:14.6f} {:14.5E} {:14.3E}\n'.format(wave,1e-3,1e-5))
+        f.write(spx_2zenith)
         f.close()
 
     # run name file
@@ -350,6 +450,7 @@ class Nemesis_api:
         # os.system("~/bin/Nemesis < {}.nam > /dev/null".format(self.name))
         # os.system("~/bin/Nemesis < {}.nam > stuff.out".format(self.name))
         os.system("~/bin/Nemesis < {}.nam > stuff.out".format(self.name))
+        "~/bin/Nemesis < testing.nam > stuff.out"
 
     def read_output(self):
         wave, yerr, model = np.loadtxt("{}.mre".format(self.name), skiprows=5,
@@ -412,7 +513,7 @@ class Nemesis_api:
 
         return delH*1e3,totam*1e4,pressure* const['ATM'],temp,scale[::-1]
 
-
+"""
 ### Reference Planet Input
 M_plt = 3.8951064000000004e+27 # kg
 R_plt = 74065.70 * 1e3 # m
@@ -478,6 +579,7 @@ VMR[:,3] = VMR_CH4
 VMR[:,4] = VMR_He
 VMR[:,5] = VMR_H2
 
+
 folder_name = 'testing'
 if not os.path.isdir(folder_name):
     os.mkdir(folder_name)
@@ -485,7 +587,7 @@ file_path = os.path.dirname(os.path.realpath(__file__))
 os.chdir(file_path+'/'+folder_name) # move to designated process folder
 
 API = Nemesis_api(name=folder_name, NLAYER=NLAYER, gas_id_list=gas_id,
-    iso_id_list=iso_id)
+    iso_id_list=iso_id,wave_grid=wave_grid)
 API.write_files(path_angle=path_angle, H_model=H, P_model=P, T_model=T,
     VMR_model=VMR)
 API.run_forward_model()
@@ -501,3 +603,4 @@ plt.ylabel(r'total radiance(W sr$^{-1}$ $\mu$m$^{-1})$')
 plt.legend()
 plt.tight_layout()
 plt.show()
+"""

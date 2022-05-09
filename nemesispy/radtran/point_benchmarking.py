@@ -152,7 +152,7 @@ VMR[:,4] = VMR_He
 VMR[:,5] = VMR_H2
 
 ### Benchmark Fortran forward model
-folder_name = 'testing'
+folder_name = 'pointspec'
 if not os.path.isdir(folder_name):
     os.mkdir(folder_name)
 file_path = os.path.dirname(os.path.realpath(__file__))
@@ -189,8 +189,10 @@ point_spectrum_py_old = FM.run_point_spectrum(H_model=H_prf, P_model=P_prf,
 point_spectrum_py = FM.test_point_spectrum(U_layer=F_totam,P_layer=F_pres,
                         T_layer=F_temp, VMR_layer=VMR, del_S=F_delH,
                         scale=scaling, solspec=stellar_spec)
+
+NITER = 100
 start = time.time()
-for i in range(1000):
+for i in range(NITER):
     point_spectrum_py = FM.test_point_spectrum(U_layer=F_totam,P_layer=F_pres,
                             T_layer=F_temp, VMR_layer=VMR, del_S=F_delH,
                             scale=scaling, solspec=stellar_spec)
@@ -278,7 +280,7 @@ plt.savefig('{:.0e}H2O_{:.0e}CO2_{:.0e}CO_{:.0e}CH4_{:.0e}He_{:.0e}H2.pdf'.forma
 plt.savefig('comparison.pdf',dpi=400)
 plt.show()
 
-print('run time = ', end - start)
+print('run time = ', (end - start)/NITER)
 
 
 # Pure H2 He atm, H2 ratio 0.85

@@ -19,7 +19,7 @@ layint   1
 laytyp   1
  
 atm
-nadir    0.00   1   0
+nadir   63.43   1   0
 therm
 noscatter
 nowf
