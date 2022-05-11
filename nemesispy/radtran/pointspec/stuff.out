@@ -29,6 +29,7 @@
  Snapping to first latitude
  XX. ISCALE =            1           1           1           1           1           1
  XhydrostatH: JZERO =            1
+ XhydrostatH: JZERO =            1
   
  IPAR =            1
  ISCALE :            0           1           1           1           1           1
@@ -88,38 +89,35 @@ Klist filename: pointspec.kls
   Percent Complete =    80.0000000    
   Percent Complete =    90.0000000    
   Percent Complete =    100.000000    
- ForwardavfovX: Npath,sol_ang,emiss_ang =            1   0.00000000       45.0000000    
-           1   1.00000000       1.42995053E+22   1.42995053E+22   1.42995053E+22
-           2   1.00000000       1.34023342E+22   1.34023342E+22   1.34023342E+22
-           3   1.00000000       1.94920994E+22   1.94920994E+22   1.94920994E+22
-           4   1.00000000       2.67095569E+22   2.67095569E+22   2.67095569E+22
-           5   1.00000000       2.77090362E+22   2.77090362E+22   2.77090362E+22
-           6   1.00000000       1.95423145E+22   1.95423145E+22   1.95423145E+22
-           7   1.00000000       8.07417388E+21   8.07417388E+21   8.07417388E+21
-           8   1.00000000       5.87716993E+21   5.87716993E+21   5.87716993E+21
-           9   1.00000000       5.70048752E+21   5.70048752E+21   5.70048752E+21
-          10   1.00000000       6.71233546E+21   6.71233546E+21   6.71233546E+21
-          11   1.00000000       8.35755726E+21   8.35755726E+21   8.35755726E+21
-          12   1.00000000       1.07205746E+22   1.07205746E+22   1.07205746E+22
-          13   1.00000000       1.28727019E+22   1.28727019E+22   1.28727019E+22
-          14   1.00000000       1.17890964E+22   1.17890964E+22   1.17890964E+22
-          15   1.00000000       8.07578336E+21   8.07578336E+21   8.07578336E+21
-          16   1.00000000       2.19274791E+21   2.19274791E+21   2.19274791E+21
-          17   1.00000000       1.40588518E+21   1.40588518E+21   1.40588518E+21
+ ForwardavfovX: Npath,sol_ang,emiss_ang =            1   0.00000000       10.0000000    
+           1   1.00000000       5.69174357E-04   5.69174357E-04   5.69174357E-04
+           2   1.00000000       5.63125708E-04   5.63125708E-04   5.63125708E-04
+           3   1.00000000       7.97021377E-04   7.97021377E-04   7.97021377E-04
+           4   1.00000000       1.07184693E-03   1.07184693E-03   1.07184693E-03
+           5   1.00000000       1.16050278E-03   1.16050278E-03   1.16050278E-03
+           6   1.00000000       8.95953213E-04   8.95953213E-04   8.95953213E-04
+           7   1.00000000       3.92753223E-04   3.92753223E-04   3.92753223E-04
+           8   1.00000000       2.95484002E-04   2.95484002E-04   2.95484002E-04
+           9   1.00000000       2.92203447E-04   2.92203447E-04   2.92203447E-04
+          10   1.00000000       3.48021131E-04   3.48021131E-04   3.48021131E-04
+          11   1.00000000       4.39075753E-04   4.39075753E-04   4.39075753E-04
+          12   1.00000000       5.67205192E-04   5.67205192E-04   5.67205192E-04
+          13   1.00000000       6.95803377E-04   6.95803377E-04   6.95803377E-04
+          14   1.00000000       6.73481030E-04   6.73481030E-04   6.73481030E-04
+          15   1.00000000       4.94604174E-04   4.94604174E-04   4.94604174E-04
+          16   1.00000000       1.83743250E-03   1.83743250E-03   1.83743250E-03
+          17   1.00000000       3.25878803E-03   3.25878803E-03   3.25878803E-03
  Calc_gain_matrix: Inverting...
  dinvertm: Cholesky decomposition
  dinvertm.f: Matrix inversion OK
- calc_phiret: phi1,phi2 =          Infinity   0.00000000    
+ calc_phiret: phi1,phi2 =    90104.9375       0.00000000    
  Assess:
- Average of diagonal elements of Kk*Sx*Kt :    1.3413042539760037E+031
+ Average of diagonal elements of Kk*Sx*Kt :    1.0000009156607684E-010
  Average of diagonal elements of Se :    1.0000009154076395E-010
- Ratio =    1.3413030261369668E+041
- Average of Kk*Sx*Kt/Se element ratio :    1.3413030261369666E+041
- ******************* ASSESS WARNING *****************
- Insufficient constraint. Solution likely to be exact
- ****************************************************
+ Ratio =    1.0000000002531286     
+ Average of Kk*Sx*Kt/Se element ratio :    1.0000000002531289     
  iterred,kiter           1          -1
- chisq/ny is equal to :          Infinity
+ chisq/ny is equal to :    5300.29053    
  Coreret: WARNING
  chisq/ny should be less than 1 if correctly retrieved
  Calculating final covariance matrix
@@ -130,13 +128,14 @@ Klist filename: pointspec.kls
  Warning from nemesis/setup.f. Surface temperature must
  be greater than 0.0 for some parts of code that deal
  with sensitivity to surface temperature
- Angles :    0.00000000       45.0000000       0.00000000    
+ Angles :    0.00000000       10.0000000       0.00000000    
  nf =            1
  calling gsetrad
  gsetrad, lin =            0
  NLATREF =            1
  Snapping to first latitude
  XX. ISCALE =            1           1           1           1           1           1
+ XhydrostatH: JZERO =            1
  XhydrostatH: JZERO =            1
   
  IPAR =            1
@@ -157,4 +156,4 @@ Klist filename: pointspec.kls
  Reading reference file from : pointspec.ref                                                                                       
  gsetrad called OK
  Model run OK
- Elapsed time (s) =      1.0
+ Elapsed time (s) =      2.9

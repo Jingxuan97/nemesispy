@@ -1,7 +1,8 @@
 #!/usr/local/bin/python3
 # -*- coding: utf-8 -*-
-
-from .mol_info import mol_info
+import sys
+sys.path.append('/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/')
+from nemesispy.data.mol_info import mol_info
 
 def calc_mmw(ID, VMR, ISO=None):
     """

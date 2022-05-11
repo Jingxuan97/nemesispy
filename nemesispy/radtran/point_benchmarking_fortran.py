@@ -116,7 +116,7 @@ class Nemesis_api:
 
         self.input_spectrum = wasp43b_spx_dayside_single_angle_45
         self.stellar_spectrum =  'wasp43_stellar_newgrav.txt'
-        self.stellar_spectrum =  'wasp43_stellar_newgrav_fake.txt'
+        # self.stellar_spectrum =  'wasp43_stellar_newgrav_fake.txt'
 
         """
         # planet and planetary system data
@@ -152,7 +152,7 @@ class Nemesis_api:
         # nemesis configuration
         # set up .fla file
         self.INORMAL = 1   # wether ortho/para-H2 ratio is in eqlm, (0=eqm, 1=normal) #
-        self.IRAY = 0      # Rayleigh optical depth calculation,1=gas giant,2=CO2 dominated,>2=N2,O2 dominated #
+        self.IRAY = 1      # Rayleigh optical depth calculation,1=gas giant,2=CO2 dominated,>2=N2,O2 dominated #
         self.IH2O = 0      # additional H2O continuum
         self.ICH4 = 0      # additional CH4 continuum
         self.IO3 = 0       # additional O3 continuum

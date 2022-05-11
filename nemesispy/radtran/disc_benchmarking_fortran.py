@@ -349,31 +349,31 @@ class Nemesis_api:
         f.close()
 
     def _name_spx(self,path_angle):
-        # FWHM = 0.0
-        # LATITUDE = 0.0
-        # LONGITUDE = 0
-        # NGEOM = 1
-        # NCONV = self.NWAVE
-        # NAV = 1
-        # FLAT = 0.0
-        # FLON = 0
-        # SOL_ANG = 0
-        # EMISS_ANG = path_angle
-        # AZI_ANG = 0
-        # WEIGHT = 1.0
+        FWHM = 0.0
+        LATITUDE = 0.0
+        LONGITUDE = 0
+        NGEOM = 1
+        NCONV = self.NWAVE
 
-        # f = open('{}.spx'.format(self.name),'w')
-        # f.write('{:10.5f}{:10.5f}{:10.3f}{:10}\n'.format(FWHM,LATITUDE,LONGITUDE,NGEOM))
-        # f.write('{:10}\n'.format(NCONV))
-        # f.write('{:10}\n'.format(NAV))
-        # f.write('{:10.5f}{:10.5f}{:10.5f}{:10.5f}{:10.5f}{:10.6f}\n'.format(
-        #     FLAT,FLON,SOL_ANG,EMISS_ANG,AZI_ANG,WEIGHT
-        # ))
-        # for iwave,wave in enumerate(self.wave_grid):
-        #     f.write('{:14.6f} {:14.5E} {:14.3E}\n'.format(wave,1e-3,1e-5))
-        # f.close()
+        FLAT = np.array([0.0000,31.7175,58.2825,58.2825,31.7175,0.0000,0.0000])
+        FLON = np.array([40.9349,35.7825,9.2175,305.7825,279.2175,274.0651,337.5000])
+        SOL_ANG = np.array([139.0651,133.6367,121.2613,107.9026,97.8314,94.0651,157.5000])
+        EMISS_ANG = np.array([63.4349,63.4349,63.4349,63.4349,63.4349,63.4349,0.0000])
+        AZI_ANG = np.array([0.0000,18.1075,25.1995,22.4869,13.1237,0.0000,180.0000])
+        WEIGHT = np.array([0.06909830,0.13819660,0.13819660,0.13819660,0.13819660,0.06909830,0.30901699])
+        NAV = len(FLAT)
+
         f = open('{}.spx'.format(self.name),'w')
-        f.write(spx_2zenith)
+        f.write('{:10.5f}{:10.5f}{:10.3f}{:10}\n'.format(FWHM,LATITUDE,LONGITUDE,NGEOM))
+        f.write('{:10}\n'.format(NCONV))
+        f.write('{:10}\n'.format(NAV))
+        for iav in range(NAV):
+            f.write('{:10.5f}{:10.5f}{:10.5f}{:10.5f}{:10.5f}{:10.6f}\n'.format(
+                FLAT[iav],FLON[iav],SOL_ANG[iav],EMISS_ANG[iav],AZI_ANG[iav],
+                WEIGHT[iav]
+            ))
+        for iwave,wave in enumerate(self.wave_grid):
+            f.write('{:14.6f} {:14.5E} {:14.3E}\n'.format(wave,1e-3,1e-5))
         f.close()
 
     # run name file

@@ -44,18 +44,18 @@ def calc_mmw(ID, VMR, ISO=None):
 
     Parameters
     ----------
-    ID: array,
+    ID : array,
         List of gases specified by their Radtran identifiers.
-    VMR: array,
+    VMR : array,
         Corresponding VMR of the gases.
-    ISO: array,
+    ISO : array,
         If ISO = None then terrestrial relative isotopic abundance is assumed.
         If you want to specify particular isotopes, input the Radtran isotope
         identifiers here (see ref_id.py).
 
     Returns
     -------
-    MMW: real,
+    MMW : real,
         Mean molecular weight.
     """
     NGAS = len(ID)

@@ -5,6 +5,7 @@ import sys
 sys.path.append('/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/')
 from nemesispy.radtran.forward_model import ForwardModel
 from nemesispy.radtran.point_benchmarking_fortran import Nemesis_api
+from nemesispy.radtran.hydrostatic import adjust_hydrostatH
 import time
 
 ### Reference Opacity Data
@@ -15,23 +16,11 @@ lowres_files = ['/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/d
 cia_file_path='/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/cia/exocia_hitran12_200-3800K.tab'
 folder_name = 'testing'
 
-
 lowres_files = ['/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/h2o',
          '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/co2',
          '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/co',
          '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/ch4']
 
-"""
-lowres_files = [ '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/co',
-         '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/co2',
-         '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/h2o',
-         '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/ch4']
-
-lowres_files = [ '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/co2',
-                '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/co',
-         '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/h2o',
-         '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/ch4']
-"""
 ### Reference Constants
 pi = np.pi
 const = {
@@ -58,7 +47,6 @@ stellar_spec = np.array([3.341320e+25, 3.215455e+25, 3.101460e+25, 2.987110e+25,
        2.505735e+25, 2.452230e+25, 2.391140e+25, 2.345905e+25,
        2.283720e+25, 2.203690e+25, 2.136015e+25, 1.234010e+24,
        4.422200e+23])
-stellar_spec  = np.ones(len(stellar_spec))
 
 # Spectral output wavelengths in micron
 wave_grid = np.array([1.1425, 1.1775, 1.2125, 1.2475, 1.2825, 1.3175, 1.3525, 1.3875,
@@ -73,6 +61,8 @@ H = np.array([      0.     ,  103738.07012,  206341.39335,  305672.8162 ,
         718496.09845,  785987.95083,  851242.50591,  914520.46249,
         976565.39549, 1037987.38369, 1099327.5361 , 1158956.80091,
        1221026.73382, 1280661.28989, 1341043.14058, 1404762.36466])
+
+H = np.linspace(0,1404762.36466,20)
 
 # Pressure in pa, note 1 atm = 101325 pa
 P = np.array([2.00000000e+06, 1.18757212e+06, 7.05163779e+05, 4.18716424e+05,
@@ -91,55 +81,18 @@ T = np.array([2294.22993056, 2275.69702232, 2221.47726725, 2124.54056941,
 NMODEL = len(H)
 NLAYER = 20
 
-"""
-A = 100
-H = np.linspace(     0.     , 1404762.36466,num=A)
-P = np.linspace(2.00000000e+06, 1.00000000e+02,num=A)
-T = np.linspace(2294, 1292,num=A)
-
-NMODEL = len(H)
-NLAYER = NMODEL
-"""
-
-"""
-### Reference Atmospheric Model Input
-# Height in m
-H = np.array([      0.     ,  10000, 15000])
-
-# Pressure in pa, note 1 atm = 101325 pa
-P = np.array([2.00000000e+06, 5e+05, 1e5])
-
-# Temperature in Kelvin
-T = np.array([2000, 1800, 1500])
-
-NMODEL = len(H)
-NLAYER = 3
-
-### Reference Atmospheric Model Input
-# Height in m
-H = np.array([      0.     ,  10000])
-
-# Pressure in pa, note 1 atm = 101325 pa
-P = np.array([2.00000000e+06, 5e+05])
-
-# Temperature in Kelvin
-T = np.array([2000, 1500 ])
-
-NMODEL = len(H)
-NLAYER = 2
-"""
 # Ground temperature in Kelvin and path angle
 T_ground = 0
-path_angle = 45
+path_angle = 10
 
 # Gas Volume Mixing Ratio, constant with height
 gas_id = np.array([  1, 2,  5,  6, 40, 39])
 iso_id = np.array([0, 0, 0, 0, 0, 0])
-H2_ratio = 1
-VMR_H2O = 1.0E-4 # volume mixing ratio of H2O
-VMR_CO2 = 1.0E-4  # volume mixing ratio of CO2
-VMR_CO = 1.0E-4 # volume mixing ratio of CO
-VMR_CH4 = 1.0E-4 # volume mixing ratio of CH4
+H2_ratio = 0.864
+VMR_H2O = 1.0E-4
+VMR_CO2 = 1.0E-4
+VMR_CO = 1.0E-4
+VMR_CH4 = 1.0E-4
 VMR_He = (np.ones(NMODEL)-VMR_H2O-VMR_CO2-VMR_CO-VMR_CH4)*(1-H2_ratio)
 VMR_H2 = (np.ones(NMODEL)-VMR_H2O-VMR_CO2-VMR_CO-VMR_CH4)*H2_ratio
 NVMR = 6
@@ -150,6 +103,9 @@ VMR[:,2] = VMR_CO
 VMR[:,3] = VMR_CH4
 VMR[:,4] = VMR_He
 VMR[:,5] = VMR_H2
+
+# Test hydrostatic routine
+new_H = adjust_hydrostatH(H=H,P=P,T=T,ID=gas_id,VMR=VMR,M_plt=M_plt,R_plt=R_plt)
 
 ### Benchmark Fortran forward model
 folder_name = 'pointspec'
@@ -177,6 +133,7 @@ FM.set_planet_model(M_plt=M_plt, R_plt=R_plt, gas_id_list=gas_id,
     iso_id_list=iso_id, NLAYER=NLAYER)
 FM.set_opacity_data(kta_file_paths=lowres_files, cia_file_path=cia_file_path)
 
+
 """
 # use .ref file directly, might not be hydro adjusted
 point_spectrum_py_old = FM.run_point_spectrum(H_model=H_hydro, P_model=P, T_model=T,\
@@ -184,13 +141,16 @@ point_spectrum_py_old = FM.run_point_spectrum(H_model=H_hydro, P_model=P, T_mode
 """
 # use .prf file, hydro adjusted
 point_spectrum_py_old = FM.run_point_spectrum(H_model=H_prf, P_model=P_prf,
-            T_model=T_prf, VMR_model=VMR, path_angle=path_angle, solspec=stellar_spec)
+    T_model=T_prf, VMR_model=VMR, path_angle=path_angle, solspec=stellar_spec)
 
 point_spectrum_py = FM.test_point_spectrum(U_layer=F_totam,P_layer=F_pres,
                         T_layer=F_temp, VMR_layer=VMR, del_S=F_delH,
                         scale=scaling, solspec=stellar_spec)
 
-NITER = 100
+end_to_end_spectrum_py = FM.run_point_spectrum(H_model=new_H, P_model=P,
+    T_model=T, VMR_model=VMR, path_angle=path_angle, solspec=stellar_spec)
+
+NITER = 1
 start = time.time()
 for i in range(NITER):
     point_spectrum_py = FM.test_point_spectrum(U_layer=F_totam,P_layer=F_pres,
@@ -209,7 +169,7 @@ fig, axs = plt.subplots(nrows=2,ncols=1,sharex=True,
     dpi=800)
 # figsize=[8.25,11.75]
 
-
+# plot spectrum from Fortran code
 axs[0].scatter(wave,point_spectrum_fo,marker='x',color='k',linewidth=1,s=10,
     label='fortran')
 axs[0].plot(wave,point_spectrum_fo,color='k',linewidth=0.5)
@@ -221,14 +181,18 @@ axs[0].scatter(wave_grid, point_spectrum_py_old, marker='o', color='b',
 axs[0].plot(wave_grid, point_spectrum_py_old, color='b', linewidth=0.5)
 """
 
+# plot spectrum with data in .drv file, only test radtran routine
 axs[0].scatter(wave_grid, point_spectrum_py, marker='.', color='y',
     linewidth=1, s=10, label='python')
 axs[0].plot(wave_grid, point_spectrum_py, color='y', linewidth=0.5)
+# plot spectrum with profile in .prf, test radtran and layering
 axs[0].scatter(wave_grid, point_spectrum_py_old, marker='.', color='r',
     linewidth=1, s=10, label='layer')
 axs[0].plot(wave_grid, point_spectrum_py_old, color='r', linewidth=0.5)
-
-
+# plot spectrum with profile in .ref, test radtran, layering and hydrostatic
+axs[0].scatter(wave_grid, end_to_end_spectrum_py, marker='.', color='b',
+    linewidth=1, s=10, label='layer')
+axs[0].plot(wave_grid, end_to_end_spectrum_py, color='b', linewidth=0.5)
 
 # axs[0].scatter(wave_grid, juan_version, marker='.', color='r',
 #     linewidth=1, s=10, label='juan_version')
@@ -247,7 +211,7 @@ axs[0].ticklabel_format(axis="y", style="sci", scilimits=(0,0))
 diff_1 = (point_spectrum_fo-point_spectrum_py)/point_spectrum_fo
 # diff_2 = (point_spectrum_fo-juan_version)/point_spectrum_fo
 axs[1].scatter(wave_grid,(point_spectrum_fo-point_spectrum_py)/point_spectrum_fo,
-    marker='.',color='y',label='diff (mine)')
+    marker='.',color='y',label='test rad')
 
 # axs[1].scatter(wave_grid,(point_spectrum_fo-juan_version)/point_spectrum_fo,
 #     marker='.',color='r',label='diff (juan)')
@@ -264,7 +228,13 @@ plt.grid()
 diff_3 = (point_spectrum_fo-point_spectrum_py_old)/point_spectrum_fo
 print('diff between python and fortran (own layering)',diff_3,np.amax(abs(diff_3)))
 axs[1].scatter(wave_grid,(point_spectrum_fo-point_spectrum_py_old)/point_spectrum_fo,
-    marker='.',color='r',label='diff (layer)')
+    marker='.',color='r',label='test lay+rad')
+
+# difference between fortran and python end to end
+diff4 = (point_spectrum_fo-end_to_end_spectrum_py)/point_spectrum_fo
+axs[1].scatter(wave_grid,diff4,
+    marker='.',color='b',label='test hydro+')
+
 
 # Plot config
 plt.xlabel(r'wavelength($\mu$m)')
@@ -281,6 +251,8 @@ plt.savefig('comparison.pdf',dpi=400)
 plt.show()
 
 print('run time = ', (end - start)/NITER)
+
+
 
 
 # Pure H2 He atm, H2 ratio 0.85

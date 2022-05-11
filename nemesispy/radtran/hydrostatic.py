@@ -1,8 +1,11 @@
+import sys
+sys.path.append('/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/')
 import numpy as np
-
-G = 6.67430e-11
-AMU = 1.66054e-27
-K_B = 1.38065e-23
+from nemesispy.data.constants import K_B, AMU, G, M_JUP, R_JUP
+from nemesispy.radtran.utils import calc_mmw
+# G = 6.67430e-11
+# AMU = 1.66054e-27
+# K_B = 1.38065e-23
 
 def find_nearest(input_array, target_value):
     """
@@ -27,7 +30,7 @@ def find_nearest(input_array, target_value):
     idx = (np.abs(array - target_value)).argmin()
     return array[idx], idx
 
-def NEWGRAV(h, radius, mass, lat_in=None):
+def calc_grav_simple(h, M_plt, R_plt):
     """
     TBD
     Sets the gravitational acceleration based on selected planet and
@@ -40,8 +43,7 @@ def NEWGRAV(h, radius, mass, lat_in=None):
     Returns
     -------
     """
-    G = 6.67430e-11
-    g = G*mass/(radius+h)**2
+    g = G*M_plt/(R_plt+h)**2
     gravity = g
     return gravity
 
@@ -92,7 +94,7 @@ def calc_grav(h, lat, M_plt, R_plt,
 
     # account for latitude dependence
     lat = 2 * np.pi * lat/360 # convert to radiance
-    ## assume for now that we use planetocentric latitude to begin with?
+    ## assume for now that we use planetocentric latitude to begin with?
     # latc = np.arctan(np.tan(lat)/xellip**2.)   #Converts planetographic latitude to planetocentric
     # slatc = np.sin(latc)
     # clatc = np.cos(latc)
@@ -115,7 +117,7 @@ def calc_grav(h, lat, M_plt, R_plt,
     # then suubtract centrifugal effects
 
     # note that if Jcoeffs are 0 then the following calculation can be
-    # skipped, i.e. g = 1 if Jcoeffs are 0 and period is 1e5 (i.e. unknown)
+    # skipped, i.e. g = 1 if Jcoeffs are 0 and period is 1e5 (i.e. unknown)
     g = 1
     for i in range(3):
         ix = i + 1
@@ -143,14 +145,16 @@ def calc_grav(h, lat, M_plt, R_plt,
     return gtot
 
 
-
-def simple_hydro(H,P,T,VMR,radius,mass):
+def adjust_hydrostatH(H, P, T, ID, VMR, M_plt, R_plt):
     """
     Adjust a given altitude profile H according to hydrostatic equilibrium
     using the given pressure profile P and temperature profile T.
     """
 
+    # note number of profile points and number of gases
     NPRO,NVMR = VMR.shape
+
+    # initialise array for scale heights
     scale_height = np.zeros(NPRO)
 
     # First find level closest ot zero altitude
@@ -158,10 +162,13 @@ def simple_hydro(H,P,T,VMR,radius,mass):
     if ( (alt0>0.0) & (ialt>0)):
         ialt = ialt -1
 
-    # defns
-    XDEPTH = 2
-    XMOLWT = 2.3 * AMU
+    #Calculate the mean molecular weight at each level
+    XMOLWT = np.zeros(NPRO)
+    for ipro in range(NPRO):
+        XMOLWT[ipro] = calc_mmw(ID,VMR[ipro,:],ISO=None)
 
+    # iterate until hydrostatic equilibrium
+    XDEPTH = 2
     while XDEPTH > 1:
 
         h = np.zeros(NPRO)
@@ -169,22 +176,22 @@ def simple_hydro(H,P,T,VMR,radius,mass):
         h[:] = H
         p[:] = P
 
-        #Calculating the atmospheric depth
+        #Calculating the atmospheric model depth
         ATDEPTH = h[-1] - h[0]
 
         #Calculate the gravity at each altitude level
-        gravity =  calc_grav(h=,lat=,M_plt=,R_plt=)
-
+        gravity = np.zeros(NPRO)
+        gravity[:] =  calc_grav_simple(h=h[:], M_plt=M_plt, R_plt=R_plt)
 
         #Calculate the scale height
-        scale = K_B*T/(XMOLWT*gravity)
+        scale = np.zeros(NPRO)
+        scale[:] = K_B*T[:]/(XMOLWT[:]*gravity[:])
 
         if ialt > 0 and ialt < NPRO-1 :
             h[ialt] = 0.0
 
-        nupper = NPRO - ialt - 1
-
-        for i in range(ialt+1,NPRO):
+        # nupper = NPRO - ialt - 1
+        for i in range(ialt+1, NPRO):
             sh = 0.5 * (scale[i-1] + scale[i])
             #self.H[i] = self.H[i-1] - sh * np.log(self.P[i]/self.P[i-1])
             h[i] = h[i-1] - sh * np.log(p[i]/p[i-1])
@@ -194,11 +201,10 @@ def simple_hydro(H,P,T,VMR,radius,mass):
             #self.H[i] = self.H[i+1] - sh * np.log(self.P[i]/self.P[i+1])
             h[i] = h[i+1] - sh * np.log(p[i]/p[i+1])
 
-
         atdepth1 = h[-1] - h[0]
 
         XDEPTH = 100.*abs((atdepth1-ATDEPTH)/ATDEPTH)
-        print('xdepth',XDEPTH)
+        # print('xdepth',XDEPTH)
         H = h[:]
 
     return H

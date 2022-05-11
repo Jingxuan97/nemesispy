@@ -5,6 +5,7 @@ import sys
 sys.path.append('/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/')
 from nemesispy.radtran.forward_model import ForwardModel
 from nemesispy.radtran.disc_benchmarking_fortran import Nemesis_api
+from nemesispy.radtran.hydrostatic import adjust_hydrostatH
 import time
 
 ### Reference Opacity Data
@@ -21,17 +22,6 @@ lowres_files = ['/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/d
          '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/co',
          '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/ch4']
 
-"""
-lowres_files = [ '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/co',
-         '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/co2',
-         '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/h2o',
-         '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/ch4']
-
-lowres_files = [ '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/co2',
-                '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/co',
-         '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/h2o',
-         '/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables/ch4']
-"""
 ### Reference Constants
 pi = np.pi
 const = {
@@ -58,7 +48,6 @@ stellar_spec = np.array([3.341320e+25, 3.215455e+25, 3.101460e+25, 2.987110e+25,
        2.505735e+25, 2.452230e+25, 2.391140e+25, 2.345905e+25,
        2.283720e+25, 2.203690e+25, 2.136015e+25, 1.234010e+24,
        4.422200e+23])
-# stellar_spec  = np.ones(len(stellar_spec))
 
 # Spectral output wavelengths in micron
 wave_grid = np.array([1.1425, 1.1775, 1.2125, 1.2475, 1.2825, 1.3175, 1.3525, 1.3875,
@@ -91,43 +80,6 @@ T = np.array([2294.22993056, 2275.69702232, 2221.47726725, 2124.54056941,
 NMODEL = len(H)
 NLAYER = 20
 
-"""
-A = 100
-H = np.linspace(     0.     , 1404762.36466,num=A)
-P = np.linspace(2.00000000e+06, 1.00000000e+02,num=A)
-T = np.linspace(2294, 1292,num=A)
-
-NMODEL = len(H)
-NLAYER = NMODEL
-"""
-
-"""
-### Reference Atmospheric Model Input
-# Height in m
-H = np.array([      0.     ,  10000, 15000])
-
-# Pressure in pa, note 1 atm = 101325 pa
-P = np.array([2.00000000e+06, 5e+05, 1e5])
-
-# Temperature in Kelvin
-T = np.array([2000, 1800, 1500])
-
-NMODEL = len(H)
-NLAYER = 3
-
-### Reference Atmospheric Model Input
-# Height in m
-H = np.array([      0.     ,  10000])
-
-# Pressure in pa, note 1 atm = 101325 pa
-P = np.array([2.00000000e+06, 5e+05])
-
-# Temperature in Kelvin
-T = np.array([2000, 1500 ])
-
-NMODEL = len(H)
-NLAYER = 2
-"""
 # Ground temperature in Kelvin and path angle
 T_ground = 0
 path_angle = 0
@@ -150,6 +102,9 @@ VMR[:,2] = VMR_CO
 VMR[:,3] = VMR_CH4
 VMR[:,4] = VMR_He
 VMR[:,5] = VMR_H2
+
+# Test hydrostatic routine
+new_H = adjust_hydrostatH(H=H,P=P,T=T,ID=gas_id,VMR=VMR,M_plt=M_plt,R_plt=R_plt)
 
 ### Benchmark Fortran forward model
 folder_name = 'disc'
@@ -298,13 +253,3 @@ plt.show()
 
 print('run time = ', (end - start)/iteration)
 print('Fortran run time = ', F_end-F_start)
-
-"""
-    tmp = c2 * y / temp
-    tmp = np.atleast_1d(tmp)
-    b = np.zeros(len(tmp))
-    for index,valluue in enumerate(tmp):
-        b[index] = np.exp(tmp[index]) - 1
-    # bb = np.array((a/b),dtype=np.float32)
-    bb = (a/b)
-"""
