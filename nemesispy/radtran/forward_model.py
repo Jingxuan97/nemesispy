@@ -142,6 +142,9 @@ class ForwardModel():
         self.U_layer = None
         self.del_S = None
         self.del_H = None
+        self.P_layer = None
+        self.T_layer = None
+        self.scale = None
 
     def set_planet_model(self, M_plt, R_plt, gas_id_list, iso_id_list, NLAYER,
         R_star=None, T_star=None, semi_major_axis=None):
@@ -223,9 +226,16 @@ class ForwardModel():
             RADIUS=self.R_plt, solspec=solspec, k_cia=self.k_cia_pair_t_w,
             ID=self.gas_id_list,cia_nu_grid=self.cia_nu_grid,
             cia_T_grid=self.cia_T_grid, DEL_S=del_H)
+
+        # this is the debug
         self.U_layer = U_layer
         self.del_S = del_S
         self.del_H = del_H
+        self.P_layer = P_layer
+        self.T_layer = T_layer
+        self.scale = scale
+
+
         return point_spectrum
 
     def calc_disc_spectrum(self,phase,nmu,global_H_model,global_P_model,

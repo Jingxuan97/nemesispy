@@ -1,0 +1,645 @@
+ Enter run name : checking files
+ Reading reference file from : discpresent.ref                                                                                     
+ Runname : discpresent.ref                                                                                     
+ NPRO, NVMR :           20           6
+ Reading reference file from : discpresent.ref                                                                                     
+ Files OK T
+ Nemesis - corr-k calculation
+ iform1 =            1
+ percbool =  F
+ lin =            0
+ wavesetb: nwave =           17
+           1          17          17
+ Reading in            1  variables
+ Total number of variables (nx) :            1
+ coreret: Checking can invert Sa
+ dinvertm: Cholesky decomposition
+ dinvertm.f: Matrix inversion OK
+ Calling setifix
+ j,ifix(j) :            1           1
+ Calling forwardavfovX - B
+ Reading reference file from : discpresent.ref                                                                                     
+ forwardavfovX: jsurf,jalb,jtan,jpre          -1          -1          -1          -1
+ Warning from nemesis/setup.f. Surface temperature must
+ be greater than 0.0 for some parts of code that deal
+ with sensitivity to surface temperature
+ ForwardavfovX. Spectrum            1  of            1
+ gsetrad, lin =            0
+ NLATREF =            1
+ Snapping to first latitude
+ XX. ISCALE =            1           1           1           1           1           1
+ XhydrostatH: JZERO =            1
+ XhydrostatH: JZERO =            1
+  
+ IPAR =            1
+ ISCALE :            0           1           1           1           1           1
+ IERR  =            0
+ XhydrostatH: JZERO =            1
+ gsetrad -            1           1
+ gsetrad - iflagcloud,iflagsrom =  F           0
+ gsetrad - cbflag, iflagcb =  F           0
+ AA ISCAT =            0
+  RDMOD.f :: reading model: discpresent.prf                                                                                     
+ RDMOD: AMFORM =            1
+  RDDMOD.f :: reading dust-model: aerosol.prf                                                                                         
+  RDDMOD.f :: dust-model has            1  aerosol types
+ Check_profile called
+ Checking : discpresent.sca                                                                                     
+ icheck =            0
+ Reading reference file from : discpresent.ref                                                                                     
+ CIRSRTFG_WAVE - ILBL =            0
+  
+  SUBPATHG.f :: iconv =           24
+  SUBPATHG.f :: vmin =    1.14250004     , vmax =    4.50000000    
+  SUBPATHG.f :: delv =   0.209843755     , fwhm =    0.00000000    
+  SUBPATHG.f :: wing =    0.00000000     , vrel =    0.00000000    
+  SUBPATHG.f :: reading spectral data from:  DISCPRESENT.KLS                                                                                    
+  RDMOD.f :: reading model: discpresent.prf                                                                                     
+ RDMOD: AMFORM =            1
+  RDDMOD.f :: reading dust-model: aerosol.prf                                                                                         
+  RDDMOD.f :: dust-model has            1  aerosol types
+ radius layer=   74065.7031    
+  LAYERG.f :: Number of dust types:            1
+  LAYERG.f :: Dust type =            1
+  LAYERG.f :: Total number/cm2 for path=    0.00000000    
+
+Klist filename: discpresent.kls                                                                                     
+      CALLING read_klist
+ klist file : discpresent.kls                                                                                     
+  READ_KLIST.f :: Number of k-files =            4
+      read_klist COMPLETE
+  
+ Reading_xsec: X-section file : discpresent.xsc                                                                                     
+ Ncont is           1
+ get_xsec: read_xsec OK
+ nsec1 =           20
+ NPATH =            1
+  
+  Waiting for CIRSradg_wave etal to complete ...
+  Percent Complete =    0.00000000    
+ ciaread. Reading File = /Users/jingxuanyang/radtrancode/raddata/exocia_hitran12_200-3800K.tab                               
+ ciaread : New Data read in
+  Percent Complete =    10.0000000    
+  Percent Complete =    20.0000000    
+  Percent Complete =    30.0000000    
+  Percent Complete =    40.0000000    
+  Percent Complete =    50.0000000    
+  Percent Complete =    60.0000000    
+  Percent Complete =    70.0000000    
+  Percent Complete =    80.0000000    
+  Percent Complete =    90.0000000    
+  Percent Complete =    100.000000    
+ ForwardavfovX: Npath,sol_ang,emiss_ang =            1   139.065094       63.4348984    
+           1   6.90980032E-02   1.14472292E-03   7.90980703E-05   7.90980703E-05
+           2   6.90980032E-02   1.17488531E-03   8.11822320E-05   8.11822320E-05
+           3   6.90980032E-02   1.20714062E-03   8.34110033E-05   8.34110033E-05
+           4   6.90980032E-02   1.19388697E-03   8.24952076E-05   8.24952076E-05
+           5   6.90980032E-02   1.31880271E-03   9.11266325E-05   9.11266325E-05
+           6   6.90980032E-02   1.35293324E-03   9.34849886E-05   9.34849886E-05
+           7   6.90980032E-02   1.24390889E-03   8.59516222E-05   8.59516222E-05
+           8   6.90980032E-02   1.18876796E-03   8.21414942E-05   8.21414942E-05
+           9   6.90980032E-02   1.16626173E-03   8.05863601E-05   8.05863601E-05
+          10   6.90980032E-02   7.68184836E-04   5.30800389E-05   5.30800389E-05
+          11   6.90980032E-02   6.67216256E-04   4.61033123E-05   4.61033123E-05
+          12   6.90980032E-02   8.52253987E-04   5.88890471E-05   5.88890471E-05
+          13   6.90980032E-02   8.73224926E-04   6.03380977E-05   6.03380977E-05
+          14   6.90980032E-02   6.08229951E-04   4.20274737E-05   4.20274737E-05
+          15   6.90980032E-02   5.27595577E-04   3.64558000E-05   3.64558000E-05
+          16   6.90980032E-02   2.26513157E-03   1.56516064E-04   1.56516064E-04
+          17   6.90980032E-02   3.09496280E-03   2.13855747E-04   2.13855747E-04
+ gsetrad, lin =            0
+ NLATREF =            1
+ Snapping to first latitude
+ XX. ISCALE =            1           1           1           1           1           1
+ XhydrostatH: JZERO =            1
+ XhydrostatH: JZERO =            1
+  
+ IPAR =            1
+ ISCALE :            0           1           1           1           1           1
+ IERR  =            0
+ XhydrostatH: JZERO =            1
+ gsetrad -            1           1
+ gsetrad - iflagcloud,iflagsrom =  F           0
+ gsetrad - cbflag, iflagcb =  F           0
+ AA ISCAT =            0
+  RDMOD.f :: reading model: discpresent.prf                                                                                     
+ RDMOD: AMFORM =            1
+  RDDMOD.f :: reading dust-model: aerosol.prf                                                                                         
+  RDDMOD.f :: dust-model has            1  aerosol types
+ Check_profile called
+ Checking : discpresent.sca                                                                                     
+ icheck =            0
+ Reading reference file from : discpresent.ref                                                                                     
+ CIRSRTFG_WAVE - ILBL =            0
+  
+  SUBPATHG.f :: iconv =           24
+  SUBPATHG.f :: vmin =    1.14250004     , vmax =    4.50000000    
+  SUBPATHG.f :: delv =   0.209843755     , fwhm =    0.00000000    
+  SUBPATHG.f :: wing =    0.00000000     , vrel =    0.00000000    
+  SUBPATHG.f :: reading spectral data from:  DISCPRESENT.KLS                                                                                    
+  RDMOD.f :: reading model: discpresent.prf                                                                                     
+ RDMOD: AMFORM =            1
+  RDDMOD.f :: reading dust-model: aerosol.prf                                                                                         
+  RDDMOD.f :: dust-model has            1  aerosol types
+ radius layer=   74065.7031    
+  LAYERG.f :: Number of dust types:            1
+  LAYERG.f :: Dust type =            1
+  LAYERG.f :: Total number/cm2 for path=    0.00000000    
+
+Klist filename: discpresent.kls                                                                                     
+      CALLING read_klist
+ klist file : discpresent.kls                                                                                     
+  READ_KLIST.f :: Number of k-files =            4
+      read_klist COMPLETE
+  
+ Reading_xsec: X-section file : discpresent.xsc                                                                                     
+ Ncont is           1
+ get_xsec: read_xsec OK
+ nsec1 =           20
+ NPATH =            1
+  
+  Waiting for CIRSradg_wave etal to complete ...
+  Percent Complete =    0.00000000    
+  Percent Complete =    10.0000000    
+  Percent Complete =    20.0000000    
+  Percent Complete =    30.0000000    
+  Percent Complete =    40.0000000    
+  Percent Complete =    50.0000000    
+  Percent Complete =    60.0000000    
+  Percent Complete =    70.0000000    
+  Percent Complete =    80.0000000    
+  Percent Complete =    90.0000000    
+  Percent Complete =    100.000000    
+ ForwardavfovX: Npath,sol_ang,emiss_ang =            1   133.636703       63.4348984    
+           1  0.138197005       1.14472292E-03   1.58197276E-04   2.37295346E-04
+           2  0.138197005       1.17488531E-03   1.62365628E-04   2.43547867E-04
+           3  0.138197005       1.20714062E-03   1.66823214E-04   2.50234210E-04
+           4  0.138197005       1.19388697E-03   1.64991608E-04   2.47486809E-04
+           5  0.138197005       1.31880271E-03   1.82254589E-04   2.73381214E-04
+           6  0.138197005       1.35293324E-03   1.86971316E-04   2.80456297E-04
+           7  0.138197005       1.24390889E-03   1.71904481E-04   2.57856096E-04
+           8  0.138197005       1.18876796E-03   1.64284167E-04   2.46425654E-04
+           9  0.138197005       1.16626173E-03   1.61173884E-04   2.41760252E-04
+          10  0.138197005       7.68184836E-04   1.06160842E-04   1.59240881E-04
+          11  0.138197005       6.67216256E-04   9.22072868E-05   1.38310599E-04
+          12  0.138197005       8.52253987E-04   1.17778945E-04   1.76667992E-04
+          13  0.138197005       8.73224926E-04   1.20677068E-04   1.81015173E-04
+          14  0.138197005       6.08229951E-04   8.40555585E-05   1.26083032E-04
+          15  0.138197005       5.27595577E-04   7.29121311E-05   1.09367931E-04
+          16  0.138197005       2.26513157E-03   3.13034398E-04   4.69550461E-04
+          17  0.138197005       3.09496280E-03   4.27714578E-04   6.41570310E-04
+ gsetrad, lin =            0
+ NLATREF =            1
+ Snapping to first latitude
+ XX. ISCALE =            1           1           1           1           1           1
+ XhydrostatH: JZERO =            1
+ XhydrostatH: JZERO =            1
+  
+ IPAR =            1
+ ISCALE :            0           1           1           1           1           1
+ IERR  =            0
+ XhydrostatH: JZERO =            1
+ gsetrad -            1           1
+ gsetrad - iflagcloud,iflagsrom =  F           0
+ gsetrad - cbflag, iflagcb =  F           0
+ AA ISCAT =            0
+  RDMOD.f :: reading model: discpresent.prf                                                                                     
+ RDMOD: AMFORM =            1
+  RDDMOD.f :: reading dust-model: aerosol.prf                                                                                         
+  RDDMOD.f :: dust-model has            1  aerosol types
+ Check_profile called
+ Checking : discpresent.sca                                                                                     
+ icheck =            0
+ Reading reference file from : discpresent.ref                                                                                     
+ CIRSRTFG_WAVE - ILBL =            0
+  
+  SUBPATHG.f :: iconv =           24
+  SUBPATHG.f :: vmin =    1.14250004     , vmax =    4.50000000    
+  SUBPATHG.f :: delv =   0.209843755     , fwhm =    0.00000000    
+  SUBPATHG.f :: wing =    0.00000000     , vrel =    0.00000000    
+  SUBPATHG.f :: reading spectral data from:  DISCPRESENT.KLS                                                                                    
+  RDMOD.f :: reading model: discpresent.prf                                                                                     
+ RDMOD: AMFORM =            1
+  RDDMOD.f :: reading dust-model: aerosol.prf                                                                                         
+  RDDMOD.f :: dust-model has            1  aerosol types
+ radius layer=   74065.7031    
+  LAYERG.f :: Number of dust types:            1
+  LAYERG.f :: Dust type =            1
+  LAYERG.f :: Total number/cm2 for path=    0.00000000    
+
+Klist filename: discpresent.kls                                                                                     
+      CALLING read_klist
+ klist file : discpresent.kls                                                                                     
+  READ_KLIST.f :: Number of k-files =            4
+      read_klist COMPLETE
+  
+ Reading_xsec: X-section file : discpresent.xsc                                                                                     
+ Ncont is           1
+ get_xsec: read_xsec OK
+ nsec1 =           20
+ NPATH =            1
+  
+  Waiting for CIRSradg_wave etal to complete ...
+  Percent Complete =    0.00000000    
+  Percent Complete =    10.0000000    
+  Percent Complete =    20.0000000    
+  Percent Complete =    30.0000000    
+  Percent Complete =    40.0000000    
+  Percent Complete =    50.0000000    
+  Percent Complete =    60.0000000    
+  Percent Complete =    70.0000000    
+  Percent Complete =    80.0000000    
+  Percent Complete =    90.0000000    
+  Percent Complete =    100.000000    
+ ForwardavfovX: Npath,sol_ang,emiss_ang =            1   121.261299       63.4348984    
+           1  0.138197005       1.14472292E-03   1.58197276E-04   3.95492621E-04
+           2  0.138197005       1.17488531E-03   1.62365628E-04   4.05913510E-04
+           3  0.138197005       1.20714062E-03   1.66823214E-04   4.17057425E-04
+           4  0.138197005       1.19388697E-03   1.64991608E-04   4.12478403E-04
+           5  0.138197005       1.31880271E-03   1.82254589E-04   4.55635804E-04
+           6  0.138197005       1.35293324E-03   1.86971316E-04   4.67427599E-04
+           7  0.138197005       1.24390889E-03   1.71904481E-04   4.29760577E-04
+           8  0.138197005       1.18876796E-03   1.64284167E-04   4.10709821E-04
+           9  0.138197005       1.16626173E-03   1.61173884E-04   4.02934151E-04
+          10  0.138197005       7.68184836E-04   1.06160842E-04   2.65401730E-04
+          11  0.138197005       6.67216256E-04   9.22072868E-05   2.30517879E-04
+          12  0.138197005       8.52253987E-04   1.17778945E-04   2.94446945E-04
+          13  0.138197005       8.73224926E-04   1.20677068E-04   3.01692227E-04
+          14  0.138197005       6.08229951E-04   8.40555585E-05   2.10138591E-04
+          15  0.138197005       5.27595577E-04   7.29121311E-05   1.82280055E-04
+          16  0.138197005       2.26513157E-03   3.13034398E-04   7.82584888E-04
+          17  0.138197005       3.09496280E-03   4.27714578E-04   1.06928486E-03
+ gsetrad, lin =            0
+ NLATREF =            1
+ Snapping to first latitude
+ XX. ISCALE =            1           1           1           1           1           1
+ XhydrostatH: JZERO =            1
+ XhydrostatH: JZERO =            1
+  
+ IPAR =            1
+ ISCALE :            0           1           1           1           1           1
+ IERR  =            0
+ XhydrostatH: JZERO =            1
+ gsetrad -            1           1
+ gsetrad - iflagcloud,iflagsrom =  F           0
+ gsetrad - cbflag, iflagcb =  F           0
+ AA ISCAT =            0
+  RDMOD.f :: reading model: discpresent.prf                                                                                     
+ RDMOD: AMFORM =            1
+  RDDMOD.f :: reading dust-model: aerosol.prf                                                                                         
+  RDDMOD.f :: dust-model has            1  aerosol types
+ Check_profile called
+ Checking : discpresent.sca                                                                                     
+ icheck =            0
+ Reading reference file from : discpresent.ref                                                                                     
+ CIRSRTFG_WAVE - ILBL =            0
+  
+  SUBPATHG.f :: iconv =           24
+  SUBPATHG.f :: vmin =    1.14250004     , vmax =    4.50000000    
+  SUBPATHG.f :: delv =   0.209843755     , fwhm =    0.00000000    
+  SUBPATHG.f :: wing =    0.00000000     , vrel =    0.00000000    
+  SUBPATHG.f :: reading spectral data from:  DISCPRESENT.KLS                                                                                    
+  RDMOD.f :: reading model: discpresent.prf                                                                                     
+ RDMOD: AMFORM =            1
+  RDDMOD.f :: reading dust-model: aerosol.prf                                                                                         
+  RDDMOD.f :: dust-model has            1  aerosol types
+ radius layer=   74065.7031    
+  LAYERG.f :: Number of dust types:            1
+  LAYERG.f :: Dust type =            1
+  LAYERG.f :: Total number/cm2 for path=    0.00000000    
+
+Klist filename: discpresent.kls                                                                                     
+      CALLING read_klist
+ klist file : discpresent.kls                                                                                     
+  READ_KLIST.f :: Number of k-files =            4
+      read_klist COMPLETE
+  
+ Reading_xsec: X-section file : discpresent.xsc                                                                                     
+ Ncont is           1
+ get_xsec: read_xsec OK
+ nsec1 =           20
+ NPATH =            1
+  
+  Waiting for CIRSradg_wave etal to complete ...
+  Percent Complete =    0.00000000    
+  Percent Complete =    10.0000000    
+  Percent Complete =    20.0000000    
+  Percent Complete =    30.0000000    
+  Percent Complete =    40.0000000    
+  Percent Complete =    50.0000000    
+  Percent Complete =    60.0000000    
+  Percent Complete =    70.0000000    
+  Percent Complete =    80.0000000    
+  Percent Complete =    90.0000000    
+  Percent Complete =    100.000000    
+ ForwardavfovX: Npath,sol_ang,emiss_ang =            1   107.902603       63.4348984    
+           1  0.138197005       1.14472292E-03   1.58197276E-04   5.53689897E-04
+           2  0.138197005       1.17488531E-03   1.62365628E-04   5.68279123E-04
+           3  0.138197005       1.20714062E-03   1.66823214E-04   5.83880639E-04
+           4  0.138197005       1.19388697E-03   1.64991608E-04   5.77469997E-04
+           5  0.138197005       1.31880271E-03   1.82254589E-04   6.37890422E-04
+           6  0.138197005       1.35293324E-03   1.86971316E-04   6.54398929E-04
+           7  0.138197005       1.24390889E-03   1.71904481E-04   6.01665059E-04
+           8  0.138197005       1.18876796E-03   1.64284167E-04   5.74994017E-04
+           9  0.138197005       1.16626173E-03   1.61173884E-04   5.64108021E-04
+          10  0.138197005       7.68184836E-04   1.06160842E-04   3.71562579E-04
+          11  0.138197005       6.67216256E-04   9.22072868E-05   3.22725158E-04
+          12  0.138197005       8.52253987E-04   1.17778945E-04   4.12225898E-04
+          13  0.138197005       8.73224926E-04   1.20677068E-04   4.22369281E-04
+          14  0.138197005       6.08229951E-04   8.40555585E-05   2.94194149E-04
+          15  0.138197005       5.27595577E-04   7.29121311E-05   2.55192193E-04
+          16  0.138197005       2.26513157E-03   3.13034398E-04   1.09561929E-03
+          17  0.138197005       3.09496280E-03   4.27714578E-04   1.49699941E-03
+ gsetrad, lin =            0
+ NLATREF =            1
+ Snapping to first latitude
+ XX. ISCALE =            1           1           1           1           1           1
+ XhydrostatH: JZERO =            1
+ XhydrostatH: JZERO =            1
+  
+ IPAR =            1
+ ISCALE :            0           1           1           1           1           1
+ IERR  =            0
+ XhydrostatH: JZERO =            1
+ gsetrad -            1           1
+ gsetrad - iflagcloud,iflagsrom =  F           0
+ gsetrad - cbflag, iflagcb =  F           0
+ AA ISCAT =            0
+  RDMOD.f :: reading model: discpresent.prf                                                                                     
+ RDMOD: AMFORM =            1
+  RDDMOD.f :: reading dust-model: aerosol.prf                                                                                         
+  RDDMOD.f :: dust-model has            1  aerosol types
+ Check_profile called
+ Checking : discpresent.sca                                                                                     
+ icheck =            0
+ Reading reference file from : discpresent.ref                                                                                     
+ CIRSRTFG_WAVE - ILBL =            0
+  
+  SUBPATHG.f :: iconv =           24
+  SUBPATHG.f :: vmin =    1.14250004     , vmax =    4.50000000    
+  SUBPATHG.f :: delv =   0.209843755     , fwhm =    0.00000000    
+  SUBPATHG.f :: wing =    0.00000000     , vrel =    0.00000000    
+  SUBPATHG.f :: reading spectral data from:  DISCPRESENT.KLS                                                                                    
+  RDMOD.f :: reading model: discpresent.prf                                                                                     
+ RDMOD: AMFORM =            1
+  RDDMOD.f :: reading dust-model: aerosol.prf                                                                                         
+  RDDMOD.f :: dust-model has            1  aerosol types
+ radius layer=   74065.7031    
+  LAYERG.f :: Number of dust types:            1
+  LAYERG.f :: Dust type =            1
+  LAYERG.f :: Total number/cm2 for path=    0.00000000    
+
+Klist filename: discpresent.kls                                                                                     
+      CALLING read_klist
+ klist file : discpresent.kls                                                                                     
+  READ_KLIST.f :: Number of k-files =            4
+      read_klist COMPLETE
+  
+ Reading_xsec: X-section file : discpresent.xsc                                                                                     
+ Ncont is           1
+ get_xsec: read_xsec OK
+ nsec1 =           20
+ NPATH =            1
+  
+  Waiting for CIRSradg_wave etal to complete ...
+  Percent Complete =    0.00000000    
+  Percent Complete =    10.0000000    
+  Percent Complete =    20.0000000    
+  Percent Complete =    30.0000000    
+  Percent Complete =    40.0000000    
+  Percent Complete =    50.0000000    
+  Percent Complete =    60.0000000    
+  Percent Complete =    70.0000000    
+  Percent Complete =    80.0000000    
+  Percent Complete =    90.0000000    
+  Percent Complete =    100.000000    
+ ForwardavfovX: Npath,sol_ang,emiss_ang =            1   97.8313980       63.4348984    
+           1  0.138197005       1.14472292E-03   1.58197276E-04   7.11887144E-04
+           2  0.138197005       1.17488531E-03   1.62365628E-04   7.30644737E-04
+           3  0.138197005       1.20714062E-03   1.66823214E-04   7.50703854E-04
+           4  0.138197005       1.19388697E-03   1.64991608E-04   7.42461591E-04
+           5  0.138197005       1.31880271E-03   1.82254589E-04   8.20145011E-04
+           6  0.138197005       1.35293324E-03   1.86971316E-04   8.41370260E-04
+           7  0.138197005       1.24390889E-03   1.71904481E-04   7.73569569E-04
+           8  0.138197005       1.18876796E-03   1.64284167E-04   7.39278155E-04
+           9  0.138197005       1.16626173E-03   1.61173884E-04   7.25281890E-04
+          10  0.138197005       7.68184836E-04   1.06160842E-04   4.77723428E-04
+          11  0.138197005       6.67216256E-04   9.22072868E-05   4.14932438E-04
+          12  0.138197005       8.52253987E-04   1.17778945E-04   5.30004851E-04
+          13  0.138197005       8.73224926E-04   1.20677068E-04   5.43046335E-04
+          14  0.138197005       6.08229951E-04   8.40555585E-05   3.78249708E-04
+          15  0.138197005       5.27595577E-04   7.29121311E-05   3.28104332E-04
+          16  0.138197005       2.26513157E-03   3.13034398E-04   1.40865368E-03
+          17  0.138197005       3.09496280E-03   4.27714578E-04   1.92471396E-03
+ gsetrad, lin =            0
+ NLATREF =            1
+ Snapping to first latitude
+ XX. ISCALE =            1           1           1           1           1           1
+ XhydrostatH: JZERO =            1
+ XhydrostatH: JZERO =            1
+  
+ IPAR =            1
+ ISCALE :            0           1           1           1           1           1
+ IERR  =            0
+ XhydrostatH: JZERO =            1
+ gsetrad -            1           1
+ gsetrad - iflagcloud,iflagsrom =  F           0
+ gsetrad - cbflag, iflagcb =  F           0
+ AA ISCAT =            0
+  RDMOD.f :: reading model: discpresent.prf                                                                                     
+ RDMOD: AMFORM =            1
+  RDDMOD.f :: reading dust-model: aerosol.prf                                                                                         
+  RDDMOD.f :: dust-model has            1  aerosol types
+ Check_profile called
+ Checking : discpresent.sca                                                                                     
+ icheck =            0
+ Reading reference file from : discpresent.ref                                                                                     
+ CIRSRTFG_WAVE - ILBL =            0
+  
+  SUBPATHG.f :: iconv =           24
+  SUBPATHG.f :: vmin =    1.14250004     , vmax =    4.50000000    
+  SUBPATHG.f :: delv =   0.209843755     , fwhm =    0.00000000    
+  SUBPATHG.f :: wing =    0.00000000     , vrel =    0.00000000    
+  SUBPATHG.f :: reading spectral data from:  DISCPRESENT.KLS                                                                                    
+  RDMOD.f :: reading model: discpresent.prf                                                                                     
+ RDMOD: AMFORM =            1
+  RDDMOD.f :: reading dust-model: aerosol.prf                                                                                         
+  RDDMOD.f :: dust-model has            1  aerosol types
+ radius layer=   74065.7031    
+  LAYERG.f :: Number of dust types:            1
+  LAYERG.f :: Dust type =            1
+  LAYERG.f :: Total number/cm2 for path=    0.00000000    
+
+Klist filename: discpresent.kls                                                                                     
+      CALLING read_klist
+ klist file : discpresent.kls                                                                                     
+  READ_KLIST.f :: Number of k-files =            4
+      read_klist COMPLETE
+  
+ Reading_xsec: X-section file : discpresent.xsc                                                                                     
+ Ncont is           1
+ get_xsec: read_xsec OK
+ nsec1 =           20
+ NPATH =            1
+  
+  Waiting for CIRSradg_wave etal to complete ...
+  Percent Complete =    0.00000000    
+  Percent Complete =    10.0000000    
+  Percent Complete =    20.0000000    
+  Percent Complete =    30.0000000    
+  Percent Complete =    40.0000000    
+  Percent Complete =    50.0000000    
+  Percent Complete =    60.0000000    
+  Percent Complete =    70.0000000    
+  Percent Complete =    80.0000000    
+  Percent Complete =    90.0000000    
+  Percent Complete =    100.000000    
+ ForwardavfovX: Npath,sol_ang,emiss_ang =            1   94.0651016       63.4348984    
+           1   6.90980032E-02   1.14472292E-03   7.90980703E-05   7.90985185E-04
+           2   6.90980032E-02   1.17488531E-03   8.11822320E-05   8.11826962E-04
+           3   6.90980032E-02   1.20714062E-03   8.34110033E-05   8.34114850E-04
+           4   6.90980032E-02   1.19388697E-03   8.24952076E-05   8.24956805E-04
+           5   6.90980032E-02   1.31880271E-03   9.11266325E-05   9.11271665E-04
+           6   6.90980032E-02   1.35293324E-03   9.34849886E-05   9.34855256E-04
+           7   6.90980032E-02   1.24390889E-03   8.59516222E-05   8.59521213E-04
+           8   6.90980032E-02   1.18876796E-03   8.21414942E-05   8.21419642E-04
+           9   6.90980032E-02   1.16626173E-03   8.05863601E-05   8.05868243E-04
+          10   6.90980032E-02   7.68184836E-04   5.30800389E-05   5.30803460E-04
+          11   6.90980032E-02   6.67216256E-04   4.61033123E-05   4.61035757E-04
+          12   6.90980032E-02   8.52253987E-04   5.88890471E-05   5.88893890E-04
+          13   6.90980032E-02   8.73224926E-04   6.03380977E-05   6.03384455E-04
+          14   6.90980032E-02   6.08229951E-04   4.20274737E-05   4.20277182E-04
+          15   6.90980032E-02   5.27595577E-04   3.64558000E-05   3.64560139E-04
+          16   6.90980032E-02   2.26513157E-03   1.56516064E-04   1.56516978E-03
+          17   6.90980032E-02   3.09496280E-03   2.13855747E-04   2.13856972E-03
+ gsetrad, lin =            0
+ NLATREF =            1
+ Snapping to first latitude
+ XX. ISCALE =            1           1           1           1           1           1
+ XhydrostatH: JZERO =            1
+ XhydrostatH: JZERO =            1
+  
+ IPAR =            1
+ ISCALE :            0           1           1           1           1           1
+ IERR  =            0
+ XhydrostatH: JZERO =            1
+ gsetrad -            1           1
+ gsetrad - iflagcloud,iflagsrom =  F           0
+ gsetrad - cbflag, iflagcb =  F           0
+ AA ISCAT =            0
+  RDMOD.f :: reading model: discpresent.prf                                                                                     
+ RDMOD: AMFORM =            1
+  RDDMOD.f :: reading dust-model: aerosol.prf                                                                                         
+  RDDMOD.f :: dust-model has            1  aerosol types
+ Check_profile called
+ Checking : discpresent.sca                                                                                     
+ icheck =            0
+ Reading reference file from : discpresent.ref                                                                                     
+ CIRSRTFG_WAVE - ILBL =            0
+  
+  SUBPATHG.f :: iconv =           24
+  SUBPATHG.f :: vmin =    1.14250004     , vmax =    4.50000000    
+  SUBPATHG.f :: delv =   0.209843755     , fwhm =    0.00000000    
+  SUBPATHG.f :: wing =    0.00000000     , vrel =    0.00000000    
+  SUBPATHG.f :: reading spectral data from:  DISCPRESENT.KLS                                                                                    
+  RDMOD.f :: reading model: discpresent.prf                                                                                     
+ RDMOD: AMFORM =            1
+  RDDMOD.f :: reading dust-model: aerosol.prf                                                                                         
+  RDDMOD.f :: dust-model has            1  aerosol types
+ radius layer=   74065.7031    
+  LAYERG.f :: Number of dust types:            1
+  LAYERG.f :: Dust type =            1
+  LAYERG.f :: Total number/cm2 for path=    0.00000000    
+
+Klist filename: discpresent.kls                                                                                     
+      CALLING read_klist
+ klist file : discpresent.kls                                                                                     
+  READ_KLIST.f :: Number of k-files =            4
+      read_klist COMPLETE
+  
+ Reading_xsec: X-section file : discpresent.xsc                                                                                     
+ Ncont is           1
+ get_xsec: read_xsec OK
+ nsec1 =           20
+ NPATH =            1
+  
+  Waiting for CIRSradg_wave etal to complete ...
+  Percent Complete =    0.00000000    
+  Percent Complete =    10.0000000    
+  Percent Complete =    20.0000000    
+  Percent Complete =    30.0000000    
+  Percent Complete =    40.0000000    
+  Percent Complete =    50.0000000    
+  Percent Complete =    60.0000000    
+  Percent Complete =    70.0000000    
+  Percent Complete =    80.0000000    
+  Percent Complete =    90.0000000    
+  Percent Complete =    100.000000    
+ ForwardavfovX: Npath,sol_ang,emiss_ang =            1   157.500000       0.00000000    
+           1  0.309017003       1.34197134E-03   4.14691953E-04   1.20567717E-03
+           2  0.309017003       1.39077450E-03   4.29772976E-04   1.24159991E-03
+           3  0.309017003       1.43228204E-03   4.42599499E-04   1.27671438E-03
+           4  0.309017003       1.44251552E-03   4.45761834E-04   1.27071864E-03
+           5  0.309017003       1.55449705E-03   4.80366027E-04   1.39163772E-03
+           6  0.309017003       1.59825978E-03   4.93889442E-04   1.42874476E-03
+           7  0.309017003       1.52616168E-03   4.71609907E-04   1.33113109E-03
+           8  0.309017003       1.48968771E-03   4.60338837E-04   1.28175854E-03
+           9  0.309017003       1.46203628E-03   4.51794069E-04   1.25766231E-03
+          10  0.309017003       1.05835788E-03   3.27050569E-04   8.57854029E-04
+          11  0.309017003       9.57535580E-04   2.95894773E-04   7.56930560E-04
+          12  0.309017003       1.13009801E-03   3.49219510E-04   9.38113430E-04
+          13  0.309017003       1.14425411E-03   3.53593990E-04   9.56978416E-04
+          14  0.309017003       8.76101141E-04   2.70730146E-04   6.91007357E-04
+          15  0.309017003       7.75312015E-04   2.39584595E-04   6.04144763E-04
+          16  0.309017003       2.64036609E-03   8.15918029E-04   2.38108775E-03
+          17  0.309017003       3.18385358E-03   9.83864884E-04   3.12243449E-03
+ Calc_gain_matrix: Inverting...
+ dinvertm: Cholesky decomposition
+ dinvertm.f: Matrix inversion OK
+ calc_phiret: phi1,phi2 =    75924.3125       0.00000000    
+ Assess:
+ Average of diagonal elements of Kk*Sx*Kt :    1.0000009154082200E-010
+ Average of diagonal elements of Se :    1.0000009154076395E-010
+ Ratio =    1.0000000000005806     
+ Average of Kk*Sx*Kt/Se element ratio :    1.0000000000005806     
+ iterred,kiter           1          -1
+ chisq/ny is equal to :    4466.13623    
+ Coreret: WARNING
+ chisq/ny should be less than 1 if correctly retrieved
+ Calculating final covariance matrix
+ Matrix calculated
+ Writeout: ispace,iform,xfac :            1           1   1.00000000    
+ D           3          20   0.00000000    
+ E           1
+ Warning from nemesis/setup.f. Surface temperature must
+ be greater than 0.0 for some parts of code that deal
+ with sensitivity to surface temperature
+ Angles :    139.065094       63.4348984       0.00000000    
+ nf =            1
+ calling gsetrad
+ gsetrad, lin =            0
+ NLATREF =            1
+ Snapping to first latitude
+ XX. ISCALE =            1           1           1           1           1           1
+ XhydrostatH: JZERO =            1
+ XhydrostatH: JZERO =            1
+  
+ IPAR =            1
+ ISCALE :            0           1           1           1           1           1
+ IERR  =            0
+ XhydrostatH: JZERO =            1
+ gsetrad -            1           1
+ gsetrad - iflagcloud,iflagsrom =  F           0
+ gsetrad - cbflag, iflagcb =  F           0
+ AA ISCAT =            0
+  RDMOD.f :: reading model: discpresent.prf                                                                                     
+ RDMOD: AMFORM =            1
+  RDDMOD.f :: reading dust-model: aerosol.prf                                                                                         
+  RDDMOD.f :: dust-model has            1  aerosol types
+ Check_profile called
+ Checking : discpresent.sca                                                                                     
+ icheck =            0
+ Reading reference file from : discpresent.ref                                                                                     
+ gsetrad called OK
+ Model run OK
+ Elapsed time (s) =      2.9

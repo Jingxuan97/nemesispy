@@ -370,7 +370,6 @@ def calc_tau_rayleighj(wave_grid,TOTAM,ISPACE=1):
 
     for ilay in range(NLAYER):
         tau_rayleigh[:,ilay] = k_rayleighj[:] * TOTAM[ilay] #(NWAVE,NLAYER)
-
     return tau_rayleigh
 
 @jit(nopython=True)
