@@ -29,7 +29,7 @@ M_plt = 3.8951064000000004e+27 # kg
 R_plt = 74065.70 * 1e3 # m
 gas_id = np.array([  1, 2,  5,  6, 40, 39])
 iso_id = np.array([0, 0, 0, 0, 0, 0])
-NLAYER = 20
+NLAYER = 80
 
 ################################################################################
 ################################################################################
@@ -65,6 +65,8 @@ vivien_gcm = [float(i) for i in vivien_gcm]
 
 iread = 152
 nlon = 64
+nlat = 32
+npv = 53
 xlon = np.array([-177.19  , -171.56  , -165.94  , -160.31  , -154.69  , -149.06 ,
        -143.44  , -137.81  , -132.19  , -126.56  , -120.94  , -115.31  ,
        -109.69  , -104.06  ,  -98.438 ,  -92.812 ,  -87.188 ,  -81.562 ,
@@ -76,14 +78,12 @@ xlon = np.array([-177.19  , -171.56  , -165.94  , -160.31  , -154.69  , -149.06 
          92.812 ,   98.438 ,  104.06  ,  109.69  ,  115.31  ,  120.94  ,
         126.56  ,  132.19  ,  137.81  ,  143.44  ,  149.06  ,  154.69  ,
         160.31  ,  165.94  ,  171.56  ,  177.19  ])
-nlat = 32
 xlat = np.array([-87.188 , -81.562 , -75.938 , -70.312 , -64.688 , -59.062 ,
        -53.438 , -47.812 , -42.188 , -36.562 , -30.938 , -25.312 ,
        -19.688 , -14.062 ,  -8.4375,  -2.8125,   2.8125,   8.4375,
         14.062 ,  19.688 ,  25.312 ,  30.938 ,  36.562 ,  42.188 ,
         47.812 ,  53.438 ,  59.062 ,  64.688 ,  70.312 ,  75.938 ,
         81.562 ,  87.188 ])
-npv = 53
 pv = np.array([1.7064e+02, 1.2054e+02, 8.5152e+01, 6.0152e+01, 4.2492e+01,
        3.0017e+01, 2.1204e+01, 1.4979e+01, 1.0581e+01, 7.4747e+00,
        5.2802e+00, 3.7300e+00, 2.6349e+00, 1.8613e+00, 1.3148e+00,
@@ -101,13 +101,7 @@ for ilon in range(nlon):
     for ilat in range(nlat):
         pvmap[ilon,ilat,:] = pv
 
-fake_hv =  np.linspace(0, 1404644.74126812, num=53)
-fake_hvmap = np.zeros((nlon,nlat,npv))
-for ilon in range(nlon):
-    for ilat in range(nlat):
-        fake_hvmap[ilon,ilat,:] = fake_hv
-
-tmp = np.zeros((7,npv))
+# tmp = np.zeros((7,npv))
 tmap = np.zeros((nlon,nlat,npv))
 co2map = np.zeros((nlon,nlat,npv))
 h2map = np.zeros((nlon,nlat,npv))
@@ -140,13 +134,19 @@ for ilon in range(nlon):
             vmrmap[ilon,ilat,ipv,5] = h2map[ilon,ilat,ipv]
 
 from nemesispy.radtran.hydrostatic import adjust_hydrostatH
+fake_hv =  np.linspace(0, 1404644.74126812, num=53)
+fake_hvmap = np.zeros((nlon,nlat,npv))
+for ilon in range(nlon):
+    for ilat in range(nlat):
+        fake_hvmap[ilon,ilat,:] = fake_hv
 hvmap  = np.zeros((nlon,nlat,npv))
 for ilon in range(nlon):
     for ilat in range(nlat):
         hvmap[ilon,ilat,:] = adjust_hydrostatH(H=fake_hv[:],P=pvmap[ilon,ilat,:],
             T=tmap[ilon,ilat,:],ID=gas_id,VMR=vmrmap[ilon,ilat,:,:],
             M_plt=M_plt,R_plt=R_plt)
-print('hvmap',hvmap)
+
+# print('hvmap',hvmap)
 ################################################################################
 ################################################################################
 
@@ -178,25 +178,14 @@ wasp43_spec = np.array([3.341320e+25, 3.215455e+25, 3.101460e+25, 2.987110e+25,
        2.283720e+25, 2.203690e+25, 2.136015e+25, 1.234010e+24,
        4.422200e+23])
 
-for iphase, phase in enumerate(phase_grid):
-    one_phase =  FM.calc_disc_spectrum(phase, nmu=5, global_H_model=hvmap,
-        global_P_model=pvmap,global_T_model=tmap, global_VMR_model=vmrmap,
-        global_model_longitudes=xlon,
-        global_model_lattitudes=xlat,
-        solspec=wasp43_spec)
-    my_gcm_phase_by_wave[iphase,:] = one_phase
-end = time.time()
-runtime = end - start
-print('runtime',runtime)
-
-for iwave in range(len(wave_grid)):
-    for iphase in range(len(phase_grid)):
-        my_gcm_wave_by_phase[iwave,iphase] = my_gcm_phase_by_wave[iphase,iwave]
-
-# # plt.plot(wave_grid,one_phase)
-# plt.show()
-# print('disc averaged spec',one_phase)
-# print('runtime',runtime)
+phasenumber = 14
+phase = phase_grid[phasenumber]
+one_phase =  FM.calc_disc_spectrum(phase, nmu=5, global_H_model=hvmap,
+    global_P_model=pvmap,global_T_model=tmap, global_VMR_model=vmrmap,
+    global_model_longitudes=xlon,
+    global_model_lattitudes=xlat,
+    solspec=wasp43_spec)
+    # my_gcm_phase_by_wave[iphase,:] = one_phase
 
 ### Raw Data with Error Bar from Stevenson
 # NPHASE x NWAVE
@@ -744,7 +733,6 @@ data_wave_by_phase = np.array([
         [ 6.450e-04,  1.330e-04],
         [ 2.470e-04,  1.330e-04]]])
 
-###
 # NPHASE x NWAVE
 pat_gcm_phase_by_wave = np.array([[1.25672e-04, 1.34992e-04, 1.95970e-04, 2.88426e-04, 3.37525e-04,
         2.81610e-04, 1.09969e-04, 7.62626e-05, 7.37120e-05, 8.76705e-05,
@@ -806,7 +794,6 @@ pat_gcm_phase_by_wave = np.array([[1.25672e-04, 1.34992e-04, 1.95970e-04, 2.8842
         2.55959e-04, 8.30074e-05, 5.07749e-05, 4.89274e-05, 6.10360e-05,
         8.41020e-05, 1.23530e-04, 1.80816e-04, 2.55081e-04, 3.19831e-04,
         1.69739e-03, 1.70232e-03]])
-
 pat_gcm_wave_by_phase = np.array([[1.25672e-04, 1.49163e-04, 1.85813e-04, 2.29134e-04, 2.67963e-04,
         2.89849e-04, 2.88408e-04, 2.63170e-04, 2.21381e-04, 1.75102e-04,
         1.36741e-04, 1.12196e-04, 1.01797e-04, 1.00991e-04, 1.05597e-04],
@@ -859,149 +846,19 @@ pat_gcm_wave_by_phase = np.array([[1.25672e-04, 1.49163e-04, 1.85813e-04, 2.2913
         4.73849e-03, 4.91866e-03, 4.71303e-03, 4.17340e-03, 3.47989e-03,
         2.79562e-03, 2.23514e-03, 1.86316e-03, 1.70074e-03, 1.70232e-03]])
 
-# want to shift my phase by 180 degrees
-nphase = 15
-nwave = 17
+fig, axs = plt.subplots(nrows=2,ncols=1,sharex=True,
+    dpi=800)
+axs[0].set_title('phase = {}'.format(phase))
+axs[0].plot(wave_grid,one_phase,color='b',label='Python')
+axs[0].scatter(wave_grid,data_phase_by_wave[phasenumber,:,0],color='r',marker='+',label='Data')
+axs[0].plot(wave_grid,pat_gcm_phase_by_wave[phasenumber,:],color ='k',label='Fortran')
+axs[0].legend()
+axs[0].grid()
 
-shifted_phase_by_wave = np.zeros((my_gcm_phase_by_wave.shape))
-shifted_wave_by_phase = np.zeros((my_gcm_wave_by_phase.shape))
+diff = (one_phase - pat_gcm_phase_by_wave[phasenumber,:])/one_phase
+axs[1].scatter(wave_grid,diff,marker='.',color='b')
+axs[1].grid()
 
-shift = 0
-for iphase in range(nphase):
-    new_iphase = np.mod(iphase+shift,15)
-    shifted_phase_by_wave[new_iphase,:] = my_gcm_phase_by_wave[iphase,:]
-
-for iwave in range(nwave):
-    for iphase in range(nphase):
-        new_iphase = np.mod(iphase+shift,15)
-        shifted_wave_by_phase[iwave,new_iphase] = my_gcm_wave_by_phase[iwave,iphase]
-
-
-nphase = 15
-lat_grid = np.array([ 22.5,  45. ,  67.5,  90. , 112.5, 135. , 157.5, 180. , 202.5,
-       225. , 247.5, 270. , 292.5, 315. , 337.5])
-# phase_grid = (360*np.ones(nphase) - lat_grid)/360*np.ones(nphase)
-phase_grid = lat_grid*np.ones(nphase)/360
-nwave = 17
-wave_grid = np.array([1.1425, 1.1775, 1.2125, 1.2475, 1.2825, 1.3175, 1.3525, 1.3875,
-       1.4225, 1.4575, 1.4925, 1.5275, 1.5625, 1.5975, 1.6325, 3.6   ,
-       4.5   ])
-
-"""
-for iphase,phase in enumerate(phase_grid):
-    plt.title(r'Central Lattitude: {}$\degree$'.format(phase)+'\n'
-              +r'Phase: {}$\degree$'.format(360-phase))
-    plt.plot(wave_grid, data_phase_by_wave[iphase,:,0])
-    plt.tight_layout()
-    plt.grid()
-"""
-
-# Plot spectrum at each phase
-fig, axs = plt.subplots(nrows=5,ncols=3,sharex=True,sharey=True,
-                        figsize=[8.25,11.75],dpi=600)
-plt.xlim(1,4.6)
-plt.ylim(-5e-1,4.5)
-# add a big axis, hide frame
-fig.add_subplot(111,frameon=False)
-# hide tick and tick label of the big axis
-plt.tick_params(labelcolor='none',which='both',top=False,bottom=False,left=False,right=False)
-plt.xlabel(r'Wavelength($\mu$m)')
-plt.ylabel('Flux ratio ($10^{-3}$)')
-ix = 0
-iy = 0
-for iphase,phase in enumerate(phase_grid):
-
-    axs[ix,iy].errorbar(wave_grid, data_phase_by_wave[iphase,:,0]*1e3,
-                        yerr=data_phase_by_wave[iphase,:,1]*1e3,
-                        marker='s',ms=0.1,ecolor='r',mfc='k',color='k',
-                        linewidth=0.1,label='data')
-
-    axs[ix,iy].plot(wave_grid, shifted_phase_by_wave[iphase,:]*1e3,
-                    marker='s',ms=0.1,mfc='b',color='b',
-                    linewidth=0.1,label='python')
-
-    axs[ix,iy].plot(wave_grid, pat_gcm_phase_by_wave[iphase,:]*1e3,
-                    marker='s',ms=0.1,mfc='g',color='g',
-                    linewidth=0.1,label='fortran')
-
-    axs[ix,iy].legend(loc='upper left',fontsize='small')
-    # axs[ix,iy].grid()
-    axs[ix,iy].text(1.5,3.5,'{}'.format(phase),fontsize=8)
-    iy += 1
-    if iy == 3:
-        iy = 0
-        ix += 1
-# plt.show()
-plt.savefig('test_shifted_spectra.pdf')
-
-
-# Plot phase curve at each wavelength
-fig, axs = plt.subplots(nrows=17,ncols=1,sharex=True,sharey=False,
-                        figsize=[5,13],dpi=600)
-plt.xlim(0.,1.)
-# add a big axis, hide frame
-fig.add_subplot(111,frameon=False)
-# hide tick and tick label of the big axis
-plt.tick_params(labelcolor='none',which='both',top=False,bottom=False,left=False,right=False)
-plt.xlabel('phase')
-plt.ylabel(r'Wavelength($\mu$m)')
-
-for iwave,wave in enumerate(wave_grid):
-    axs[iwave].errorbar(phase_grid, data_wave_by_phase[iwave,:,0]*1e3,
-                        yerr=data_wave_by_phase[iwave,:,1]*1e3,
-                        marker='s',ms=0.1,ecolor='r',mfc='k',color='k',linewidth=0.5)
-    axs[iwave].plot(phase_grid, shifted_wave_by_phase[iwave,:]*1e3,
-                        marker='s',ms=0.1,mfc='b',color='b',linewidth=0.5)
-    axs[iwave].plot(phase_grid, pat_gcm_wave_by_phase[iwave,:]*1e3,
-                    marker='s',ms=0.1,mfc='g',color='g',
-                    linewidth=0.5,label='fortran')
-
-    # axs[iwave].get_yaxis().set_visible(False)
-    axs[iwave].set_yticklabels([])
-    wave = np.around(wave,decimals=2)
-    axs[iwave].set_ylabel(wave,rotation=0,fontsize=8)
-    # axs[iwave].legend()
 plt.tight_layout()
-
-plt.savefig('test_shifted_phase_curve.pdf')
-
-"""
-one_phase =  FM.calc_disc_spectrum(phase=247.5, nmu=5, global_H_model=hvmap, global_P_model=pvmap,
-    global_T_model=tmap, global_VMR_model=vmrmap,
-    global_model_longitudes=xlon,
-    global_model_lattitudes=xlat,
-    solspec=wasp43_spec)
-
-zero_phase_gcm = np.array([1.25672e-04, 1.34992e-04, 1.95970e-04, 2.88426e-04, 3.37525e-04,
-        2.81610e-04, 1.09969e-04, 7.62626e-05, 7.37120e-05, 8.76705e-05,
-        1.14051e-04, 1.57063e-04, 2.17236e-04, 2.93693e-04, 3.60125e-04,
-        1.91405e-03, 2.07116e-03])
-
-plt.scatter(wave_grid,zero_phase_gcm,label='Fortran',color='k',marker='x',s=5)
-plt.plot(wave_grid,zero_phase_gcm,color='k',)
-plt.scatter(wave_grid,one_phase,label='Python',color='r',marker='o',s=5)
-plt.plot(wave_grid,one_phase,color='r',)
-plt.legend()
-plt.grid()
+plt.savefig('discav.pdf',dpi=400)
 plt.show()
-"""
-"""
-Mod.M_plt == M_plt
-Mod.R_plt == R_plt
-Mod.T_star == T_star
-Mod.semi_major_axis == semi_major_axis
-Mod.NLAYER == NLAYER
-Mod.is_planet_model_set == True
-
-Mod.gas_id_list == gas_id_list
-Mod.iso_id_list == iso_id_list
-Mod.wave_grid == wave_grid
-Mod.g_ord == g_ord
-Mod.del_g == del_g
-Mod.k_table_P_grid == k_table_P_grid
-Mod.k_table_T_grid == k_table_T_grid
-Mod.k_gas_w_g_p_t == k_gas_w_g_p_t
-Mod.cia_nu_grid == cia_nu_grid
-Mod.cia_T_grid == cia_T_grid
-Mod.k_cia_pair_t_w == k_cia_pair_t_w
-"""

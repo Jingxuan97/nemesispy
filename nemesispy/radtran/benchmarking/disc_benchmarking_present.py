@@ -78,6 +78,12 @@ T = np.array([2294.22993056, 2275.69702232, 2221.47726725, 2124.54056941,
        1325.49943114, 1312.13831743, 1303.97872899, 1299.05347108,
        1296.10266693, 1294.34217288, 1293.29484759, 1292.67284408])
 
+"""
+T = np.array([2348.97544805,2204.8927361,1914.50039325,1625.4346247,1462.49759686
+,1355.4563292,1276.17977525,1229.48457359,1196.44268495,1166.1502234
+,1127.47460896,1099.9880487,1083.27981768,1061.44391747,1031.6936373
+,1002.46162659,970.59640461,940.60368836,927.9025421,953.20566638])
+"""
 NMODEL = len(H)
 NLAYER = 20
 
@@ -89,10 +95,10 @@ central_longitude = 360 - orbital_phase
 gas_id = np.array([  1, 2,  5,  6, 40, 39])
 iso_id = np.array([0, 0, 0, 0, 0, 0])
 H2_ratio = 0.864
-VMR_H2O = 1.0E-7 # volume mixing ratio of H2O
-VMR_CO2 = 1.0E-3  # volume mixing ratio of CO2
+VMR_H2O = 1.0E-4 # volume mixing ratio of H2O
+VMR_CO2 = 1.0E-8  # volume mixing ratio of CO2
 VMR_CO = 1.0E-4 # volume mixing ratio of CO
-VMR_CH4 = 1.0E-5 # volume mixing ratio of CH4
+VMR_CH4 = 1.0E-4 # volume mixing ratio of CH4
 VMR_He = (np.ones(NMODEL)-VMR_H2O-VMR_CO2-VMR_CO-VMR_CH4)*(1-H2_ratio)
 VMR_H2 = (np.ones(NMODEL)-VMR_H2O-VMR_CO2-VMR_CO-VMR_CH4)*H2_ratio
 NVMR = 6
