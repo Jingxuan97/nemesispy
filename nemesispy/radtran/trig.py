@@ -575,15 +575,18 @@ def interpolate_to_lat_lon(chosen_location, global_model,
             Q22 = global_model[lon_index_hi,lat_index_hi,:,:]
             Q21 = global_model[lon_index_low,lat_index_hi,:,:]
 """
+def VERINT(X,Y,N,XIN):
+    YOUT = np.interp(x=XIN,xp=X,fp=Y)
+    return YOUT
 
-def interpvivien(XLON, XLAT, XP, global_model,
+def interpvivien(XLON, XLAT, XP, VP, VT, VVMR,
     global_model_longitudes, global_model_lattitudes):
 
     # # translate variables between Python and Fortran
     # XLON = chosen_location[:,0] # Longitude of spectrum to be simulated
     # XLAT = chosen_location[:,1] # Latitude of spectrum to be simulated
     # XP pressure grid to be used
-
+    NPRO = len(XP)
 
 
     # dimension parameters from Vivien's GCM
@@ -592,11 +595,11 @@ def interpvivien(XLON, XLAT, XP, global_model,
     NLAT = 32
     NGV = 6
     # arrays to hold gcm data
-    VP = np.zeros(NPRESS)
-    VLON = np.zeros(NLON)
-    VLAT = np.zeros(NLAT)
-    VT = np.zeros((NLON,NLAT,NPRESS))
-    VVMR = np.zeros((NGV,NLON,NLAT,NPRESS))
+    # VP = np.zeros(NPRESS)
+    # VLON = np.zeros(NLON)
+    # VLAT = np.zeros(NLAT)
+    # VT = np.zeros((NLON,NLAT,NPRESS))
+    # VVMR = np.zeros((NGV,NLON,NLAT,NPRESS))
 
     VLON = global_model_longitudes
     VLAT = global_model_lattitudes
@@ -625,38 +628,60 @@ def interpvivien(XLON, XLAT, XP, global_model,
     JLON1 = -1
     JLON2 = -1
     for I in range(NLON-1):
-        if XLON >= VLON[I] and XLON <= VLON:
+        if XLON >= VLON[I] and XLON <= VLON[I+1]:
             JLON1 = I
             JLON2 = I+1
             FLON = (XLON-VLON[I])/(VLON[I+1]-VLON[I])
-
     if JLON1 < 0:
         if XLON < VLON[0]:
             # XLON must be in range 0. to VLON[0]
             JLON1 = NLON - 1
             JLON2 = 0
             FLON = (XLON+360-VLON[-1])/(VLON[0]+360-VLON[-1])
-
         if XLON >= VLON[-1]:
             # XLON must be in range VLON[-1] to 360
             JLON1 = NLON - 1
             JLON2 = 0
             FLON = (XLON - VLON[-1])/(VLON[0]+360-VLON[-1])
 
-        VY1 = np.zeros(NPRESS)
-        VY2 = np.zeros(NPRESS)
-        VY3 = np.zeros(NPRESS)
-        VY4 = np.zeros(NPRESS)
+    VY1 = np.zeros(NPRESS)
+    VY2 = np.zeros(NPRESS)
+    VY3 = np.zeros(NPRESS)
+    VY4 = np.zeros(NPRESS)
+    for I in range(NPRESS):
+        VY1[I] = VT[JLON1,JLAT,I]
+        VY2[I] = VT[JLON2,JLAT,I]
+        VY3[I] = VT[JLON2,JLAT+1,I]
+        VY4[I] = VT[JLON1,JLAT+1,I]
+
+    # Define VERTINT
+    # SUBROUTINE VERINT(X,Y,N,YOUT,XIN)
+    # interpolate T
+    T = np.zeros(NPRO)
+    for I in range(NPRO):
+        LP1 = np.log(XP[I])
+        Y1 = VERINT(VP,VY1,NPRESS,LP1)
+        Y2 = VERINT(VP,VY2,NPRESS,LP1)
+        Y3 = VERINT(VP,VY3,NPRESS,LP1)
+        Y4 = VERINT(VP,VY4,NPRESS,LP1)
+        T[I] = (1.0-FLON)*(1.0-FLAT)*Y1 + FLON*(1.0-FLAT)*Y2 \
+            + FLON*FLAT*Y3 + (1.0-FLON)*FLAT*Y4
+
+    NVMR = NGV
+    VMR = np.zeros((NPRO,NVMR))
+    for IVMR in range(NVMR):
         for I in range(NPRESS):
-            VY1[I] = VT[JLON1,JLAT,I]
-            VY2[I] = VT[JLON2,JLAT,I]
-            VY3[I] = VT[JLON2,JLAT+1,I]
-            VY4[I] = VT[JLON1,JLAT+1,I]
+            VY1[I] = VVMR[IVMR,JLON1,JLAT,I]
+            VY2[I] = VVMR[IVMR,JLON2,JLAT,I]
+            VY3[I] = VVMR[IVMR,JLON2,JLAT+1,I]
+            VY4[I] = VVMR[IVMR,JLON1,JLAT+1,I]
+        for I in range(NPRO):
+            LP1 = np.log(XP[I])
+            Y1 = VERINT(VP,VY1,NPRESS,LP1)
+            Y2 = VERINT(VP,VY2,NPRESS,LP1)
+            Y3 = VERINT(VP,VY3,NPRESS,LP1)
+            Y4 = VERINT(VP,VY4,NPRESS,LP1)
+            VMR[I,IVMR] = (1.0-FLON)*(1.0-FLAT)*Y1 + FLON*(1.0-FLAT)*Y2\
+                + FLON*FLAT*Y3 + (1.0-FLON)*FLAT*Y4
 
-
-
-
-
-
-
-    pass
+    return T, VMR
