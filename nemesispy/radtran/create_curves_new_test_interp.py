@@ -11,8 +11,8 @@ from nemesispy.radtran.path import calc_layer # average
 from nemesispy.radtran.read import read_kls
 from nemesispy.radtran.radiance import calc_radiance, calc_planck
 from nemesispy.radtran.read import read_cia
-from nemesispy.radtran.trig import gauss_lobatto_weights, interpolate_to_lat_lon,\
-    interpvivien
+from nemesispy.radtran.trig import gauss_lobatto_weights, interpolate_to_lat_lon
+from nemesispy.radtran.trig2 import interpvivien_point
 from nemesispy.radtran.forward_model import ForwardModel
 import time
 # from nemesispy.radtran.runner import interpolate_to_lat_lon
@@ -30,7 +30,7 @@ M_plt = 3.8951064000000004e+27 # kg
 R_plt = 74065.70 * 1e3 # m
 gas_id = np.array([  1, 2,  5,  6, 40, 39])
 iso_id = np.array([0, 0, 0, 0, 0, 0])
-NLAYER = 80
+NLAYER = 20
 
 ################################################################################
 ################################################################################
@@ -112,11 +112,27 @@ for ilon in range(nlon):
             vmrmap[ilon,ilat,ipv,4] = hemap[ilon,ilat,ipv]
             vmrmap[ilon,ilat,ipv,5] = h2map[ilon,ilat,ipv]
 
-lon = 10
-lat = 10
-press = np.geomspace(20*1e5,1e-3*1e5)
 
-interped_T, interped_VMR = interpvivien(XLON=lon, XLAT=lat, XP=press,
+lon = 200
+lat = 0
+old_lon = lon - 180
+press = np.geomspace(pv[0],pv[-1],NLAYER)
+
+
+
+interped_T, interped_VMR = interpvivien_point(XLON=lon, XLAT=lat, XP=pv,
     VP=pv,VT=tmap,VVMR=vmrmap,
     global_model_longitudes=xlon,
     global_model_lattitudes=xlat)
+
+
+print('interped_T ',interped_T)
+print('diag',np.min(tmap))
+# print('interped_VMR ',interped_VMR)
+
+old_T = interpolate_to_lat_lon(np.array([[old_lon,lat],[old_lon,lat]]), global_model=tmap,
+            global_model_longitudes=xlon, global_model_lattitudes=xlat)
+print('old_T ', old_T[0])
+
+rdiff  = (interped_T-old_T[0])/old_T[0]
+print('rdiff',rdiff)
