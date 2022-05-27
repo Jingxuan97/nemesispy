@@ -202,7 +202,7 @@ class Nemesis_api:
     def _name_ref(self, H_model, P_model, T_model, VMR_model, AMFORM=1,
         LATITUDE=0.0, planet_id=87):
 
-        AMFORM = 1 # testing
+        AMFORM = 1 # testing
         self.NMODEL = len(H_model)
         f = open('{}.ref'.format(self.name),'w')
         f.write('{}\n'.format(AMFORM))
