@@ -319,10 +319,10 @@ class ForwardModel():
             # print('H_model',H_model)
             # print('P_model',P_model)
             # print('T_model',T_model)
-            # print('VMR_model',VMR_model)
-            print('point_spectrum',point_spectrum)
-            print('XLON',XLON)
-            print('XLAT',XLAT)
+            # print('VMR_model',VMR_model[0,:])
+            # print('point_spectrum',point_spectrum)
+            # print('XLON',XLON)
+            # print('XLAT',XLAT)
 
 
 
@@ -424,7 +424,7 @@ class ForwardModel():
             total_weight += weight
             # print('H_model',H_model)
             # print('P_model',P_model)
-            # print('T_model',T_model)
+            print('T_model',T_model)
             # print('VMR_model',VMR_model)
             # print('path_angle',path_angle)
             # print('point_spectrum',point_spectrum)

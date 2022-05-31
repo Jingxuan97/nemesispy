@@ -1,11 +1,11 @@
 import numpy as np
 from scipy.interpolate import interp1d
-# def VERINT(X,Y,N,XIN):
-#     if X[0]>X[-1]:
-#         X = X[::-1]
-#         Y = Y[::-1]
-#     YOUT = np.interp(x=XIN,xp=X,fp=Y)
-#     return YOUT
+def VERINT(X,Y,N,XIN):
+    if X[0]>X[-1]:
+        X = X[::-1]
+        Y = Y[::-1]
+    YOUT = np.interp(x=XIN,xp=X,fp=Y)
+    return YOUT
 
 # def VERINT(X,Y,N,XIN):
 #     f = interp1d(X,Y)
@@ -82,32 +82,18 @@ def interpvivien_point(XLON, XLAT, XP, VP, VT, VVMR,
     assert XLAT<=90 and XLAT>=-90
     NPRO = len(XP)
 
-
     # dimension parameters from Vivien's GCM
     NPRESS = 53
     NLON = 64
     NLAT = 32
     NGV = 6
-    VLON = np.array([-177.19  , -171.56  , -165.94  , -160.31  , -154.69  , -149.06 ,
-        -143.44  , -137.81  , -132.19  , -126.56  , -120.94  , -115.31  ,
-        -109.69  , -104.06  ,  -98.438 ,  -92.812 ,  -87.188 ,  -81.562 ,
-            -75.938 ,  -70.312 ,  -64.688 ,  -59.062 ,  -53.438 ,  -47.812 ,
-            -42.188 ,  -36.562 ,  -30.938 ,  -25.312 ,  -19.688 ,  -14.062 ,
-            -8.4375,   -2.8125,    2.8125,    8.4375,   14.062 ,   19.688 ,
-            25.312 ,   30.938 ,   36.562 ,   42.188 ,   47.812 ,   53.438 ,
-            59.062 ,   64.688 ,   70.312 ,   75.938 ,   81.562 ,   87.188 ,
-            92.812 ,   98.438 ,  104.06  ,  109.69  ,  115.31  ,  120.94  ,
-            126.56  ,  132.19  ,  137.81  ,  143.44  ,  149.06  ,  154.69  ,
-            160.31  ,  165.94  ,  171.56  ,  177.19  ])
-    VLAT = np.array([-87.188 , -81.562 , -75.938 , -70.312 , -64.688 , -59.062 ,
-        -53.438 , -47.812 , -42.188 , -36.562 , -30.938 , -25.312 ,
-        -19.688 , -14.062 ,  -8.4375,  -2.8125,   2.8125,   8.4375,
-            14.062 ,  19.688 ,  25.312 ,  30.938 ,  36.562 ,  42.188 ,
-            47.812 ,  53.438 ,  59.062 ,  64.688 ,  70.312 ,  75.938 ,
-            81.562 ,  87.188 ])
+    VLON = global_model_longitudes
+    VLAT = global_model_lattitudes
 
     # Convert P from bar to atm and convert to log
     logVP = np.log(VP/1.013e5)
+    """CARE"""
+    logVP = VP
     # print('logVP',logVP)
     # print('logVP',logVP)
 
@@ -173,6 +159,7 @@ def interpvivien_point(XLON, XLAT, XP, VP, VT, VVMR,
     for IPRO in range(NPRO):
         # convert pressure to atm then to log
         LP1 = np.log(XP[IPRO]/1.013e5)
+        LP1 = XP[IPRO]
         # print('LP1',LP1)
         # LP1 = XP[IPRO]
         # print('LP1',LP1)

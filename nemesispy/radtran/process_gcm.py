@@ -87,6 +87,11 @@ for ilon in range(nlon):
             h2map_mod[ilon,ilat,ipv] = vivien_gcm_mod[iskip+2]
             iskip+=7
 
+tmap_hot = np.zeros((nlon,nlat,npv))
+for ilon in range(nlon):
+    for ilat in range(nlat):
+        tmap_hot[ilon,ilat,:] = tmap[31,15,:]
+
 vmrmap = np.zeros((nlon,nlat,npv,6))
 for ilon in range(nlon):
     for ilat in range(nlat):
@@ -108,6 +113,26 @@ for ilon in range(nlon):
             vmrmap_mod[ilon,ilat,ipv,3] = ch4map_mod[ilon,ilat,ipv]
             vmrmap_mod[ilon,ilat,ipv,4] = hemap_mod[ilon,ilat,ipv]
             vmrmap_mod[ilon,ilat,ipv,5] = h2map_mod[ilon,ilat,ipv]
+
+vmrmap_mod_new = np.zeros((nlon,nlat,npv,6))
+for ilon in range(nlon):
+    for ilat in range(nlat):
+        for ipv in range(npv):
+            # vmrmap_mod_new[ilon,ilat,ipv,0] = 0.000479650
+            # vmrmap_mod_new[ilon,ilat,ipv,1] = 7.38846e-08
+            # vmrmap_mod_new[ilon,ilat,ipv,2] = 0.000464342
+            # vmrmap_mod_new[ilon,ilat,ipv,3] = 1.32733e-07
+            # vmrmap_mod_new[ilon,ilat,ipv,4] = 0.162329
+            # vmrmap_mod_new[ilon,ilat,ipv,5] = 0.836727
+            vmrmap_mod_new[ilon,ilat,ipv,0] = 0.000479650 # h2o
+            vmrmap_mod_new[ilon,ilat,ipv,1] = 0.000464342 # co
+            vmrmap_mod_new[ilon,ilat,ipv,2] = 7.38846e-08 # co2
+            vmrmap_mod_new[ilon,ilat,ipv,3] = 1.32733e-07 # ch4
+            vmrmap_mod_new[ilon,ilat,ipv,4] = 0.162329 # He
+            vmrmap_mod_new[ilon,ilat,ipv,5] = 0.836727 # H2
+
+
+
 
 from nemesispy.radtran.hydrostatic import adjust_hydrostatH
 fake_hv =  np.linspace(0, 1404644.74126812, num=53)
@@ -142,6 +167,9 @@ wasp43_spec = np.array([3.341320e+25, 3.215455e+25, 3.101460e+25, 2.987110e+25,
        4.422200e+23])
 
 # WASP43b phase curve by (HST/WFC3 + Spitzer), Table 5 Stevenson 2017
+wave_grid = np.array([1.1425, 1.1775, 1.2125, 1.2475, 1.2825, 1.3175, 1.3525, 1.3875,
+       1.4225, 1.4575, 1.4925, 1.5275, 1.5625, 1.5975, 1.6325, 3.6   ,
+       4.5   ])
 phase_grid = np.array([ 22.5,  45. ,  67.5,  90. , 112.5, 135. , 157.5, 180. ,
     202.5, 225. , 247.5, 270. , 292.5, 315. , 337.5])
 # NPHASE x NWAVE

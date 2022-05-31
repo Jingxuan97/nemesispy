@@ -39,7 +39,7 @@ from nemesispy.radtran.process_gcm import (nlon,nlat,xlon,xlat,npv,pv,pvmap,\
     tmap_mod,h2omap_mod,comap_mod,co2map_mod,ch4map_mod,\
     hemap_mod,h2map_mod,vmrmap_mod,hvmap_mod,phase_grid,\
     kevin_phase_by_wave,kevin_wave_by_phase,\
-    pat_phase_by_wave,pat_wave_by_phase)
+    pat_phase_by_wave,pat_wave_by_phase,vmrmap_mod_new)
 
 start = time.time()
 ### Set up forward model
@@ -87,7 +87,7 @@ wasp43_spec = np.array([3.341320e+25, 3.215455e+25, 3.101460e+25, 2.987110e+25,
 
 for iphase, phase in enumerate(phase_grid):
     one_phase =  FM.calc_disc_spectrum(phase, nmu=5, global_H_model=hvmap_mod,
-        global_P_model=pvmap,global_T_model=tmap_mod, global_VMR_model=vmrmap_mod,
+        global_P_model=pvmap,global_T_model=tmap_mod, global_VMR_model=vmrmap_mod_new,
         global_model_longitudes=xlon,
         global_model_lattitudes=xlat,
         solspec=wasp43_spec)
@@ -152,7 +152,7 @@ for iphase,phase in enumerate(phase_grid):
         iy = 0
         ix += 1
 # plt.show()
-plt.savefig('corrected_spectra_mod.pdf')
+plt.savefig('good_spectra_mod.pdf')
 
 
 # Plot phase curve at each wavelength
@@ -188,4 +188,4 @@ for iwave,wave in enumerate(wave_grid[::-1]):
 fig.legend(handles, labels, loc='upper left', fontsize='x-small')
 plt.tight_layout()
 
-plt.savefig('corrected_phase_curve_mod.pdf')
+plt.savefig('good_phase_curve_mod.pdf')
