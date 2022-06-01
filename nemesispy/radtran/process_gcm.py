@@ -97,8 +97,8 @@ for ilon in range(nlon):
     for ilat in range(nlat):
         for ipv in range(npv):
             vmrmap[ilon,ilat,ipv,0] = h2omap[ilon,ilat,ipv]
-            vmrmap[ilon,ilat,ipv,1] = co2map[ilon,ilat,ipv]
-            vmrmap[ilon,ilat,ipv,2] = comap[ilon,ilat,ipv]
+            vmrmap[ilon,ilat,ipv,1] = comap[ilon,ilat,ipv]
+            vmrmap[ilon,ilat,ipv,2] = co2map[ilon,ilat,ipv]
             vmrmap[ilon,ilat,ipv,3] = ch4map[ilon,ilat,ipv]
             vmrmap[ilon,ilat,ipv,4] = hemap[ilon,ilat,ipv]
             vmrmap[ilon,ilat,ipv,5] = h2map[ilon,ilat,ipv]
@@ -108,8 +108,8 @@ for ilon in range(nlon):
     for ilat in range(nlat):
         for ipv in range(npv):
             vmrmap_mod[ilon,ilat,ipv,0] = h2omap_mod[ilon,ilat,ipv]
-            vmrmap_mod[ilon,ilat,ipv,1] = co2map_mod[ilon,ilat,ipv]
-            vmrmap_mod[ilon,ilat,ipv,2] = comap_mod[ilon,ilat,ipv]
+            vmrmap_mod[ilon,ilat,ipv,1] = comap_mod[ilon,ilat,ipv]
+            vmrmap_mod[ilon,ilat,ipv,2] = co2map_mod[ilon,ilat,ipv]
             vmrmap_mod[ilon,ilat,ipv,3] = ch4map_mod[ilon,ilat,ipv]
             vmrmap_mod[ilon,ilat,ipv,4] = hemap_mod[ilon,ilat,ipv]
             vmrmap_mod[ilon,ilat,ipv,5] = h2map_mod[ilon,ilat,ipv]
@@ -118,12 +118,6 @@ vmrmap_mod_new = np.zeros((nlon,nlat,npv,6))
 for ilon in range(nlon):
     for ilat in range(nlat):
         for ipv in range(npv):
-            # vmrmap_mod_new[ilon,ilat,ipv,0] = 0.000479650
-            # vmrmap_mod_new[ilon,ilat,ipv,1] = 7.38846e-08
-            # vmrmap_mod_new[ilon,ilat,ipv,2] = 0.000464342
-            # vmrmap_mod_new[ilon,ilat,ipv,3] = 1.32733e-07
-            # vmrmap_mod_new[ilon,ilat,ipv,4] = 0.162329
-            # vmrmap_mod_new[ilon,ilat,ipv,5] = 0.836727
             vmrmap_mod_new[ilon,ilat,ipv,0] = 0.000479650 # h2o
             vmrmap_mod_new[ilon,ilat,ipv,1] = 0.000464342 # co
             vmrmap_mod_new[ilon,ilat,ipv,2] = 7.38846e-08 # co2
@@ -132,9 +126,7 @@ for ilon in range(nlon):
             vmrmap_mod_new[ilon,ilat,ipv,5] = 0.836727 # H2
 
 
-
-
-from nemesispy.radtran.hydrostatic import adjust_hydrostatH
+from nemesispy.radtran.utils import adjust_hydrostatH
 fake_hv =  np.linspace(0, 1404644.74126812, num=53)
 fake_hvmap = np.zeros((nlon,nlat,npv))
 for ilon in range(nlon):

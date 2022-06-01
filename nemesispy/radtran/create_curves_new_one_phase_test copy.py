@@ -158,15 +158,20 @@ for iphase in range(nphase):
     axs[0].plot(wave_grid,one_phase,color='b',label='Python')
     axs[0].scatter(wave_grid,kevin_phase_by_wave[phasenumber,:,0],color='r',marker='+',label='Data')
     axs[0].plot(wave_grid,pat_phase_by_wave[phasenumber,:],color ='k',label='Fortran')
-    axs[0].legend()
+    axs[0].legend(loc='upper left')
     axs[0].grid()
+    axs[0].set_ylabel('Flux ratio')
 
     diff = (one_phase - pat_phase_by_wave[phasenumber,:])/one_phase
     axs[1].scatter(wave_grid,diff,marker='.',color='b')
     axs[1].grid()
+    axs[1].set_ylabel('Relative diff')
+    axs[1].set_xlabel('Wavelength (Micron)')
     print(iphase,diff)
+    plt.tight_layout()
     
-    # plt.savefig('discav_planet{}.pdf'.format(iphase),dpi=400)
+    
+    plt.savefig('good_discav_planet{}.pdf'.format(iphase),dpi=800)
 
 
 """

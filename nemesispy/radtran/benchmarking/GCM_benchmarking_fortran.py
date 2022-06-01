@@ -3,7 +3,7 @@ sys.path.append('/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/')
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-from nemesispy.radtran.GCM_benchmarking_utils import phase_curve_fil,wasp43b_spx_dayside_single_angle_45
+from nemesispy.radtran.benchmarking.GCM_benchmarking_utils import phase_curve_fil,wasp43b_spx_dayside_single_angle_45
 """
 folder_name = 'testing'
 if not os.path.isdir(folder_name):

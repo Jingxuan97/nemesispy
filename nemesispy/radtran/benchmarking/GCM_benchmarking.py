@@ -7,7 +7,7 @@ import os
 import sys
 sys.path.append('/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/')
 from nemesispy.radtran.forward_model import ForwardModel
-from nemesispy.radtran.GCM_benchmarking_fortran import Nemesis_api
+from nemesispy.radtran.benchmarking.GCM_benchmarking_fortran import Nemesis_api
 from nemesispy.radtran.hydrostatic import adjust_hydrostatH
 import time
 
@@ -139,60 +139,60 @@ for ilon in [0,20,40,60]:
             P = pv
             T = tmap[ilon,ilat,:]
             VMR = vmrmap[ilon,ilat,:,:]
-    
-    
+
+
             ### Benchmark Fortran forward model
             folder_name = 'gcm'
             if not os.path.isdir(folder_name):
                 os.mkdir(folder_name)
             file_path = os.path.dirname(os.path.realpath(__file__))
             os.chdir(file_path+'/'+folder_name) # move to designated process folder
-    
+
             API = Nemesis_api(name=folder_name, NLAYER=NLAYER, gas_id_list=gas_id,
                 iso_id_list=iso_id, wave_grid=wave_grid)
             API.write_files(path_angle=path_angle, H_model=H, P_model=P, T_model=T,
                 VMR_model=VMR)
             API.run_forward_model()
             wave, yerr, fotran_spec = API.read_output()
-    
-    
+
+
             ### Benchmark Python forward model
             FM = ForwardModel()
             FM.set_planet_model(M_plt=M_plt, R_plt=R_plt, gas_id_list=gas_id,
                 iso_id_list=iso_id, NLAYER=NLAYER)
             FM.set_opacity_data(kta_file_paths=lowres_files, cia_file_path=cia_file_path)
-    
+
             # Test hydrostatic routine
             new_H = adjust_hydrostatH(H=H,P=P,T=T,ID=gas_id,VMR=VMR,M_plt=M_plt,R_plt=R_plt)
             python_spec = FM.run_point_spectrum(H_model=new_H, P_model=P,
                 T_model=T, VMR_model=VMR, path_angle=path_angle, solspec=stellar_spec)
-    
+
             ### Compare output
             # Fortran model plot
             fig, axs = plt.subplots(nrows=2,ncols=1,sharex=True,dpi=800)
-    
+
             axs[0].set_title('ilon={} ilat={} angle={}'.format(
                 ilon,ilat,path_angle),fontsize=8)
-    
+
             # plot spectrum from Fortran code
             axs[0].scatter(wave,fotran_spec,marker='x',color='k',linewidth=1,s=10,
                 label='Fortran')
             axs[0].plot(wave,fotran_spec,color='k',linewidth=0.5)
-    
+
             # plot spectrum from Python code
             axs[0].scatter(wave,python_spec,marker='.',color='b',linewidth=1,s=10,
             label='Python')
             axs[0].plot(wave,python_spec,color='b',linewidth=0.5,linestyle='--')
-    
+
             axs[0].legend(loc='upper left')
             axs[0].grid()
             axs[0].set_ylabel('Flux ratio')
-    
+
             # difference between fortran and python end to end
             diff = (fotran_spec-python_spec)/fotran_spec
             axs[1].scatter(wave_grid, diff, marker='.',color='r')
             axs[1].set_ylabel('Relative diff')
-    
+
             # Plot config
             plt.xlabel(r'wavelength($\mu$m)')
             plt.ticklabel_format(axis="y", style="sci", scilimits=(0,0))
@@ -202,5 +202,5 @@ for ilon in [0,20,40,60]:
             #    VMR_H2O,VMR_CO2,VMR_CO, VMR_CH4, VMR_He[0], VMR_H2[0]),dpi=400)
             # plt.savefig('comparison.pdf',dpi=400)
             plt.show()
-    
+
             print(max(abs(diff)))

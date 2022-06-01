@@ -30,23 +30,6 @@ def find_nearest(input_array, target_value):
     idx = (np.abs(array - target_value)).argmin()
     return array[idx], idx
 
-def calc_grav_simple(h, M_plt, R_plt):
-    """
-    TBD
-    Sets the gravitational acceleration based on selected planet and
-    latitude. Gravity is calculated normal to the surface, and corrected
-    for rotational effects. The input latitude is assumed planetographic.
-
-    Parameters
-    ----------
-
-    Returns
-    -------
-    """
-    g = G*M_plt/(R_plt+h)**2
-    gravity = g
-    return gravity
-
 from scipy.special import legendre
 def calc_grav(h, lat, M_plt, R_plt,
     J2=0, J3=0, J4=0, flatten=0, rotation=1e5):
@@ -94,7 +77,7 @@ def calc_grav(h, lat, M_plt, R_plt,
 
     # account for latitude dependence
     lat = 2 * np.pi * lat/360 # convert to radiance
-    ## assume for now that we use planetocentric latitude to begin with?
+    ## assume for now that we use planetocentric latitude to begin with?
     # latc = np.arctan(np.tan(lat)/xellip**2.)   #Converts planetographic latitude to planetocentric
     # slatc = np.sin(latc)
     # clatc = np.cos(latc)
@@ -117,7 +100,7 @@ def calc_grav(h, lat, M_plt, R_plt,
     # then suubtract centrifugal effects
 
     # note that if Jcoeffs are 0 then the following calculation can be
-    # skipped, i.e. g = 1 if Jcoeffs are 0 and period is 1e5 (i.e. unknown)
+    # skipped, i.e. g = 1 if Jcoeffs are 0 and period is 1e5 (i.e. unknown)
     g = 1
     for i in range(3):
         ix = i + 1
@@ -143,72 +126,6 @@ def calc_grav(h, lat, M_plt, R_plt,
     gtot = np.sqrt(gradial**2 + gtheta**2)
 
     return gtot
-
-
-def adjust_hydrostatH(H, P, T, ID, VMR, M_plt, R_plt):
-    """
-    Adjust a given altitude profile H according to hydrostatic equilibrium
-    using the given pressure profile P and temperature profile T.
-    """
-
-    # note number of profile points and number of gases
-    NPRO,NVMR = VMR.shape
-
-    # initialise array for scale heights
-    scale_height = np.zeros(NPRO)
-
-    # First find level closest ot zero altitude
-    alt0,ialt = find_nearest(H,0.0)
-    if ( (alt0>0.0) & (ialt>0)):
-        ialt = ialt -1
-
-    #Calculate the mean molecular weight at each level
-    XMOLWT = np.zeros(NPRO)
-    for ipro in range(NPRO):
-        XMOLWT[ipro] = calc_mmw(ID,VMR[ipro,:],ISO=None)
-
-    # iterate until hydrostatic equilibrium
-    XDEPTH = 2
-    while XDEPTH > 1:
-
-        h = np.zeros(NPRO)
-        p = np.zeros(NPRO)
-        h[:] = H
-        p[:] = P
-
-        #Calculating the atmospheric model depth
-        ATDEPTH = h[-1] - h[0]
-
-        #Calculate the gravity at each altitude level
-        gravity = np.zeros(NPRO)
-        gravity[:] =  calc_grav_simple(h=h[:], M_plt=M_plt, R_plt=R_plt)
-
-        #Calculate the scale height
-        scale = np.zeros(NPRO)
-        scale[:] = K_B*T[:]/(XMOLWT[:]*gravity[:])
-
-        if ialt > 0 and ialt < NPRO-1 :
-            h[ialt] = 0.0
-
-        # nupper = NPRO - ialt - 1
-        for i in range(ialt+1, NPRO):
-            sh = 0.5 * (scale[i-1] + scale[i])
-            #self.H[i] = self.H[i-1] - sh * np.log(self.P[i]/self.P[i-1])
-            h[i] = h[i-1] - sh * np.log(p[i]/p[i-1])
-
-        for i in range(ialt-1,-1,-1):
-            sh = 0.5 * (scale[i+1] + scale[i])
-            #self.H[i] = self.H[i+1] - sh * np.log(self.P[i]/self.P[i+1])
-            h[i] = h[i+1] - sh * np.log(p[i]/p[i+1])
-
-        atdepth1 = h[-1] - h[0]
-
-        XDEPTH = 100.*abs((atdepth1-ATDEPTH)/ATDEPTH)
-        # print('xdepth',XDEPTH)
-        H = h[:]
-
-    return H
-
 
 # def XHYDROSTATH(AMFORM,IPLANET,LATITUDE,NPRO,NVMR,MOLWT,
 #     IDGAS,ISOGAS,H,P,T,VMR,SCALE,
