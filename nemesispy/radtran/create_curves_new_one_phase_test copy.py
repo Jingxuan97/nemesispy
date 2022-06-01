@@ -12,7 +12,7 @@ from nemesispy.radtran.read import read_kls
 from nemesispy.radtran.radiance import calc_radiance, calc_planck
 from nemesispy.radtran.read import read_cia
 from nemesispy.radtran.trig import gauss_lobatto_weights, interpolate_to_lat_lon
-from nemesispy.radtran.trig2 import interpvivien_point
+from nemesispy.radtran.trig import interpvivien_point
 from nemesispy.radtran.forward_model import ForwardModel
 import time
 # from nemesispy.radtran.runner import interpolate_to_lat_lon
@@ -169,8 +169,8 @@ for iphase in range(nphase):
     axs[1].set_xlabel('Wavelength (Micron)')
     print(iphase,diff)
     plt.tight_layout()
-    
-    
+
+
     plt.savefig('good_discav_planet{}.pdf'.format(iphase),dpi=800)
 
 

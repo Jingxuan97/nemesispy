@@ -3,13 +3,14 @@ sys.path.append('/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/')
 import matplotlib.pyplot as plt
 import numpy as np
 from nemesispy.data.constants import R_SUN, R_JUP_E, AMU, AU, M_JUP, R_JUP
-from nemesispy.radtran.utils import calc_mmw, adjust_hydrostatH, adjust_hydrostatH_fast
+from nemesispy.radtran.utils import calc_mmw, adjust_hydrostatH
 from nemesispy.radtran.models import Model2
 from nemesispy.radtran.path import calc_layer # average
 from nemesispy.radtran.read import read_kls
 from nemesispy.radtran.radiance import calc_radiance, calc_planck
 from nemesispy.radtran.read import read_cia
-from nemesispy.radtran.trig import gauss_lobatto_weights, interpvivien_point
+from nemesispy.radtran.trig import gauss_lobatto_weights, interpolate_to_lat_lon
+from nemesispy.radtran.trig import interpvivien_point
 
 class ForwardModel():
 
@@ -42,13 +43,13 @@ class ForwardModel():
         self.is_opacity_data_set = False
 
         ### debug data
-        # # layering debug data
-        # self.U_layer = None
-        # self.del_S = None
-        # self.del_H = None
-        # self.P_layer = None
-        # self.T_layer = None
-        # self.scale = None
+        # debug data
+        self.U_layer = None
+        self.del_S = None
+        self.del_H = None
+        self.P_layer = None
+        self.T_layer = None
+        self.scale = None
 
         # phase curve debug data
         self.fov_H_model = None
@@ -60,8 +61,7 @@ class ForwardModel():
         self.total_weight = None
 
     def set_planet_model(self, M_plt, R_plt, gas_id_list, iso_id_list, NLAYER,
-        gas_name_list=None, solspec=None, R_star=None, T_star=None,
-        semi_major_axis=None):
+        solspec=None,R_star=None, T_star=None, semi_major_axis=None):
         """
         Store the planetary system parameters
         """
@@ -70,7 +70,6 @@ class ForwardModel():
         self.R_star = R_star
         self.T_star = T_star
         self.semi_major_axis = semi_major_axis
-        self.gas_name_list = gas_name_list
         self.gas_id_list = gas_id_list
         self.iso_id_list = iso_id_list
         self.NLAYER = NLAYER
@@ -129,10 +128,10 @@ class ForwardModel():
         Then calculate the spectrum at a single point on the disc.
         """
 
-        H_layer,P_layer,T_layer,VMR_layer,U_layer,MMW_layer,Gas_layer,scale,del_S,del_H\
-            = calc_layer(self.R_plt, H_model, P_model, T_model, VMR_model,
-            self.gas_id_list, self.NLAYER, path_angle, layer_type=1, H_0=0.0,
-            NSIMPS=101)
+        H_layer,P_layer,T_layer,VMR_layer,U_layer,Gas_layer,MMW_layer,\
+            scale,del_S,del_H = calc_layer(self.R_plt, H_model, P_model,
+                T_model, VMR_model, self.gas_id_list, self.NLAYER, path_angle,
+                layer_type=1, H_0=0.0, NSIMPS=101)
 
         if not solspec.all():
             solspec = np.ones(len(self.wave_grid))
@@ -143,11 +142,24 @@ class ForwardModel():
             ID=self.gas_id_list,cia_nu_grid=self.cia_nu_grid,
             cia_T_grid=self.cia_T_grid, DEL_S=del_H)
 
+        # this is the debug
+        self.U_layer = U_layer
+        self.del_S = del_S
+        self.del_H = del_H
+        self.P_layer = P_layer
+        self.T_layer = T_layer
+        self.scale = scale
+
+        # print('U_layer',U_layer)
+        # print('T_layer',T_layer)
+        # print('VMR_layer',VMR_layer)
+        # print('path_angle',path_angle)
+
         return point_spectrum
 
     def test_disc_spectrum(self,phase,nmu,P_model,
         global_model_P_grid,global_T_model,
-        global_VMR_model,mod_lon,mod_lat,
+        global_VMR_model,model_longitudes,model_lattitudes,
         solspec=None):
 
         # get locations and angles for disc averaging
@@ -189,19 +201,16 @@ class ForwardModel():
                 xlon=xlon,xlat=xlat,xp=P_model,
                 vp=global_model_P_grid,
                 vt=global_T_model,vvmr=global_VMR_model,
-                mod_lon=mod_lon,
-                mod_lat=mod_lat)
+                model_longitudes=model_longitudes,
+                model_lattitudes=model_lattitudes)
             path_angle = fov_emission_angles[iav]
             weight = fov_weights[iav]
             NPRO = len(P_model)
 
-            mmw = np.zeros(NPRO)
-            for ipro in range(NPRO):
-                mmw[ipro] = calc_mmw(self.gas_id_list,VMR_model[ipro,:])
             fake_H_model = np.linspace(0,1e5,NPRO)
-            H_model = adjust_hydrostatH_fast(H=fake_H_model, P=P_model, T=T_model,
-                ID=self.gas_id_list, VMR=VMR_model, M_plt=self.M_plt,
-                R_plt=self.R_plt, xmolwt=mmw)
+            H_model = adjust_hydrostatH(H=fake_H_model, P=P_model, T=T_model,
+            ID=self.gas_id_list, VMR=VMR_model,
+            M_plt=self.M_plt, R_plt=self.R_plt)
 
             # H_model = np.linspace(0,1e5,NPRO)
 
@@ -225,7 +234,7 @@ class ForwardModel():
 
     def calc_disc_spectrum(self,phase,nmu,P_model,
         global_model_P_grid,global_T_model,global_VMR_model,
-        mod_lon,mod_lat,solspec):
+        model_longitudes,model_lattitudes,solspec):
         """
         Parameters
         ----------
@@ -253,8 +262,8 @@ class ForwardModel():
                 xlon=xlon,xlat=xlat,xp=P_model,
                 vp=global_model_P_grid,
                 vt=global_T_model,vvmr=global_VMR_model,
-                mod_lon=mod_lon,
-                mod_lat=mod_lat)
+                model_longitudes=model_longitudes,
+                model_lattitudes=model_lattitudes)
             path_angle = fov_emission_angles[iav]
             weight = fov_weights[iav]
             NPRO = len(P_model)
@@ -265,7 +274,6 @@ class ForwardModel():
                 H_model, P_model, T_model, VMR_model, path_angle,
                 solspec=solspec)
             disc_spectrum += point_spectrum * weight
-        # print('number of point spectrum = ',nav)
         return disc_spectrum
 
     def run_point_spectrum(self, H_model, P_model, T_model,\

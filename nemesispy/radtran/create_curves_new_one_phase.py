@@ -6,7 +6,6 @@ import numpy as np
 from nemesispy.data.constants import R_SUN, R_JUP_E, AMU, AU, M_JUP, R_JUP
 from nemesispy.radtran.utils import calc_mmw
 from nemesispy.radtran.models import Model2
-from nemesispy.radtran.path import calc_layer # average
 from nemesispy.radtran.read import read_kls
 from nemesispy.radtran.radiance import calc_radiance, calc_planck
 from nemesispy.radtran.read import read_cia

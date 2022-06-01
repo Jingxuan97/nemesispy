@@ -139,7 +139,7 @@ for ilon in range(nlon):
             vmrmap[ilon,ilat,ipv,4] = hemap[ilon,ilat,ipv]
             vmrmap[ilon,ilat,ipv,5] = h2map[ilon,ilat,ipv]
 
-from nemesispy.radtran.hydrostatic import adjust_hydrostatH
+from nemesispy.backup_functions.hydrostatic import adjust_hydrostatH
 hvmap  = np.zeros((nlon,nlat,npv))
 for ilon in range(nlon):
     for ilat in range(nlat):

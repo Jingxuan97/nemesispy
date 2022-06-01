@@ -90,7 +90,7 @@ StarSpectrum = np.ones(len(wave_grid)) # *4*(R_star)**2*np.pi # NWAVE
 
 # DO Gauss Labatto quadrature averaging
 # angles = np.array([80.4866,61.4500,42.3729,23.1420,0.00000])
-H_layer,P_layer,T_layer,VMR_layer,U_layer,Gas_layer,scale,del_S,del_H\
+H_layer,P_layer,T_layer,VMR_layer,U_layer,Gas_layer,MMW_layer,scale,del_S,del_H\
     = calc_layer(R_plt, H_model, P_model, T_model, VMR_model, ID, NLAYER,
     path_angle=0, layer_type=1, H_0=0.0, NSIMPS=101)
 print('scale',scale)
@@ -369,7 +369,7 @@ for ilon in range(nlon):
             vmrmap[ilon,ilat,ipv,4] = hemap[ilon,ilat,ipv]
             vmrmap[ilon,ilat,ipv,5] = h2map[ilon,ilat,ipv]
 
-from nemesispy.radtran.hydrostatic import simple_hydro
+from nemesispy.backup_functions.hydrostatic import simple_hydro
 hvmap  = np.zeros((nlon,nlat,npv))
 for ilon in range(nlon):
     for ilat in range(nlat):

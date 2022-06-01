@@ -8,7 +8,7 @@ import sys
 sys.path.append('/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/')
 from nemesispy.radtran.forward_model import ForwardModel
 from nemesispy.radtran.benchmarking.GCM_benchmarking_fortran import Nemesis_api
-from nemesispy.radtran.hydrostatic import adjust_hydrostatH
+from nemesispy.backup_functions.hydrostatic import adjust_hydrostatH
 import time
 
 ### Reference Opacity Data

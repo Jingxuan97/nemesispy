@@ -305,7 +305,8 @@ def average(planet_radius, H_model, P_model, T_model, VMR_model, ID, H_base,
     U_layer = U_layer / scale
     Gas_layer = (Gas_layer.T * scale**-1 ).T
 
-    return H_layer,P_layer,T_layer,VMR_layer,U_layer,Gas_layer,scale,del_S,del_H
+    return H_layer,P_layer,T_layer,VMR_layer,U_layer,Gas_layer,MMW_layer,\
+        scale,del_S,del_H
 
 # @jit(nopython=True)
 def calc_layer(planet_radius, H_model, P_model, T_model, VMR_model, ID, NLAYER,
@@ -407,9 +408,10 @@ def calc_layer(planet_radius, H_model, P_model, T_model, VMR_model, ID, NLAYER,
         custom_path_angle=custom_path_angle, custom_H_base=custom_H_base,
         custom_P_base=custom_P_base)
 
-    H_layer,P_layer,T_layer,VMR_layer,U_layer,Gas_layer,scale,del_S,del_H\
-        = average(planet_radius, H_model, P_model, T_model, VMR_model, ID,
-            H_base, path_angle=path_angle,
+    H_layer,P_layer,T_layer,VMR_layer,U_layer,Gas_layer,MMW_layer,\
+        scale,del_S,del_H = average(planet_radius, H_model, P_model, T_model,
+            VMR_model, ID, H_base, path_angle=path_angle,
             H_0=H_0, NSIMPS=NSIMPS)
 
-    return H_layer,P_layer,T_layer,VMR_layer,U_layer,Gas_layer,scale,del_S,del_H
+    return H_layer,P_layer,T_layer,VMR_layer,U_layer,Gas_layer,MMW_layer,\
+        scale,del_S,del_H

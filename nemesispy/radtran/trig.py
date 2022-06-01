@@ -44,7 +44,9 @@ Coordinate system (origin is at the centre of the target):
 """
 
 import numpy as np
+from numba import jit
 
+# @jit(nopython=True)
 def arctan(x,y):
     """
     Calculate the argument of the point (x,y) in the range [0,2pi).
@@ -77,6 +79,7 @@ def arctan(x,y):
             else : ang = ang+np.pi # (x,y) is in 3rd quadrant
     return ang
 
+# @jit(nopython=True)
 def rotatey(v, phi):
     """
     Rotate a 3D vector v anticlockwisely about the y-axis by angle phi
@@ -93,15 +96,20 @@ def rotatey(v, phi):
         v_new : ndarray
             Rotated 3D vector
     """
-    a = np.zeros([3,3]) # construct the rotation matrix
+    a = np.zeros((3,3)) # construct the rotation matrix
     a[0,0] = np.cos(phi)
     a[0,2] = np.sin(phi)
     a[1,1] = 1.
     a[2,0] = -np.sin(phi)
     a[2,2] = np.cos(phi)
-    v_new = np.matmul(a,v)
+    # v_new = np.matmul(a,v) # unsupported NumPy function
+    v_new = np.zeros(3)
+    for i in range(3):
+        for j in range(3):
+            v_new[i] += a[i,j] * v[j]
     return v_new
 
+# @jit(nopython=True)
 def rotatez(v, phi):
     """
     Rotate a 3D vector v anticlockwisely about the z-axis by angle phi
@@ -118,15 +126,20 @@ def rotatez(v, phi):
         v_new : ndarray
             Rotated 3D vector
     """
-    a = np.zeros([3,3])
+    a = np.zeros((3,3))
     a[0,0] = np.cos(phi)
     a[0,1] = -np.sin(phi)
     a[1,0] = np.sin(phi)
     a[1,1] = np.cos(phi)
     a[2,2] = 1
-    v_new = np.matmul(a,v)
+    # v_new = np.matmul(a,v) # unsupported NumPy function
+    v_new = np.zeros(3)
+    for i in range(3):
+        for j in range(3):
+            v_new[i] += a[i,j] *v[j]
     return v_new
 
+# @jit(nopython=True)
 def generate_angles(phase,rho,alpha):
     """
     Finds the stellar zenith angle, stellar azimuth angle, lattitude and longitude
@@ -161,7 +174,7 @@ def generate_angles(phase,rho,alpha):
     lon	: real
         Planetocentric longitude of the point (degrees).
     """
-    phase = phase%360
+    phase = np.mod(phase,360)
     dtr = np.pi/180. # degree to radiance conversion factor
     assert rho <=1, "Fractional radius should be less or equal to 1"
 
@@ -229,6 +242,7 @@ def generate_angles(phase,rho,alpha):
 
     return zen, azi, lat, lon
 
+# @jit(nopython=True)
 def gauss_lobatto_weights(phase, nmu):
     """
     Given the orbital phase, calculates the coordinates and weights of the points
@@ -400,7 +414,7 @@ def gauss_lobatto_weights(phase, nmu):
             isample = isample+1
 
     nav = isample
-    wav = np.zeros([6,isample])
+    wav = np.zeros((6,isample))
     sum=0.
     for i in np.arange(0,isample):
         wav[0,i]=tablat[i]              # 0th array is lattitude
@@ -416,166 +430,143 @@ def gauss_lobatto_weights(phase, nmu):
 
     return nav, np.around(wav,8)
 
-def interpolate_to_lat_lon(chosen_location, global_model,
-    global_model_longitudes, global_model_lattitudes):
-    """
-    Given a global model of some physical quantity defined at a range of
-    locations specified by their longitudes and lattitudes,
-    interpolate the model to the desired chosen_locations using bilinear
-    interpolation.
+# @jit(nopython=True)
+def VERINT(X,Y,N,XIN):
+    if X[0]>X[-1]:
+        X = X[::-1]
+        Y = Y[::-1]
+    YOUT = np.interp(x=XIN,xp=X,fp=Y)
+    return YOUT
 
-    The model at (global_model_longitudes[i],global_model_lattitudes[j])
-    is global_model[i,j,:].
+# @jit(nopython=True)
+def interpvivien_point(xlon, xlat, xp, vp, vt, vvmr,
+    mod_lon, mod_lat,
+    longitude_shift=180):
+    """
+    Find atmospheric conditions (temperature and gas volume mixing ratios) as
+    a function of pressure at the input location by interpolating a 3D
+    atmospheric model. The location is specified by longitude and lattitude.
 
     Parameters
     ----------
-    chosen_location(NLOCOUT,2) : ndarray
-        A array of [lattitude, longitude] at which the global
-        model is to be interpolated.
-    global_model(NLONIN, NLATIN, NPRESSIN) : ndarray
-        Model defined at the global_model_locations.
-        NlONIN x NLATIN x NPRESSIN
-        NPRESSIN might be a tuple if the model is a 2D array.
-    global_model_longitudes(NLONIN) : ndarray
-        Longitude grid specifying where the model is define on the planet.
-    global_model_lattitudes(NLATIN) : ndarray
-        Longitude grid specifying where the model is define on the planet.
+    xlon : real
+        Input longitude
+    xlat : real
+        Input lattitude
+    xp : ndarray
+        Pressre grid for the interpolated model into.
+        Has dimension NPRO
+    vp : ndarray
+        Pressure grid of the atmospheric model. NPRESS
+    vt : ndarray
+        Temperature model.
+        Has dimension NLON x NLAT x NP.
+    vvmr : ndarray
+        VMR model.
+        NLON x NLAT x NPRESS x NVMR
+    mod_lon : ndarray
+        Longitude grid of the atmospheric model.
+    mod_lat : ndarray
+        Lattitude grid of the atmospheric model.
+    longitude_shift : real
+        The longitude shift between the longitude-lattitude coordinate system
+        of the 3D model to our coordinate system.
 
     Returns
     -------
-    interp_model(NLOCOUT,NPRESSIN) : ndarray
-        Model interpolated to the desired locations.
+    T : ndarray
+        Temperature model interpolated to (xlon,xlat). NPRO
+    VMR : ndarray
+        VMR model interpolated to (xlon,xlat). NPRO
 
     """
+    globalT = vt
+    assert xlat<=90 and xlat>=-90
+    NPRO = len(xp)
 
+    # Dimension parameters of the atmospheric model
+    NLON,NLAT,NPRESS,NVMR = vvmr.shape
+    mod_lon = mod_lon
+    mod_lat = mod_lat
 
-    NLONIN, NLATIN = global_model.shape[0], global_model.shape[1]
-    NLOCOUT = chosen_location.shape[0] # number of locations in the output
+    # Convert to log pressure
+    logVP = np.log(vp)
 
-    # 1D model
-    if len(global_model.shape) == 3:
-        # NPRESSIN is the number of points in the MODEL
-        NPRESSIN = global_model.shape[2]
-        # NMODELDIM is the dimension of the model
-        NMODELDIM = 1
-        interped_model =  np.zeros((NLOCOUT,NPRESSIN))
+    # Vivien has 0 longitude as sub-stellar point. We have 180
+    # Hence need to add 180 to all longitudes
+    """This step should solve all lon lat coordinate problems
+    Can safely use planetocentric lon lat coordinates generated by
+    previous code, which takes in STELLAR PHASE and spits out
+    PLANETOCENTRIC COORDINATES"""
+    """Longitude-Lattitude coordinate system might differ from ours. Add the
+    longitude of the antistellar point in our frame of reference to the
+    model longitude grid.
+    """
+    mod_lon = np.mod(mod_lon + longitude_shift,360)
+    # print('mod_lon',mod_lon)
 
+    #  Find closest point in stored array
+    JLAT = -1
+    for I in range(NLAT-1):
+        if xlat >= mod_lat[I] and xlat <= mod_lat[I+1]:
+            JLAT = I
+            FLAT = (xlat-mod_lat[I])/(mod_lat[I+1]-mod_lat[I])
 
-    if len(global_model.shape) == 4:
-        # NPRESSIN is the number of points in the MODEL
-        NPRESSIN = global_model.shape[2]
-        # NMODELDIM is the dimension of the model
-        NMODELDIM = global_model.shape[3]
-        interped_model = np.zeros((NLOCOUT,NPRESSIN,NMODELDIM))
+    if JLAT < 0:
+        if xlat < mod_lat[0]:
+            JLAT = 0
+            FLAT = 0
+        if xlat >= mod_lat[-1]:
+            JLAT = NLAT - 1
+            FLAT = 1
 
-    # print('global_model',global_model)
-    # print('NLONIN, NLATIN, NPRESSIN', NLONIN, NLATIN, NPRESSIN)
-    # add an extra data point for the periodic longitude
-    # global_model_location = np.append(global_model_location,)
-    # make sure there is a point at lon = 0
+    JLON1 = -1
+    JLON2 = -1
+    for I in range(NLON-1):
+        if xlon >= mod_lon[I] and xlon <= mod_lon[I+1]:
+            JLON1 = I
+            JLON2 = I+1
+            FLON = (xlon-mod_lon[I])/(mod_lon[I+1]-mod_lon[I])
+    if JLON1 < 0:
+        if xlon < mod_lon[0]:
+            # xlon must be in range 0. to mod_lon[0]
+            JLON1 = NLON - 1
+            JLON2 = 0
+            FLON = (xlon+360-mod_lon[-1])/(mod_lon[0]+360-mod_lon[-1])
+        if xlon >= mod_lon[-1]:
+            # xlon must be in range mod_lon[-1] to 360
+            JLON1 = NLON - 1
+            JLON2 = 0
+            FLON = (xlon - mod_lon[-1])/(mod_lon[0]+360-mod_lon[-1])
 
-    # print('NLOCOUT',NLOCOUT)
+    # Output arrays
+    interped_T = np.zeros(NPRO)
+    interped_VMR = np.zeros((NPRO,NVMR))
 
-    # # Interp MODEL : NLOCOUT x
-    # interp_model_shape = (NLOCOUT,) + NPRESSIN
-    # # print('interp_model_shape',interp_model_shape)
-    # interped_model =  np.zeros(interp_model_shape) # output model
+    # Temperature interpolation array
+    tempVY1 = globalT[JLON1,JLAT,:]
+    tempVY2 = globalT[JLON2,JLAT,:]
+    tempVY3 = globalT[JLON2,JLAT+1,:]
+    tempVY4 = globalT[JLON1,JLAT+1,:]
+    for IPRO in range(NPRO):
+        # convert pressure to atm then to log
+        LP1 = np.log(xp[IPRO])
+        tempY1 = VERINT(logVP,tempVY1,NPRESS,LP1)
+        tempY2 = VERINT(logVP,tempVY2,NPRESS,LP1)
+        tempY3 = VERINT(logVP,tempVY3,NPRESS,LP1)
+        tempY4 = VERINT(logVP,tempVY4,NPRESS,LP1)
+        interped_T[IPRO] = (1.0-FLON)*(1.0-FLAT)*tempY1 + FLON*(1.0-FLAT)*tempY2 \
+            + FLON*FLAT*tempY3 + (1.0-FLON)*FLAT*tempY4
+        for IVMR in range(NVMR):
+            gasVY1 = vvmr[JLON1,JLAT,:,IVMR]
+            gasVY2 = vvmr[JLON2,JLAT,:,IVMR]
+            gasVY3 = vvmr[JLON2,JLAT+1,:,IVMR]
+            gasVY4 = vvmr[JLON1,JLAT+1,:,IVMR]
+            gasY1 = VERINT(logVP,gasVY1,NPRESS,LP1)
+            gasY2 = VERINT(logVP,gasVY2,NPRESS,LP1)
+            gasY3 = VERINT(logVP,gasVY3,NPRESS,LP1)
+            gasY4 = VERINT(logVP,gasVY4,NPRESS,LP1)
+            interped_VMR[IPRO,IVMR] = (1.0-FLON)*(1.0-FLAT)*gasY1 + FLON*(1.0-FLAT)*gasY2\
+                + FLON*FLAT*gasY3 + (1.0-FLON)*FLAT*gasY4
 
-    lon_grid = global_model_longitudes
-    lat_grid = global_model_lattitudes
-    # print('lon_grid',lon_grid)
-    # print('lat_grid',lat_grid)
-    for ilocout, location in enumerate(chosen_location):
-
-        # print('chosen_location')
-        # print(chosen_location)
-        lon = location[0]
-        lat = location[1]
-
-        # print('lon,lat',lon,lat)
-        # if lon > np.max(lon_grid):
-        #     lon = np.max(lon_grid)
-        # if lon <= np.min(lon_grid):
-        #     lon = np.min(lon_grid) + 1e-10
-        # if lat > np.max(lat_grid):
-        #     lat = np.max(lat_grid)
-        # if lat <= np.min(lat_grid):
-        #     lat = np.min(lat_grid) + 1e-10
-
-        if lon > lon_grid[-1]:
-            lon = lon_grid[-1]
-        if lon <= lon_grid[0]:
-            lon = lon_grid[0] + 1e-10
-        if lat > lat_grid[-1]:
-            lat = lat_grid[-1]
-        if lat <= lat_grid[0]:
-            lat = lat_grid[0] + 1e-10
-
-        lon_index_hi = np.where(lon_grid >= lon)[0][0]
-        lon_index_low = np.where(lon_grid < lon)[0][-1]
-        lat_index_hi = np.where(lat_grid >= lat)[0][0]
-        lat_index_low = np.where(lat_grid < lat)[0][-1]
-
-        lon_hi = lon_grid[lon_index_hi]
-        lon_low = lon_grid[lon_index_low]
-        lat_hi = lat_grid[lat_index_hi]
-        lat_low = lat_grid[lat_index_low]
-
-        # problem here
-        if len(global_model.shape)==3:
-            for ipress in range(NPRESSIN):
-                arr = global_model[:,:,ipress]
-                Q11 = arr[lon_index_low,lat_index_low]
-                Q12 = arr[lon_index_hi,lat_index_low]
-                Q22 = arr[lon_index_hi,lat_index_hi]
-                Q21 = arr[lon_index_low,lat_index_hi]
-                fxy1 = (lat_hi-lat)/(lat_hi-lat_low)*Q11 \
-                    + (lat-lat_low)/(lat_hi-lat_low)*Q21
-                fxy2 = (lat_hi-lat)/(lat_hi-lat_low)*Q12 \
-                    + (lat-lat_low)/(lat_hi-lat_low)*Q22
-                fxy = (lon_hi-lon)/(lon_hi-lon_low)*fxy1 \
-                    + (lon-lon_low)/(lon_hi-lon_low)*fxy2
-                interped_model[ilocout,ipress] = fxy
-
-        if len(global_model.shape)==4:
-            for ipress in range(NPRESSIN):
-                for imodel in range(NMODELDIM):
-                    arr = global_model[:,:,ipress,imodel]
-                    Q11 = arr[lon_index_low,lat_index_low]
-                    Q12 = arr[lon_index_hi,lat_index_low]
-                    Q22 = arr[lon_index_hi,lat_index_hi]
-                    Q21 = arr[lon_index_low,lat_index_hi]
-                    fxy1 = (lat_hi-lat)/(lat_hi-lat_low)*Q11 \
-                        + (lat-lat_low)/(lat_hi-lat_low)*Q21
-                    fxy2 = (lat_hi-lat)/(lat_hi-lat_low)*Q12 \
-                        + (lat-lat_low)/(lat_hi-lat_low)*Q22
-                    fxy = (lon_hi-lon)/(lon_hi-lon_low)*fxy1 \
-                        + (lon-lon_low)/(lon_hi-lon_low)*fxy2
-                    interped_model[ilocout,ipress,imodel] = fxy
-
-        # fxy1 = (lat_hi-lat)/(lat_hi-lat_low)*Q11 + (lat-lat_low)/(lat_hi-lat_low)*Q21
-        # fxy2 = (lat_hi-lat)/(lat_hi-lat_low)*Q12 + (lat-lat_low)/(lat_hi-lat_low)*Q22
-        # fxy = (lon_hi-lon)/(lon_hi-lon_low)*fxy1 + (lon-lon_low)/(lon_hi-lon_low)*fxy2
-        # print('interped_model',interped_model)
-    return interped_model
-
-
-"""
-        if len(global_model.shape)==3:
-            for imodel in range(NPRESSIN):
-                arr = global_model[:,:,imodel]
-                Q11 = global_model[lon_index_low,lat_index_low,:]
-                Q12 = global_model[lon_index_hi,lat_index_low,:]
-                Q22 = global_model[lon_index_hi,lat_index_hi,:]
-                Q21 = global_model[lon_index_low,lat_index_hi,:]
-
-        if len(global_model.shape)==4:
-            Q11 = global_model[lon_index_low,lat_index_low]
-            Q12 = global_model[lon_index_hi,lat_index_low,:,:]
-            Q22 = global_model[lon_index_hi,lat_index_hi,:,:]
-            Q21 = global_model[lon_index_low,lat_index_hi,:,:]
-"""
-
-"""
-Remember that np.interp array can only interp monotonically increasing x data
-"""
+    return interped_T, interped_VMR
