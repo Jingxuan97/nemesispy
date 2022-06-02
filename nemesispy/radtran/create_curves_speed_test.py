@@ -36,7 +36,7 @@ NLAYER = 40
 ################################################################################
 ################################################################################
 # Read GCM data
-from nemesispy.radtran.process_gcm import (nlon,nlat,xlon,xlat,npv,pv,\
+from nemesispy.data.gcm.process_gcm import (nlon,nlat,xlon,xlat,npv,pv,\
     tmap,h2omap,comap,co2map,ch4map,hemap,h2map,vmrmap,hvmap,\
     tmap_mod,h2omap_mod,comap_mod,co2map_mod,ch4map_mod,\
     hemap_mod,h2map_mod,vmrmap_mod,hvmap_mod,phase_grid,\

@@ -15,23 +15,6 @@ from nemesispy.radtran.forward_model import ForwardModel
 import time
 # from nemesispy.radtran.runner import interpolate_to_lat_lon
 
-### Opacity data
-lowres_files = ['/Users/jingxuanyang/ktables/h2owasp43.kta',
-'/Users/jingxuanyang/ktables/cowasp43.kta',
-'/Users/jingxuanyang/ktables/co2wasp43.kta',
-'/Users/jingxuanyang/ktables/ch4wasp43.kta']
-cia_file_path \
-    ='/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/cia/exocia_hitran12_200-3800K.tab'
-
-### Reference Planet Input
-M_plt = 3.8951064000000004e+27 # kg
-R_plt = 74065.70 * 1e3 # m
-gas_id = np.array([  1, 2,  5,  6, 40, 39])
-iso_id = np.array([0, 0, 0, 0, 0, 0])
-NLAYER = 20
-
-
-################################################################################
 ################################################################################
 # Read GCM data
 from nemesispy.radtran.process_gcm import (nlon,nlat,xlon,xlat,npv,pv,pvmap,\
@@ -41,6 +24,41 @@ from nemesispy.radtran.process_gcm import (nlon,nlat,xlon,xlat,npv,pv,pvmap,\
     kevin_phase_by_wave,kevin_wave_by_phase,\
     pat_phase_by_wave,pat_wave_by_phase,vmrmap_mod_new)
 
+
+### Opacity data
+lowres_files = ['/Users/jingxuanyang/ktables/h2owasp43.kta',
+'/Users/jingxuanyang/ktables/cowasp43.kta',
+'/Users/jingxuanyang/ktables/co2wasp43.kta',
+'/Users/jingxuanyang/ktables/ch4wasp43.kta']
+cia_file_path \
+    ='/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/cia/exocia_hitran12_200-3800K.tab'
+
+################################################################################
+### Wavelengths grid and orbital phase grid
+wave_grid = np.array([1.1425, 1.1775, 1.2125, 1.2475, 1.2825, 1.3175, 1.3525, 1.3875,
+       1.4225, 1.4575, 1.4925, 1.5275, 1.5625, 1.5975, 1.6325, 3.6   ,
+       4.5   ])
+phase_grid = np.array([ 22.5,  45. ,  67.5,  90. , 112.5, 135. , 157.5, 180. , 202.5,
+       225. , 247.5, 270. , 292.5, 315. , 337.5])
+nwave = len(wave_grid)
+nphase = len(phase_grid)
+wasp43_spec = np.array([3.341320e+25, 3.215455e+25, 3.101460e+25, 2.987110e+25,
+       2.843440e+25, 2.738320e+25, 2.679875e+25, 2.598525e+25,
+       2.505735e+25, 2.452230e+25, 2.391140e+25, 2.345905e+25,
+       2.283720e+25, 2.203690e+25, 2.136015e+25, 1.234010e+24,
+       4.422200e+23])
+my_gcm_phase_by_wave = np.zeros((nphase,nwave))
+my_gcm_wave_by_phase = np.zeros((nwave,nphase))
+
+### Reference Planet Input
+M_plt = 3.8951064000000004e+27 # kg
+R_plt = 74065.70 * 1e3 # m
+gas_id = np.array([  1, 2,  5,  6, 40, 39])
+iso_id = np.array([0, 0, 0, 0, 0, 0])
+NLAYER = 20
+nmu = 3
+P_model = np.geomspace(20e5,100,NLAYER)
+
 start = time.time()
 ### Set up forward model
 FM = ForwardModel()
@@ -48,73 +66,19 @@ FM.set_planet_model(M_plt=M_plt,R_plt=R_plt,gas_id_list=gas_id,iso_id_list=iso_i
     NLAYER=NLAYER)
 FM.set_opacity_data(kta_file_paths=lowres_files, cia_file_path=cia_file_path)
 
-### Code to actually simulate a phase curve
-wave_grid = np.array([1.1425, 1.1775, 1.2125, 1.2475, 1.2825, 1.3175, 1.3525, 1.3875,
-       1.4225, 1.4575, 1.4925, 1.5275, 1.5625, 1.5975, 1.6325, 3.6   ,
-       4.5   ])
-
-nwave = len(wave_grid)
-
-phase_grid = np.array([ 22.5,  45. ,  67.5,  90. , 112.5, 135. , 157.5, 180. , 202.5,
-       225. , 247.5, 270. , 292.5, 315. , 337.5])
-
-nphase = len(phase_grid)
-
-my_gcm_phase_by_wave = np.zeros((nphase,nwave))
-my_gcm_wave_by_phase = np.zeros((nwave,nphase))
-
-wasp43_spec = np.array([3.341320e+25, 3.215455e+25, 3.101460e+25, 2.987110e+25,
-       2.843440e+25, 2.738320e+25, 2.679875e+25, 2.598525e+25,
-       2.505735e+25, 2.452230e+25, 2.391140e+25, 2.345905e+25,
-       2.283720e+25, 2.203690e+25, 2.136015e+25, 1.234010e+24,
-       4.422200e+23])
-
-# phase = 22.5
-# one_phase =  FM.calc_disc_spectrum(phase, nmu=5, global_H_model=hvmap,
-#     global_P_model=pvmap,global_T_model=tmap, global_VMR_model=vmrmap,
-#     global_model_longitudes=xlon,
-#     global_model_lattitudes=xlat,
-#     solspec=wasp43_spec)
-#     # my_gcm_phase_by_wave[iphase,:] = one_phase
-
-# for iphase, phase in enumerate(phase_grid):
-#     one_phase =  FM.calc_disc_spectrum(phase, nmu=5, global_H_model=hvmap,
-#         global_P_model=pvmap,global_T_model=tmap, global_VMR_model=vmrmap,
-#         global_model_longitudes=xlon,
-#         global_model_lattitudes=xlat,
-#         solspec=wasp43_spec)
-#     my_gcm_phase_by_wave[iphase,:] = one_phase
-
 for iphase, phase in enumerate(phase_grid):
-    one_phase =  FM.calc_disc_spectrum(phase, nmu=5, global_H_model=hvmap_mod,
-        global_P_model=pvmap,global_T_model=tmap_mod, global_VMR_model=vmrmap_mod_new,
-        global_model_longitudes=xlon,
-        global_model_lattitudes=xlat,
+    one_phase =  FM.calc_disc_spectrum(phase=phase, nmu=nmu, P_model = P_model,
+        global_model_P_grid=pv, global_T_model=tmap_mod,
+        global_VMR_model=vmrmap_mod, mod_lon=xlon,mod_lat=xlat,
         solspec=wasp43_spec)
     my_gcm_phase_by_wave[iphase,:] = one_phase
 
 end = time.time()
-
 print('run time = ', end-start)
 
 for iwave in range(len(wave_grid)):
     for iphase in range(len(phase_grid)):
         my_gcm_wave_by_phase[iwave,iphase] = my_gcm_phase_by_wave[iphase,iwave]
-
-
-### Raw Data with Error Bar from Stevenson
-# plt.title('phase = {}'.format(phase))
-# plt.plot(wave_grid,one_phase,color='b',label='Python')
-# plt.scatter(wave_grid,data_phase_by_wave[0,:,0],color='r',marker='+',label='Data')
-# plt.plot(wave_grid,pat_gcm_phase_by_wave[0,:],color ='k',label='Fortran')
-# diff = (one_phase - pat_gcm_phase_by_wave[0,:])/one_phase
-# plt.plot()
-# plt.plot()
-# plt.legend()
-# plt.grid()
-# plt.tight_layout()
-# plt.savefig('discav.pdf',dpi=400)
-# plt.show()
 
 # Plot spectrum at each phase
 fig, axs = plt.subplots(nrows=5,ncols=3,sharex=True,sharey=True,
@@ -151,8 +115,8 @@ for iphase,phase in enumerate(phase_grid):
     if iy == 3:
         iy = 0
         ix += 1
-# plt.show()
-plt.savefig('good_spectra_mod.pdf')
+plt.show()
+# plt.savefig('gcm_spectra.pdf')
 
 
 # Plot phase curve at each wavelength
@@ -188,4 +152,5 @@ for iwave,wave in enumerate(wave_grid[::-1]):
 fig.legend(handles, labels, loc='upper left', fontsize='x-small')
 plt.tight_layout()
 
-plt.savefig('good_phase_curve_mod.pdf')
+plt.show()
+# plt.savefig('gcm_phase_curve.pdf')

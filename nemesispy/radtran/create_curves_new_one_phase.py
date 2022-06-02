@@ -9,7 +9,7 @@ from nemesispy.radtran.models import Model2
 from nemesispy.radtran.read import read_kls
 from nemesispy.radtran.radiance import calc_radiance, calc_planck
 from nemesispy.radtran.read import read_cia
-from nemesispy.radtran.trig import gauss_lobatto_weights, interpolate_to_lat_lon
+from nemesispy.radtran.trig import gauss_lobatto_weights
 from nemesispy.radtran.forward_model import ForwardModel
 import time
 # from nemesispy.radtran.runner import interpolate_to_lat_lon
@@ -31,7 +31,7 @@ NLAYER = 80
 ################################################################################
 ################################################################################
 # Read GCM data
-from nemesispy.radtran.process_gcm import (nlon,nlat,xlon,xlat,npv,pv,pvmap,\
+from nemesispy.data.gcm.process_gcm import (nlon,nlat,xlon,xlat,npv,pv,pvmap,\
     tmap,h2omap,comap,co2map,ch4map,hemap,h2map,vmrmap,hvmap,\
     tmap_mod,h2omap_mod,comap_mod,co2map_mod,ch4map_mod,\
     hemap_mod,h2map_mod,vmrmap_mod,hvmap_mod,phase_grid,\

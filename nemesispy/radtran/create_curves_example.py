@@ -5,6 +5,15 @@ import numpy as np
 import time
 from nemesispy.radtran.forward_model import ForwardModel
 
+################################################################################
+# Read GCM data
+from nemesispy.data.gcm.process_gcm import (nlon,nlat,xlon,xlat,npv,pv,\
+    tmap,h2omap,comap,co2map,ch4map,hemap,h2map,vmrmap,hvmap,\
+    tmap_mod,h2omap_mod,comap_mod,co2map_mod,ch4map_mod,\
+    hemap_mod,h2map_mod,vmrmap_mod,hvmap_mod,phase_grid,\
+    kevin_phase_by_wave,kevin_wave_by_phase,\
+    pat_phase_by_wave,pat_wave_by_phase,\
+    vmrmap_mod_new,tmap_hot)
 
 ### Opacity data
 lowres_files = ['/Users/jingxuanyang/ktables/h2owasp43.kta',
@@ -14,18 +23,6 @@ lowres_files = ['/Users/jingxuanyang/ktables/h2owasp43.kta',
 cia_file_path = '/Users/jingxuanyang/Desktop/Workspace/' \
     + 'nemesispy2022/nemesispy/data/cia/exocia_hitran12_200-3800K.tab'
 
-
-################################################################################
-# Read GCM data
-from nemesispy.radtran.process_gcm import (nlon,nlat,xlon,xlat,npv,pv,\
-    tmap,h2omap,comap,co2map,ch4map,hemap,h2map,vmrmap,hvmap,\
-    tmap_mod,h2omap_mod,comap_mod,co2map_mod,ch4map_mod,\
-    hemap_mod,h2map_mod,vmrmap_mod,hvmap_mod,phase_grid,\
-    kevin_phase_by_wave,kevin_wave_by_phase,\
-    pat_phase_by_wave,pat_wave_by_phase,\
-    vmrmap_mod_new,tmap_hot)
-
-################################################################################
 ################################################################################
 ### Wavelengths grid and orbital phase grid
 wave_grid = np.array([1.1425, 1.1775, 1.2125, 1.2475, 1.2825, 1.3175, 1.3525, 1.3875,
@@ -48,7 +45,7 @@ gas_id = np.array([  1, 2,  5,  6, 40, 39])
 iso_id = np.array([0, 0, 0, 0, 0, 0])
 NLAYER = 20
 phasenumber = 7
-nmu = 3
+nmu = 5
 phase = phase_grid[phasenumber]
 P_model = np.geomspace(20e5,100,NLAYER)
 NITER = 100
