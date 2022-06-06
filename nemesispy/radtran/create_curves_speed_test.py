@@ -110,8 +110,8 @@ P_model = pv
 one_phase =  FM.calc_disc_spectrum(phase=phase, nmu=nmu, P_model = pv,
     global_model_P_grid=pv,
     global_T_model=tmap_mod, global_VMR_model=vmrmap_mod,
-    model_longitudes=xlon,
-    model_lattitudes=xlat,
+    mod_lon=xlon,
+    mod_lat=xlat,
     solspec=wasp43_spec)
 end_time = time.time()
 print('RUNTIME = ',end_time-start_time)

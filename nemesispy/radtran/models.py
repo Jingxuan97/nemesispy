@@ -5,7 +5,7 @@
 """
 import numpy as np
 from scipy.integrate import solve_ivp
-import scipy.special as sp
+import scipy as sp
 import matplotlib.pyplot as plt
 
 # Define the unit dictionary
@@ -223,9 +223,9 @@ class Model2(Model0):
         T_irr = self.T_irr
         tau = self.tau(P, z)
         xi1 = ((2.0/3)*(1+(1/gamma1)*(1+(0.5*gamma1*tau-1)*np.exp(-gamma1*tau))
-                +gamma1*(1-0.5*tau**2)*sp.expn(2, gamma1*tau)))
+                +gamma1*(1-0.5*tau**2)*sp.special.expn(2, gamma1*tau)))
         xi2 = ((2.0/3)*(1+(1/gamma2)*(1+(0.5*gamma2*tau-1)*np.exp(-gamma2*tau))
-                +gamma2*(1-0.5*tau**2)*sp.expn(2, gamma2*tau)))
+                +gamma2*(1-0.5*tau**2)*sp.special.expn(2, gamma2*tau)))
         T = ( 0.75 *(T_int**4*(2.0/3.0+tau)
             +T_irr**4*(1-alpha)*xi1
             +T_irr**4*alpha*xi2) )**0.25

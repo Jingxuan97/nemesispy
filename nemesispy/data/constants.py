@@ -16,7 +16,7 @@ PLANCK = 6.62607e-34   # Js Planck's constant
 N_A = 6.02214e23       # Avagadro's number
 AMU = 1.66054e-27      # kg atomic mass unit
 ATM = 101325           # Pa atmospheric pressure
-
+SIGMA_SB = 5.670374419e-8 # Stefan-Boltzmann constant
 """Defines constants used in taurex
 AMU = 1.660538921e-27
 KBOLTZ = 1.380648813e-23

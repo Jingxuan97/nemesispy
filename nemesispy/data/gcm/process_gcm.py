@@ -1,7 +1,16 @@
 import sys
 sys.path.append('/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/')
 import numpy as np
-
+import os
+"""
+Can import formatted GCM data with the command
+from nemesispy.data.gcm.process_gcm import (nlon,nlat,xlon,xlat,npv,pv,pvmap,\
+    tmap,h2omap,comap,co2map,ch4map,hemap,h2map,vmrmap,hvmap,\
+    tmap_mod,h2omap_mod,comap_mod,co2map_mod,ch4map_mod,\
+    hemap_mod,h2map_mod,vmrmap_mod,hvmap_mod,phase_grid,\
+    kevin_phase_by_wave,kevin_wave_by_phase,\
+    pat_phase_by_wave,pat_wave_by_phase,vmrmap_mod_new)
+"""
 # Read in GCM data stored in process_vivien.txt and process_vivien_mod.txt
 nlon = 64
 nlat = 32
@@ -56,13 +65,14 @@ comap_mod = np.zeros((nlon,nlat,npv))
 h2omap = np.zeros((nlon,nlat,npv))
 h2omap_mod = np.zeros((nlon,nlat,npv))
 
-f = open('process_vivien.txt')
+dirpath = os.path.dirname(__file__)
+f = open(os.path.join(dirpath,'process_vivien.txt'))
 vivien_gcm = f.read()
 f.close()
 vivien_gcm = vivien_gcm.split()
 vivien_gcm = [float(i) for i in vivien_gcm]
 
-f = open('process_vivien_mod.txt')
+f = open(os.path.join(dirpath,'process_vivien_mod.txt'))
 vivien_gcm_mod = f.read()
 f.close()
 vivien_gcm_mod = vivien_gcm_mod.split()

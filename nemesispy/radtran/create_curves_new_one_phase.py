@@ -71,8 +71,8 @@ phase = phase_grid[phasenumber]
 
 one_phase =  FM.calc_disc_spectrum(phase, nmu=5, global_H_model=hvmap,
     global_P_model=pvmap,global_T_model=tmap, global_VMR_model=vmrmap,
-    global_model_longitudes=xlon,
-    global_model_lattitudes=xlat,
+    mod_lon=xlon,
+    mod_lat=xlat,
     solspec=wasp43_spec)
     # my_gcm_phase_by_wave[iphase,:] = one_phase
 

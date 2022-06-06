@@ -8,13 +8,13 @@ Created on Fri May 27 03:54:19 2022
 from scipy.interpolate import interp1d
 import numpy as np
 import matplotlib.pyplot as plt
-from nemesispy.radtran.process_gcm import (nlon,nlat,xlon,xlat,npv,pv,\
+from nemesispy.data.gcm.process_gcm import (nlon,nlat,xlon,xlat,npv,pv,\
     tmap,h2omap,comap,co2map,ch4map,hemap,h2map,vmrmap,hvmap,\
     tmap_mod,h2omap_mod,comap_mod,co2map_mod,ch4map_mod,\
     hemap_mod,h2map_mod,vmrmap_mod,hvmap_mod,phase_grid,wave_grid,wasp43_spec,\
     kevin_phase_by_wave,kevin_wave_by_phase,\
     pat_phase_by_wave,pat_wave_by_phase)
-    
+
 R_wasp43 = np.loadtxt('wasp43.sol',skiprows=2,max_rows=1) * 1e3
 star_wave, star_rad = np.loadtxt('wasp43.sol',skiprows=3,unpack=True)
 f_wasp43b = interp1d(star_wave,star_rad)
@@ -29,7 +29,7 @@ for iwave,wave in enumerate(fil_wave1):
 spec2 = 0
 for iwave,wave in enumerate(fil_wave2):
     spec2 += f_wasp43b(wave)*fil_weight2[iwave]/sum(fil_weight2)
-    
+
 
 plt.plot(star_wave,star_rad,linewidth=1,label='full spectrum',color='k')
 plt.scatter(wave_grid,wasp43_spec,marker='x',color='r',s=10,label='interpolated')
