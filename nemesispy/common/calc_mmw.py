@@ -1,7 +1,5 @@
 #!/usr/local/bin/python3
 # -*- coding: utf-8 -*-
-import sys
-sys.path.append('/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/')
 from nemesispy.data.mol_info import mol_info
 
 def calc_mmw(ID, VMR, ISO=None):
@@ -10,7 +8,6 @@ def calc_mmw(ID, VMR, ISO=None):
     Reference/mol_info.py. Molecules are referenced by their Radtran ID
     specified in Reference/radtran_id.py. By default, terrestrial
     elative isotopic abundance is assumed.
-
     Inputs
     ------
     ID: array,
@@ -21,7 +18,6 @@ def calc_mmw(ID, VMR, ISO=None):
         If ISO = None then terrestrial relative isotopic abundance is assumed.
         If you want to specify particular isotopes, input the Radtran isotope
         identifiers here (see ref_id.py).
-
     Returns
     -------
     MMW: real,
@@ -38,18 +34,17 @@ def calc_mmw(ID, VMR, ISO=None):
         MMW += VMR[i] * MASS
     return MMW
 
+mmw = calc_mmw([1,2],VMR=[0.5,0.5])
+print('mmw',mmw)
 """Test
-
 # ID = [1,2,3]
 # ISO = None
 # VMR = [0.1,0.1,0.8]
 # mmw = calc_mmw(ID,VMR,ISO)
-
 ID = [1,2,3]
 ISO = [1,1,1]
 VMR = [0.1,0.1,0.8]
 mmw = calc_mmw(ID,VMR,ISO)
-
 ID = [1,2,3]
 ISO = None
 VMR = [0.1,0.1,0.8]
