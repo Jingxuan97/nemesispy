@@ -6,15 +6,16 @@ import pymultinest
 import pickle
 import os
 import sys
-sys.path.append('/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/')
+# sys.path.append('/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/')
 from corner import corner
-from nemesispy.data.constants import R_SUN, R_JUP_E, AMU, AU, M_JUP, R_JUP, SIGMA_SB
-from nemesispy.radtran.models import Model2
-from nemesispy.radtran.utils import calc_mmw
-from nemesispy.radtran.trig import interpvivien_point
+
+from models import Model2
+# from nemesispy.data.constants import R_SUN, R_JUP_E, AMU, AU, M_JUP, R_JUP, SIGMA_SB
+# from nemesispy.radtran.utils import calc_mmw
+# from nemesispy.radtran.trig import interpvivien_point
 
 # Read GCM data
-from nemesispy.data.gcm.process_gcm import (nlon,nlat,xlon,xlat,npv,pv,\
+from process_gcm import (nlon,nlat,xlon,xlat,npv,pv,\
     tmap,h2omap,comap,co2map,ch4map,hemap,h2map,vmrmap,hvmap,\
     tmap_mod,h2omap_mod,comap_mod,co2map_mod,ch4map_mod,\
     hemap_mod,h2map_mod,vmrmap_mod,hvmap_mod,phase_grid,\
@@ -24,33 +25,34 @@ from nemesispy.data.gcm.process_gcm import (nlon,nlat,xlon,xlat,npv,pv,\
 
 ### Reference Planet Input: WASP 43b
 T_star = 4520 # star temperature in K
-R_star = 0.6668 * R_SUN
-SMA = 0.015*AU
+R_star = 463892759.99999994 # m, 0.6668 * R_SUN
+SMA = 2243970000.0 # m, 0.015*AU
 M_plt = 3.8951064000000004e+27 # kg
 R_plt = 74065.70 * 1e3 # m
-gas_id = np.array([  1, 2,  5,  6, 40, 39]) # H2O,CO,CO2,CH4,He,H2
+gas_id = np.array([  1, 2,  5,  6, 40, 39])
 iso_id = np.array([0, 0, 0, 0, 0, 0])
+# T_irr = 2055
 
 ### Model parameters (focus to pressure range where Transmission WF peaks)
-P_range = np.array(
-        [2.00000000e+06, 1.18757213e+06, 7.05163778e+05, 4.18716424e+05,
-       2.48627977e+05, 1.47631828e+05, 8.76617219e+04, 5.20523088e+04,
-       3.09079355e+04, 1.83527014e+04, 1.08975783e+04, 6.47083012e+03,
-       3.84228874e+03, 2.28149751e+03, 1.35472142e+03, 8.04414701e+02,
-       4.77650239e+02, 2.83622055e+02, 1.68410824e+02, 1.00000000e+02])
+# Pressure range to be fitted (focus to pressure range where Transmission WF peaks)
+NLAYER = 20
+P_range = np.geomspace(20*1e5,1e-3*1e5,20)
+
+# VMR map used by Pat is smoothed (HOW)
+# Hence mmw is constant with longitude, lattitude and altitude
+mmw = 3.92945509119087e-27 # kg
 
 ### GCM data
-longitude = 180
-lattitude = 0
-T_GCM, VMR_GCM = interpvivien_point( xlon=longitude,xlat=lattitude,xp=P_range,
-                    vp=pv, vt=tmap, vvmr=vmrmap, mod_lon=xlon, mod_lat=xlat)
-mmw = calc_mmw(gas_id,VMR_GCM[0,:])
+ilon=0
+ilat=0
+T_GCM = tmap_mod[ilon,ilat,:]
+T_GCM_interped = np.interp(P_range,pv[::-1],T_GCM[::-1])
 
 titles=np.array([r'$\log$ $\kappa$', r'$\log$ $\gamma_1$',
                 r'$\log$ $\gamma_2$', r'$\alpha$', r'$\beta$'])
 n_params = len(titles)
 
-a = pymultinest.Analyzer(n_params=n_params)
+a = pymultinest.Analyzer(n_params=n_params,outputfiles_basename='chains/{}{}-'.format(ilon,ilat))
 values = a.get_equal_weighted_posterior()
 # values, [parameter values,..,ln pro], Nsamp x Npars
 params = values[:, :n_params] # a collection of parameter values
@@ -59,7 +61,6 @@ samples = params
 Nsamp = values.shape[0]
 Npars = n_params
 
-"""
 ### Plot 1
 # plot corner plot
 figure=corner(samples,
@@ -70,7 +71,7 @@ figure=corner(samples,
               truths=None)
 figure.savefig("TP_triangle.pdf")
 plt.close()
-"""
+
 
 def calc_T(cube):
     kappa = 10**cube[0]
@@ -92,11 +93,6 @@ def calc_T(cube):
     return T_model
 
 
-P_interp = np.geomspace(2e6,100,20)
-T_interp, VMR_interp = interpvivien_point( xlon=longitude,xlat=lattitude,xp=P_interp,
-                    vp=pv, vt=tmap, vvmr=vmrmap, mod_lon=xlon, mod_lat=xlat)
-
-
 NN = 1000 # has 1000 live points
 draws = np.random.randint(len(samples), size=NN)
 xrand = samples[draws, :]
@@ -110,8 +106,8 @@ for i in range(NN):
     plt.plot(T,P_range/1e5,lw=1.0, alpha=0.3, color='#BF3EFF')
     Tarr1 = np.concatenate([Tarr1, T])
 
-plt.errorbar(T_GCM,P_range/1e5,xerr=10,fmt='o',lw=0.8, ms = 2,color='k',mfc='k',label='Data')
-plt.errorbar(T_interp,P_interp/1e5,xerr=10,fmt='o',lw=0.8, ms = 2,color='r',mfc='r',label='Smoothed')
+plt.errorbar(T_GCM,pv/1e5,xerr=10,fmt='o',lw=0.8, ms = 2,color='k',mfc='k',label='Data')
+plt.errorbar(T_GCM_interped,P_range/1e5,xerr=10,fmt='o',lw=0.8, ms = 2,color='r',mfc='r',label='Smoothed')
 plt.xlabel('Temperature [K]',size='x-large')
 plt.ylabel('Pressure [bar]',size='x-large')
 plt.minorticks_on()
@@ -149,8 +145,8 @@ plt.tick_params(length=10,width=1,labelsize='x-large',which='major')
 plt.xlabel('Temperature [K]',size='x-large')
 plt.ylabel('Pressure [bar]',size='x-large')
 # plt.xlim(0,3000)
-plt.errorbar(T_GCM,P_range/1e5,xerr=10,fmt='o',lw=0.8, ms = 2,color='k',mfc='k',label='Data')
-plt.errorbar(T_interp,P_interp/1e5,xerr=10,fmt='o',lw=0.8, ms = 2,color='r',mfc='r',label='Smoothed')
+plt.errorbar(T_GCM,pv/1e5,xerr=10,fmt='o',lw=0.8, ms = 2,color='k',mfc='k',label='Data')
+plt.errorbar(T_GCM_interped,P_range/1e5,xerr=10,fmt='o',lw=0.8, ms = 2,color='r',mfc='r',label='Smoothed')
 plt.legend()
 plt.semilogy()
 plt.gca().invert_yaxis()
