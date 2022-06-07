@@ -48,7 +48,7 @@ phasenumber = 7
 nmu = 5
 phase = phase_grid[phasenumber]
 P_model = np.geomspace(20e5,100,NLAYER)
-NITER = 100
+NITER = 1
 ### Set up forward model
 FM = ForwardModel()
 FM.set_planet_model(M_plt=M_plt,R_plt=R_plt,gas_id_list=gas_id,iso_id_list=iso_id,
@@ -75,7 +75,7 @@ print('RUNTIME = ',(end_time-start_time)/NITER)
 
 
 fig, axs = plt.subplots(nrows=2,ncols=1,sharex=True,
-    dpi=800)
+    dpi=100)
 axs[0].set_title('phase = {}'.format(phase))
 axs[0].plot(wave_grid,one_phase,color='b',label='Python')
 axs[0].scatter(wave_grid,kevin_phase_by_wave[phasenumber,:,0],color='r',marker='+',label='Data')
@@ -87,8 +87,9 @@ diff = (one_phase - pat_phase_by_wave[phasenumber,:])/one_phase
 axs[1].scatter(wave_grid,diff,marker='.',color='b')
 axs[1].grid()
 print(diff)
-
-
+plt.show(block=False)
+input()
+plt.close()
 """
 ### This is for plotting specta at all phases
 for iphase in range(nphase):
