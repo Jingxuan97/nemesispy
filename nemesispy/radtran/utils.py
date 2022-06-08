@@ -275,7 +275,8 @@ def adjust_hydrostatH(P, T, ID, VMR, M_plt, R_plt, H=np.array([0])):
     scale_height = np.zeros(NPRO)
 
     # First find level closest ot zero altitude
-    alt0,ialt = find_nearest(H,0.0)
+    ialt = (np.abs(H - 0.0)).argmin()
+    alt0 = H[ialt]
     if ( (alt0>0.0) & (ialt>0)):
         ialt = ialt -1
 
@@ -367,7 +368,8 @@ def adjust_hydrostatH_fast(P, T, ID, VMR, M_plt, R_plt, xmolwt,
     scale_height = np.zeros(NPRO)
 
     # First find level closest ot zero altitude
-    alt0,ialt = find_nearest(H,0.0)
+    ialt = (np.abs(H - 0.0)).argmin()
+    alt0 = H[ialt]
     if ( (alt0>0.0) & (ialt>0)):
         ialt = ialt -1
 

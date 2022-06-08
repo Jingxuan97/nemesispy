@@ -12,10 +12,11 @@ TO DO:
 11. MultiNest convergence requirement tests and maximum number of parameters
 12. Apply jit to the functions in calc_path.py
 13. Isotopologue (limited effects)
-
-
+14. Gas ID check; active and background species
+15. Include opacity units
 ERRORS:
 1.
 /Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/radtran/calc_path.py:270:
 RuntimeWarning: invalid value encountered in reciprocal
   Gas_layer = (Gas_layer.T * scale**-1 ).T
+2. Speed up trig routines

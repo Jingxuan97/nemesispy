@@ -46,7 +46,7 @@ Coordinate system (origin is at the centre of the target):
 import numpy as np
 from numba import jit
 
-# @jit(nopython=True)
+@jit(nopython=True)
 def arctan(x,y):
     """
     Calculate the argument of the point (x,y) in the range [0,2pi).
@@ -79,7 +79,7 @@ def arctan(x,y):
             else : ang = ang+np.pi # (x,y) is in 3rd quadrant
     return ang
 
-# @jit(nopython=True)
+@jit(nopython=True)
 def rotatey(v, phi):
     """
     Rotate a 3D vector v anticlockwisely about the y-axis by angle phi
@@ -109,7 +109,7 @@ def rotatey(v, phi):
             v_new[i] += a[i,j] * v[j]
     return v_new
 
-# @jit(nopython=True)
+@jit(nopython=True)
 def rotatez(v, phi):
     """
     Rotate a 3D vector v anticlockwisely about the z-axis by angle phi
@@ -139,7 +139,7 @@ def rotatez(v, phi):
             v_new[i] += a[i,j] *v[j]
     return v_new
 
-# @jit(nopython=True)
+@jit(nopython=True)
 def generate_angles(phase,rho,alpha):
     """
     Finds the stellar zenith angle, stellar azimuth angle, lattitude and longitude
@@ -430,7 +430,7 @@ def gauss_lobatto_weights(phase, nmu):
 
     return nav, np.around(wav,8)
 
-# @jit(nopython=True)
+@jit(nopython=True)
 def VERINT(X,Y,N,XIN):
     if X[0]>X[-1]:
         X = X[::-1]
@@ -438,7 +438,7 @@ def VERINT(X,Y,N,XIN):
     YOUT = np.interp(x=XIN,xp=X,fp=Y)
     return YOUT
 
-# @jit(nopython=True)
+@jit(nopython=True)
 def interpvivien_point(xlon, xlat, xp, vp, vt, vvmr,
     mod_lon, mod_lat,
     longitude_shift=180):

@@ -1,5 +1,4 @@
-from pydoc import describe
-from setuptools import setup
+from setuptools import setup, find_packages
 
 VERSION = "0.0.1"
 DESCRIPTION = "Python package to simulate exoplanet phase curves"
@@ -20,4 +19,3 @@ setup(name="nemesispy",
           "scipy",
           "matplotlib",
           "pymultinest"])
-      # install_requires=["numpy","matplotlib","sympy","miepython","numba","ray"])

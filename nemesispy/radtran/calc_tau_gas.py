@@ -272,3 +272,61 @@ def noverlapg(k_gas_g, amount, del_g):
                 k_g = rankg(weight,contri,del_g)
 
     return k_g
+
+@jit(nopython=True)
+def calc_tau_gas(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
+    P_grid, T_grid, del_g):
+    """
+    Parameters
+    ----------
+    k_gas_w_g_p_t(NGAS,NWAVE,NG,NPRESSK,NTEMPK) : ndarray
+        Raw k-coefficients.
+        Has dimension: NWAVE x NG x NPRESSK x NTEMPK.
+    P_layer(NLAYER) : ndarray
+        Atmospheric pressure grid.
+    T_layer(NLAYER) : ndarray
+        Atmospheric temperature grid.
+    VMR_layer(NLAYER,NGAS) : ndarray
+        Array of volume mixing ratios for NGAS.
+        Has dimensioin: NLAYER x NGAS
+    U_layer : ndarray
+        DESCRIPTION.
+    P_grid(NPRESSK) : ndarray
+        Pressure grid on which the k-coeff's are pre-computed.
+    T_grid(NTEMPK) : ndarray
+        Temperature grid on which the k-coeffs are pre-computed.
+    del_g : ndarray
+        DESCRIPTION.
+
+    Returns
+    -------
+    tau_w_g_l(NWAVE,NG,NLAYER) : ndarray
+        DESCRIPTION.
+
+
+    Notes
+    -----
+    Absorber amounts (U_layer) is scaled down by a factor 1e-20 because Nemesis
+    k-tables are scaled up by a factor of 1e20.
+    """
+
+    Scaled_U_layer = U_layer * 1.0e-20
+    Scaled_U_layer *= 1.0e-4 # convert from absorbers per m^2 to per cm^2
+
+    k_gas_w_g_l = interp_k(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t)
+    Ngas, Nwave, Ng, Nlayer = k_gas_w_g_l.shape
+
+    amount_layer = np.zeros((Nlayer,Ngas))
+    for ilayer in range(Nlayer):
+        amount_layer[ilayer,:] = Scaled_U_layer[ilayer] * VMR_layer[ilayer,:4]
+
+    tau_w_g_l = np.zeros((Nwave,Ng,Nlayer))
+    for iwave in range (Nwave):
+        k_gas_g_l = k_gas_w_g_l[:,iwave,:,:]
+        k_g_l = np.zeros((Ng,Nlayer))
+        for ilayer in range(Nlayer):
+            k_g_l[:,ilayer]\
+                = noverlapg(k_gas_g_l[:,:,ilayer],amount_layer[ilayer,:],del_g)
+            tau_w_g_l[iwave,:,ilayer] = k_g_l[:,ilayer]
+
+    return tau_w_g_l
