@@ -12,9 +12,7 @@ absorber amounts by 1e-20.
 """
 import numpy as np
 from scipy.io import FortranFile
-import sys
-sys.path.append('/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/')
-from nemesispy.data.constants import ATM
+from nemesispy.common.constants import ATM
 
 def read_kta(filepath):
     """
@@ -162,6 +160,7 @@ def read_kls(filepaths):
         gas_id_list.append(gas_id)
         iso_id_list.append(iso_id)
         k_gas_w_g_p_t.append(k_g)
+    # reformat data type to appease numba
     gas_id_list = np.float32(gas_id_list)
     iso_id_list = np.float32(iso_id_list)
     k_gas_w_g_p_t = np.float32(k_gas_w_g_p_t)

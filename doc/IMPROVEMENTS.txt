@@ -1,7 +1,8 @@
+TO DO:
 1. Add routines to generate ktables from line lists
 2. Add routines to output and plot transmission weighting function.
 3. Generally more routines to make nice plots of TP profiles and spectra.
-4. Tests
+4. Tests to facilitate upscaling
 5. Packaging
 6. Timing and benchmark
 7. Interfacing with Multinest
@@ -9,3 +10,12 @@
 9. Optimal estimation interfacing
 10. Old Nemesis file interfacing
 11. MultiNest convergence requirement tests and maximum number of parameters
+12. Apply jit to the functions in calc_path.py
+13. Isotopologue (limited effects)
+
+
+ERRORS:
+1.
+/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/radtran/calc_path.py:270:
+RuntimeWarning: invalid value encountered in reciprocal
+  Gas_layer = (Gas_layer.T * scale**-1 ).T

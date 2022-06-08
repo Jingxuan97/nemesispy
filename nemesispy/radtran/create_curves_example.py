@@ -1,5 +1,3 @@
-import sys
-sys.path.append('/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/')
 import matplotlib.pyplot as plt
 import numpy as np
 import time
@@ -44,8 +42,8 @@ R_plt = 74065.70 * 1e3 # m
 gas_id = np.array([  1, 2,  5,  6, 40, 39])
 iso_id = np.array([0, 0, 0, 0, 0, 0])
 NLAYER = 20
-phasenumber = 7
-nmu = 5
+phasenumber = 3
+nmu = 3
 phase = phase_grid[phasenumber]
 P_model = np.geomspace(20e5,100,NLAYER)
 NITER = 1
@@ -87,9 +85,9 @@ diff = (one_phase - pat_phase_by_wave[phasenumber,:])/one_phase
 axs[1].scatter(wave_grid,diff,marker='.',color='b')
 axs[1].grid()
 print(diff)
-plt.show(block=False)
-input()
-plt.close()
+# plt.show(block=False)
+# input()
+# plt.close()
 """
 ### This is for plotting specta at all phases
 for iphase in range(nphase):

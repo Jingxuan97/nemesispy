@@ -8,8 +8,8 @@ import os
 import sys
 sys.path.append('/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/')
 from corner import corner
-from nemesispy.data.constants import R_SUN, R_JUP_E, AMU, AU, M_JUP, R_JUP, SIGMA_SB
-from nemesispy.radtran.models import Model2
+from nemesispy.common.constants import R_SUN, R_JUP_E, AMU, AU, M_JUP, R_JUP, SIGMA_SB
+from nemesispy.models.models import Model2
 from nemesispy.radtran.utils import calc_mmw
 from nemesispy.radtran.trig import interpvivien_point
 
@@ -57,14 +57,14 @@ n_params = len(titles)
 a = pymultinest.Analyzer(n_params=n_params)
 values = a.get_equal_weighted_posterior()
 # values, [parameter values,..,ln pro], Nsamp x Npars
-params = values[:, :n_params] # a collection of parameter values 
-lnprob = values[:, -1] # loglike corresponding to the parameter values 
-samples = params 
+params = values[:, :n_params] # a collection of parameter values
+lnprob = values[:, -1] # loglike corresponding to the parameter values
+samples = params
 Nsamp = values.shape[0]
 Npars = n_params
 
 """
-### Plot 1 
+### Plot 1
 # plot corner plot
 figure=corner(samples,
               quantiles=[0.16,0.5,0.84],
@@ -83,7 +83,7 @@ def calc_T(cube):
     alpha = cube[3]
     beta = cube[4]
     T_int = 200
-    
+
     Mod = Model2(T_star, R_star, M_plt, R_plt, SMA, P_range, mmw,
                     kappa = kappa,
                     gamma1 = gamma1,
@@ -95,7 +95,7 @@ def calc_T(cube):
     # print(T_model)
     return T_model
 
-### Plot 2 
+### Plot 2
 P_interp = np.geomspace(2e6,100,20)
 T_interp, VMR_interp = interpvivien_point( xlon=longitude,xlat=lattitude,xp=P_interp,
                     vp=pv, vt=tmap, vvmr=vmrmap, mod_lon=xlon, mod_lat=xlat)

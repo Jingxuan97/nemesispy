@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import unittest
 import numpy as np
-from nemesispy.radtran.path import split, average
+from nemesispy.radtran.calc_path import split, average
 
 class TestSplit(unittest.TestCase):
 

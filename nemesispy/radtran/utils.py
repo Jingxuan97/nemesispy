@@ -1,9 +1,9 @@
 import time
 import numpy as np
 from numba import jit
-from nemesispy.data.mol_info import mol_info
-from nemesispy.data.constants import C_LIGHT, K_B, PLANCK, AMU, G
-
+from nemesispy.common.mol_info import mol_info
+from nemesispy.common.constants import C_LIGHT, K_B, PLANCK, AMU, G
+from nemesispy.radtran.calc_mmw import calc_mmw
 
 @jit(nopython=True)
 def find_nearest(array, value):
@@ -35,42 +35,6 @@ def find_nearest(array, value):
     array = np.asarray(array)
     idx = (np.abs(array - value)).argmin()
     return array[idx],idx
-
-
-def calc_mmw(ID, VMR, ISO=None):
-    """
-    Calculate mean molecular weight using the information in
-    Reference/mol_info.py. Molecules are referenced by their Radtran ID
-    specified in Reference/radtran_id.py. By default, terrestrial
-    elative isotopic abundance is assumed.
-
-    Parameters
-    ----------
-    ID : array,
-        List of gases specified by their Radtran identifiers.
-    VMR : array,
-        Corresponding VMR of the gases.
-    ISO : array,
-        If ISO = None then terrestrial relative isotopic abundance is assumed.
-        If you want to specify particular isotopes, input the Radtran isotope
-        identifiers here (see ref_id.py).
-
-    Returns
-    -------
-    MMW : real,
-        Mean molecular weight.
-    """
-    NGAS = len(ID)
-    MMW = 0
-    for i in range(NGAS):
-        if ISO == None:
-            mass = mol_info['{}'.format(ID[i])]['mmw']
-        else:
-            mass = mol_info['{}'.format(ID[i])]['isotope']\
-                ['{}'.format(ISO[i])]['mass']
-        MMW += VMR[i] * mass
-    MMW *= AMU # si unit
-    return MMW
 
 @jit(nopython=True)
 def blackbody_SI(wl, T):
@@ -318,7 +282,7 @@ def adjust_hydrostatH(P, T, ID, VMR, M_plt, R_plt, H=np.array([0])):
     #Calculate the mean molecular weight at each level
     xmolwt = np.zeros(NPRO)
     for ipro in range(NPRO):
-        xmolwt[ipro] = calc_mmw(ID,VMR[ipro,:],ISO=None)
+        xmolwt[ipro] = calc_mmw(ID,VMR[ipro,:])
 
     # iterate until hydrostatic equilibrium
     xdepth = 2
