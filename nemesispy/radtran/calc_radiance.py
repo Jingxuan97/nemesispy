@@ -426,16 +426,16 @@ def calc_radiance(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t
 
     Returns
     -------
-    SPECOUT : ndarray
+    spectrum : ndarray
         Output spectrum (W cm-2 um-1 sr-1)
     """
-    # Reverse layer ordering from TOP of atmoaphsere first to BOTTOM of atmosphere last
+    # Reorder atmospheric layers from top to bottom
     ScalingFactor = ScalingFactor[::-1]
-    P_layer = P_layer[::-1]
-    T_layer = T_layer[::-1]
-    U_layer = U_layer[::-1]
-    VMR_layer = VMR_layer[::-1,:]
-    DEL_S = DEL_S[::-1] # * ScalingFactor
+    P_layer = P_layer[::-1] # layer pressures (Pa)
+    T_layer = T_layer[::-1] # layer temperatures (K)
+    U_layer = U_layer[::-1] # layer absorber amounts (no./m^2)
+    VMR_layer = VMR_layer[::-1,:] # layer volume mixing ratios
+    DEL_S = DEL_S[::-1] # path lengths in each layer
 
     # Record constants
     NGAS, NWAVE, NG, NPRESS, NTEMP = k_gas_w_g_p_t.shape
