@@ -9,7 +9,7 @@ from nemesispy.radtran.read import read_kls
 from nemesispy.radtran.calc_radiance import calc_radiance, calc_planck
 from nemesispy.radtran.read import read_cia
 from nemesispy.radtran.trig import gauss_lobatto_weights, interpvivien_point
-from nemesispy.radtran.calc_hydrostat import adjust_hydrostatH_fast
+from nemesispy.radtran.calc_hydrostat import calc_hydrostat
 
 class ForwardModel():
 
@@ -164,7 +164,7 @@ class ForwardModel():
             mmw = np.zeros(NPRO)
             for ipro in range(NPRO):
                 mmw[ipro] = calc_mmw(self.gas_id_list,VMR_model[ipro,:])
-            H_model = adjust_hydrostatH_fast(P=P_model, T=T_model, mmw=mmw,
+            H_model = calc_hydrostat(P=P_model, T=T_model, mmw=mmw,
                 M_plt=self.M_plt, R_plt=self.R_plt)
             point_spectrum = self.calc_point_spectrum(
                 H_model, P_model, T_model, VMR_model, path_angle,
@@ -257,7 +257,7 @@ class ForwardModel():
     #         for ipro in range(NPRO):
     #             mmw[ipro] = calc_mmw(self.gas_id_list,VMR_model[ipro,:])
     #         fake_H_model = np.linspace(0,1e5,NPRO)
-    #         H_model = adjust_hydrostatH_fast(H=fake_H_model, P=P_model, T=T_model,
+    #         H_model = calc_hydrostat(H=fake_H_model, P=P_model, T=T_model,
     #             ID=self.gas_id_list, VMR=VMR_model, M_plt=self.M_plt,
     #             R_plt=self.R_plt, xmolwt=mmw)
 

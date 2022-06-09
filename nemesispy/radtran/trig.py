@@ -42,7 +42,6 @@ Coordinate system (origin is at the centre of the target):
     rho: projected distance from a point on the disc to the centre of the disc
     alpha: argument of a point on the projected disc, measured anticlockwise from x axis
 """
-
 import numpy as np
 from numba import jit
 

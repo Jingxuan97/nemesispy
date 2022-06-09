@@ -3,7 +3,6 @@
 import numpy as np
 from numba import jit
 from nemesispy.common.constants import G, K_B
-from nemesispy.radtran.calc_mmw import calc_mmw
 
 @jit(nopython=True)
 def calc_grav_simple(h, M_plt, R_plt):
@@ -32,7 +31,7 @@ def calc_grav_simple(h, M_plt, R_plt):
     return g
 
 @jit(nopython=True)
-def adjust_hydrostatH_fast(P, T, mmw, M_plt, R_plt, H=np.array([])):
+def calc_hydrostat(P, T, mmw, M_plt, R_plt, H=np.array([])):
     """
     Calculates an altitude profile from given pressure, temperature and
     mean molecular weight profiles assuming hydrostatic equilibrium.

@@ -6,8 +6,7 @@ average layer properties along an observing path.
 """
 import numpy as np
 from scipy.integrate import simps
-from numba import jit
-
+# from numba import jit
 from nemesispy.common.constants import K_B
 from nemesispy.radtran.calc_mmw import calc_mmw
 

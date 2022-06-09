@@ -17,6 +17,7 @@ wasp43_spec = np.array([3.341320e+25, 3.215455e+25, 3.101460e+25, 2.987110e+25,
 
 def interpolate_stellar_spectrum(wave_grid,wave_data,spec_data):
 
+    assert np.all(np.diff(wave_data) > 0), "Need increaseing wave_dat"
     interped_spec = np.interp(wave_grid,wave_data,spec_data)
 
     return interped_spec
