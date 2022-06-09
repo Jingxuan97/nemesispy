@@ -7,8 +7,8 @@ import pymultinest
 sys.path.append('/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/')
 from nemesispy.common.constants import R_SUN, R_JUP_E, AMU, AU, M_JUP, R_JUP, SIGMA_SB
 from nemesispy.models.models import Model2
-from nemesispy.radtran.utils import calc_mmw
-from nemesispy.radtran.trig import interpvivien_point
+from nemesispy.AAwaitlist.utils import calc_mmw
+from nemesispy.common.calc_trig import interpvivien_point
 
 # Read GCM data
 from nemesispy.data.gcm.process_gcm import (nlon,nlat,xlon,xlat,npv,pv,\

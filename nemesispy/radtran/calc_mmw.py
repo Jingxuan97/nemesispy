@@ -1,6 +1,6 @@
 #!/usr/local/bin/python3
 # -*- coding: utf-8 -*-
-from nemesispy.common.mol_info import mol_info
+from nemesispy.common.info_mol import mol_info
 from nemesispy.common.constants import AMU
 
 def calc_mmw(ID, VMR, ISO=[]):

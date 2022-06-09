@@ -8,7 +8,7 @@ from nemesispy.radtran.calc_layer import calc_layer
 from nemesispy.radtran.read import read_kls
 from nemesispy.radtran.calc_radiance import calc_radiance, calc_planck
 from nemesispy.radtran.read import read_cia
-from nemesispy.radtran.trig import gauss_lobatto_weights, interpvivien_point
+from nemesispy.common.calc_trig import gauss_lobatto_weights, interpvivien_point
 from nemesispy.radtran.calc_hydrostat import calc_hydrostat
 
 class ForwardModel():
@@ -142,6 +142,7 @@ class ForwardModel():
 
         # get locations and angles for disc averaging
         nav, wav = gauss_lobatto_weights(phase, nmu)
+        wav = np.around(wav,decimals=8)
         fov_lattitudes = wav[0,:]
         fov_longitudes = wav[1,:]
         fov_stellar_zen = wav[2,:]

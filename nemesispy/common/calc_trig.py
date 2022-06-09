@@ -241,7 +241,7 @@ def generate_angles(phase,rho,alpha):
 
     return zen, azi, lat, lon
 
-# @jit(nopython=True)
+@jit(nopython=True)
 def gauss_lobatto_weights(phase, nmu):
     """
     Given the orbital phase, calculates the coordinates and weights of the points
@@ -361,7 +361,7 @@ def gauss_lobatto_weights(phase, nmu):
             alpha1 = alpha_intersect/(nalpha1-1) * np.arange(nalpha1)
             alpha2 = alpha_intersect+(180.-alpha_intersect)/(nalpha2-1) * np.arange(nalpha2)
             alpha2 = alpha2[1:(nalpha2)] # intersect was counted twice
-            alpha_sample_list = np.concatenate([alpha1,alpha2])
+            alpha_sample_list = np.concatenate((alpha1,alpha2))
 
         else: # quadrature ring does not intersect terminator
             if(half_circum > 0.0):
@@ -427,7 +427,9 @@ def gauss_lobatto_weights(phase, nmu):
     for i in range(isample):            # normalise weights so they add up to 1
         wav[5,i]=wav[5,i]/sum
 
-    return nav, np.around(wav,8)
+    # wav = np.around(wav,decimals=8)
+
+    return nav, wav
 
 @jit(nopython=True)
 def VERINT(X,Y,N,XIN):

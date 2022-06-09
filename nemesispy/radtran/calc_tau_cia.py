@@ -8,10 +8,12 @@ def calc_tau_cia(wave_grid, K_CIA, ISPACE,
     ID, TOTAM, T_layer, P_layer, VMR_layer, DELH,
     cia_nu_grid, TEMPS, INORMAL, NPAIR=9):
     """
+    Calculates
     Parameters
     ----------
     wave_grid : ndarray
-        Wavenumber (cm-1) or wavelength array (um) at which to compute CIA opacities.
+        Wavenumber (cm-1) or wavelength array (um) at which to compute
+        CIA opacities.
     ID : ndarray
         Gas ID
     # ISO : ndarray

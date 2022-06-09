@@ -7,8 +7,8 @@ import pymultinest
 sys.path.append('/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/')
 from nemesispy.common.constants import R_SUN, R_JUP_E, AMU, AU, M_JUP, R_JUP, SIGMA_SB
 from nemesispy.models.models import Model2
-from nemesispy.radtran.utils import calc_mmw
-from nemesispy.radtran.trig import interpvivien_point
+from nemesispy.AAwaitlist.utils import calc_mmw
+from nemesispy.common.calc_trig import interpvivien_point
 """
 Full pressure range fit is not that great. Need to compare simulation output.
 Also can chop to sensitive range (20 bar to 1e-3 bar) and see if fit is better.

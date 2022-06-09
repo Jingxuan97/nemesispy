@@ -48,7 +48,7 @@ phasenumber = 3
 nmu = 3
 phase = phase_grid[phasenumber]
 P_model = np.geomspace(20e5,100,NLAYER)
-NITER = 10
+NITER = 1000
 ### Set up forward model
 FM = ForwardModel()
 FM.set_planet_model(M_plt=M_plt,R_plt=R_plt,gas_id_list=gas_id,iso_id_list=iso_id,

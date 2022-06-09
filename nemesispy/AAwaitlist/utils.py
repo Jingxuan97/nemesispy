@@ -1,7 +1,7 @@
 import time
 import numpy as np
 from numba import jit
-from nemesispy.common.mol_info import mol_info
+from nemesispy.common.info_mol import mol_info
 from nemesispy.common.constants import C_LIGHT, K_B, PLANCK, AMU, G
 from nemesispy.radtran.calc_mmw import calc_mmw
 

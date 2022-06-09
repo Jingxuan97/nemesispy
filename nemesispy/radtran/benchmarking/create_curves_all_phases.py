@@ -3,13 +3,13 @@ import sys
 import matplotlib.pyplot as plt
 import numpy as np
 from nemesispy.common.constants import R_SUN, R_JUP_E, AMU, AU, M_JUP, R_JUP
-from nemesispy.radtran.utils import calc_mmw
+from nemesispy.AAwaitlist.utils import calc_mmw
 from nemesispy.models.models import Model2
 
 from nemesispy.radtran.read import read_kls
 from nemesispy.radtran.calc_radiance import calc_radiance, calc_planck
 from nemesispy.radtran.read import read_cia
-from nemesispy.radtran.trig import gauss_lobatto_weights
+from nemesispy.common.calc_trig import gauss_lobatto_weights
 from nemesispy.radtran.forward_model import ForwardModel
 import time
 # from nemesispy.radtran.runner import interpolate_to_lat_lon

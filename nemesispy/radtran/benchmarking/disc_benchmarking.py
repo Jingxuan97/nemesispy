@@ -6,7 +6,7 @@ sys.path.append('/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/')
 from nemesispy.radtran.forward_model import ForwardModel
 from nemesispy.radtran.benchmarking.disc_benchmarking_fortran import Nemesis_api
 from nemesispy.backup_functions.hydrostatic import adjust_hydrostatH
-from nemesispy.radtran.trig import gauss_lobatto_weights, interpolate_to_lat_lon
+from nemesispy.common.calc_trig import gauss_lobatto_weights, interpolate_to_lat_lon
 import time
 
 ### Reference Opacity Data
