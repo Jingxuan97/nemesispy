@@ -1,18 +1,20 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import time
+start1 = time.time()
 from nemesispy.radtran.forward_model import ForwardModel
 
 ################################################################################
 # Read GCM data
 from nemesispy.data.gcm.process_gcm import (nlon,nlat,xlon,xlat,npv,pv,\
-    tmap,h2omap,comap,co2map,ch4map,hemap,h2map,vmrmap,hvmap,\
+    tmap,h2omap,comap,co2map,ch4map,hemap,h2map,vmrmap,\
     tmap_mod,h2omap_mod,comap_mod,co2map_mod,ch4map_mod,\
-    hemap_mod,h2map_mod,vmrmap_mod,hvmap_mod,phase_grid,\
+    hemap_mod,h2map_mod,vmrmap_mod,phase_grid,\
     kevin_phase_by_wave,kevin_wave_by_phase,\
     pat_phase_by_wave,pat_wave_by_phase,\
     vmrmap_mod_new,tmap_hot)
-
+end1 = time.time()
+print(end1-start1)
 ### Opacity data
 lowres_files = ['/Users/jingxuanyang/ktables/h2owasp43.kta',
 '/Users/jingxuanyang/ktables/cowasp43.kta',
@@ -54,12 +56,16 @@ FM.set_planet_model(M_plt=M_plt,R_plt=R_plt,gas_id_list=gas_id,iso_id_list=iso_i
 FM.set_opacity_data(kta_file_paths=lowres_files, cia_file_path=cia_file_path)
 
 ### Testing one particular orbital phase (inhomogeneouus disc averaging)
+start2 = time.time()
 one_phase =  FM.calc_disc_spectrum(phase=phase, nmu=nmu, P_model = P_model,
     global_model_P_grid=pv,
     global_T_model=tmap_mod, global_VMR_model=vmrmap_mod,
     mod_lon=xlon,
     mod_lat=xlat,
     solspec=wasp43_spec)
+end2 = time.time()
+print(end2-start2)
+
 start_time = time.time()
 for i in range(NITER):
     one_phase =  FM.calc_disc_spectrum(phase=phase, nmu=nmu, P_model = P_model,
@@ -85,9 +91,11 @@ diff = (one_phase - pat_phase_by_wave[phasenumber,:])/one_phase
 axs[1].scatter(wave_grid,diff,marker='.',color='b')
 axs[1].grid()
 print(diff)
+
 plt.show(block=False)
 input()
 plt.close()
+
 """
 ### This is for plotting specta at all phases
 for iphase in range(nphase):

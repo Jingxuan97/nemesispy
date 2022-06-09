@@ -29,12 +29,13 @@ def calc_radiance(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t
         Wavelengths (um) grid for calculating spectra.
     U_layer(NLAYER) : ndarray
         Total number of gas particles in each layer.
-        We want SI unit (no. of particle/m^2) here.
+        Unit: no. of particle/m^2
     P_layer(NLAYER) : ndarray
         Atmospheric pressure grid.
         Unit: Pa
     T_layer(NLAYER) : ndarray
-        Atmospheric temperature grid. In Kelvin.
+        Atmospheric temperature grid.
+        Unit: K
     VMR_layer(NLAYER,NGAS) : ndarray
         Array of volume mixing ratios for NGAS.
         Has dimensioin: NLAYER x NGAS
@@ -48,12 +49,12 @@ def calc_radiance(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t
         Temperature grid on which the k-coeffs are pre-computed. In Kelvin
     del_g : ndarray
         Quadrature weights of the g-ordinates.
-    ScalingFactor(NLAYER) : ndarray ##
+    ScalingFactor(NLAYER) : ndarray
         Scale stuff to line of sight
-    RADIUS : real ##
+    RADIUS : real
         Planetary radius
-        We want SI unit (m) here.
-    solspec : ndarray ##
+        Unit: m
+    solspec : ndarray
         Stellar spectra, used when the unit of the output is in fraction
         of stellar irradiance.
 

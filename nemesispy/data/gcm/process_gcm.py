@@ -1,5 +1,5 @@
-import sys
-sys.path.append('/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/')
+#!/usr/local/bin/python3
+# -*- coding: utf-8 -*-
 import numpy as np
 import os
 """
@@ -135,31 +135,9 @@ for ilon in range(nlon):
             vmrmap_mod_new[ilon,ilat,ipv,4] = 0.162329 # He
             vmrmap_mod_new[ilon,ilat,ipv,5] = 0.836727 # H2
 
-
-from nemesispy.radtran.utils import adjust_hydrostatH
-fake_hv =  np.linspace(0, 1404644.74126812, num=53)
-fake_hvmap = np.zeros((nlon,nlat,npv))
-for ilon in range(nlon):
-    for ilat in range(nlat):
-        fake_hvmap[ilon,ilat,:] = fake_hv
-
 gas_id = np.array([  1, 2,  5,  6, 40, 39])
 M_plt = 3.8951064000000004e+27 # kg
 R_plt = 74065.70 * 1e3  # m
-
-hvmap  = np.zeros((nlon,nlat,npv))
-for ilon in range(nlon):
-    for ilat in range(nlat):
-        hvmap[ilon,ilat,:] = adjust_hydrostatH(H=fake_hv[:],P=pv,
-            T=tmap[ilon,ilat,:],ID=gas_id,VMR=vmrmap[ilon,ilat,:,:],
-            M_plt=M_plt,R_plt=R_plt)
-
-hvmap_mod  = np.zeros((nlon,nlat,npv))
-for ilon in range(nlon):
-    for ilat in range(nlat):
-        hvmap_mod[ilon,ilat,:] = adjust_hydrostatH(H=fake_hv[:],P=pv,
-            T=tmap_mod[ilon,ilat,:],ID=gas_id,VMR=vmrmap_mod[ilon,ilat,:,:],
-            M_plt=M_plt,R_plt=R_plt)
 
 # WASP43b spectrum
 wasp43_spec = np.array([3.341320e+25, 3.215455e+25, 3.101460e+25, 2.987110e+25,

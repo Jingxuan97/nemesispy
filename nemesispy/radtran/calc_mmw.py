@@ -24,7 +24,8 @@ def calc_mmw(ID, VMR, ISO=[]):
     Returns
     -------
     mmw : real
-        Mean molecular weight in kg.
+        Mean molecular weight.
+        Unit: kg
 
     Notes
     -----

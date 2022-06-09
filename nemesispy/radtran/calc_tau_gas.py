@@ -284,19 +284,23 @@ def calc_tau_gas(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
         Has dimension: NWAVE x NG x NPRESSK x NTEMPK.
     P_layer(NLAYER) : ndarray
         Atmospheric pressure grid.
+        Unit: Pa
     T_layer(NLAYER) : ndarray
         Atmospheric temperature grid.
+        Unit: K
     VMR_layer(NLAYER,NGAS) : ndarray
         Array of volume mixing ratios for NGAS.
         Has dimensioin: NLAYER x NGAS
-    U_layer : ndarray
-        DESCRIPTION.
+    U_layer(NLAYER) : ndarray
+        Total number of gas particles in each layer.
+        Unit: no. of particle/m^2
     P_grid(NPRESSK) : ndarray
         Pressure grid on which the k-coeff's are pre-computed.
     T_grid(NTEMPK) : ndarray
         Temperature grid on which the k-coeffs are pre-computed.
-    del_g : ndarray
-        DESCRIPTION.
+    del_g(NG) : ndarray
+        Gauss quadrature weights for the g-ordinates.
+        These are the widths of the bins in g-space.
 
     Returns
     -------
