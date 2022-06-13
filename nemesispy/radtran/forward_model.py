@@ -8,7 +8,8 @@ from nemesispy.radtran.calc_layer import calc_layer
 from nemesispy.radtran.read import read_kls
 from nemesispy.radtran.calc_radiance import calc_radiance, calc_planck
 from nemesispy.radtran.read import read_cia
-from nemesispy.common.calc_trig import gauss_lobatto_weights, interpvivien_point
+from nemesispy.common.calc_trig import gauss_lobatto_weights
+from nemesispy.common.interpolate_gcm import interpvivien_point
 from nemesispy.radtran.calc_hydrostat import calc_hydrostat
 
 class ForwardModel():

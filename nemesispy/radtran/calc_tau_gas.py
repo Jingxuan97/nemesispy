@@ -8,7 +8,7 @@ import numpy as np
 from numba import jit
 
 @jit(nopython=True)
-def interp_k(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t, wavecalc=None):
+def interp_k(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t):
     """
     Interpolate the k coeffcients to given presures and temperatures
     using pre-tabulated k-tables.
@@ -32,12 +32,11 @@ def interp_k(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t, wavecalc=None):
 
     Returns
     -------
-    k_gas_w_g_l(NGAS,NWAVE,NG,NLAYER) : ndarray
+    k_gas_w_g_l(NGAS,NWAVEKTA,NG,NLAYER) : ndarray
         The interpolated-to-atmosphere k-coefficients.
         Has dimension: NGAS x NWAVE x NG x NLAYER.
     Notes
     -----
-    Units: bar for pressure and K for temperature.
     Code breaks if P_layer/T_layer is out of the range of P_grid/T_grid.
     Mainly need to worry about max(T_layer)>max(T_grid).
     No extrapolation outside of the TP grid of ktable.
@@ -46,95 +45,88 @@ def interp_k(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t, wavecalc=None):
     NLAYER = len(P_layer)
     k_gas_w_g_l = np.zeros((NGAS,NWAVE,NG,NLAYER))
     kgood = np.zeros((NGAS,NWAVE,NG,NLAYER))
+
     for ilayer in range(NLAYER):
-        press1 = P_layer[ilayer]
-        temp1 = T_layer[ilayer]
-        # find the Pressure levels just above and below that of current layer
-        lpress = np.log(press1)
-        # press0, ip = find_nearest(P_grid,press1)
-        ip = np.abs(P_grid-press1).argmin()
-        press0 = P_grid[ip]
+        p = P_layer[ilayer]
+        t = T_layer[ilayer]
 
-        if P_grid[ip] >= press1:
-            iphi = ip
+        # Find pressure grid points above and below current layer pressure
+        ip = np.abs(P_grid-p).argmin()
+        if P_grid[ip] >= p:
+            ip_high = ip
             if ip == 0:
-                lpress = np.log(P_grid[0])
-                ipl = 0
-                iphi = 1
+                p = P_grid[0]
+                ip_low = 0
+                ip_high = 1
             else:
-                ipl = ip - 1
-        elif P_grid[ip]<press1:
-            ipl = ip
-            if ip == NPRESS -1:
-                lpress = np.log(P_grid[NPRESS-1])
-                iphi = NPRESS - 1
-                ipl = NPRESS - 2
+                ip_low = ip-1
+        elif P_grid[ip]<p:
+            ip_low = ip
+            if ip == NPRESS-1:
+                p = P_grid[NPRESS-1]
+                ip_high = NPRESS-1
+                ip_low = NPRESS-2
             else:
-                iphi = ip + 1
+                ip_high = ip + 1
 
-        # find the Temperature levels just above and below that of current layer
-        # temp0, it = find_nearest(T_grid, temp1)
-        it = np.abs(T_grid-temp1).argmin()
-        temp0 = T_grid[it]
-
-        if T_grid[it]>=temp1:
-            ithi = it
+        # Find temperature grid points above and below current layer temperature
+        it = np.abs(T_grid-t).argmin()
+        if T_grid[it] >= t:
+            it_high = it
             if it == 0:
-                temp1 = T_grid[0]
-                itl = 0
-                ithi = 1
+                t = T_grid[0]
+                it_low = 0
+                it_high = 1
             else:
-                itl = it -1
-        elif T_grid[it]<temp1:
-            itl = it
+                it_low = it -1
+        elif T_grid[it] < t:
+            it_low = it
             if it == NTEMP-1:
-                temp1 = T_grid[-1]
-                ithi = NTEMP - 1
-                itl = NTEMP -2
+                t = T_grid[-1]
+                it_high = NTEMP - 1
+                it_low = NTEMP -2
             else:
-                ithi = it + 1
+                it_high = it + 1
 
-        # interpolation
-        plo = np.log(P_grid[ipl])
-        phi = np.log(P_grid[iphi])
-        tlo = T_grid[itl]
-        thi = T_grid[ithi]
+        # Set up arrays for interpolation
+        lnp = np.log(p)
+        lnp_low = np.log(P_grid[ip_low])
+        lnp_high = np.log(P_grid[ip_high])
+        t_low = T_grid[it_low]
+        t_high = T_grid[it_high]
 
-        klo1 = np.zeros((NGAS,NWAVE,NG))
-        klo2 = np.zeros((NGAS,NWAVE,NG))
-        khi1 = np.zeros((NGAS,NWAVE,NG))
-        khi2 = np.zeros((NGAS,NWAVE,NG))
+        f11 = np.zeros((NGAS,NWAVE,NG))
+        f12 = np.zeros((NGAS,NWAVE,NG))
+        f22 = np.zeros((NGAS,NWAVE,NG))
+        f21 = np.zeros((NGAS,NWAVE,NG))
 
-        # klo1 = np.zeros([self.NWAVE,self.NG,self.NGAS])
+        f11[:,:,:] = k_gas_w_g_p_t[:,:,:,ip_low,it_low]
+        f12[:,:,:] = k_gas_w_g_p_t[:,:,:,ip_low,it_high]
+        f21[:,:,:] = k_gas_w_g_p_t[:,:,:,ip_high,it_high]
+        f22[:,:,:] = k_gas_w_g_p_t[:,:,:,ip_high,it_low]
 
-        klo1[:] = k_gas_w_g_p_t[:,:,:,ipl,itl]
-        klo2[:] = k_gas_w_g_p_t[:,:,:,ipl,ithi]
-        khi2[:] = k_gas_w_g_p_t[:,:,:,iphi,ithi]
-        khi1[:] = k_gas_w_g_p_t[:,:,:,iphi,itl]
+        # Bilinear interpolation
+        v = (lnp-lnp_low)/(lnp_high-lnp_low)
+        u = (t-t_low)/(t_high-t_low)
 
-        # bilinear interpolation
-        v = (lpress-plo)/(phi-plo)
-        u = (temp1-tlo)/(thi-tlo)
-        dudt = 1./(thi-tlo)
-
-        igood = np.where( (klo1>0.0) & (klo2>0.0) & (khi1>0.0) & (khi2>0.0) )
-        ibad = np.where( (klo1<=0.0) & (klo2<=0.0) & (khi1<=0.0) & (khi2<=0.0) )
+        igood = np.where( (f11>0.0) & (f12>0.0) & (f22>0.0) & (f21>0.0) )
+        ibad = np.where( (f11<=0.0) & (f12<=0.0) & (f22<=0.0) & (f21<=0.0) )
 
         for index in range(len(igood[0])):
             kgood[igood[0][index],igood[1][index],igood[2][index],ilayer] \
-                = (1.0-v)*(1.0-u)*np.log(klo1[igood[0][index],igood[1][index],igood[2][index]]) \
-                + v*(1.0-u)*np.log(khi1[igood[0][index],igood[1][index],igood[2][index]]) \
-                + v*u*np.log(khi2[igood[0][index],igood[1][index],igood[2][index]]) \
-                + (1.0-v)*u*np.log(klo2[igood[0][index],igood[1][index],igood[2][index]])
+                = (1.0-v)*(1.0-u)*np.log(f11[igood[0][index],igood[1][index],igood[2][index]]) \
+                + v*(1.0-u)*np.log(f22[igood[0][index],igood[1][index],igood[2][index]]) \
+                + v*u*np.log(f21[igood[0][index],igood[1][index],igood[2][index]]) \
+                + (1.0-v)*u*np.log(f12[igood[0][index],igood[1][index],igood[2][index]])
             kgood[igood[0][index],igood[1][index],igood[2][index],ilayer] \
                 = np.exp(kgood[igood[0][index],igood[1][index],igood[2][index],ilayer])
 
         for index in range(len(ibad[0])):
             kgood[ibad[0][index],ibad[1][index],ibad[2][index],ilayer] \
-                = (1.0-v)*(1.0-u)*klo1[ibad[0][index],ibad[1][index],ibad[2][index]] \
-                + v*(1.0-u)*khi1[ibad[0][index],ibad[1][index],ibad[2][index]] \
-                + v*u*khi2[ibad[0][index],ibad[1][index],ibad[2][index]] \
-                + (1.0-v)*u*klo2[ibad[0][index],ibad[1][index],ibad[2][index]]
+                = (1.0-v)*(1.0-u)*f11[ibad[0][index],ibad[1][index],ibad[2][index]] \
+                + v*(1.0-u)*f22[ibad[0][index],ibad[1][index],ibad[2][index]] \
+                + v*u*f21[ibad[0][index],ibad[1][index],ibad[2][index]] \
+                + (1.0-v)*u*f12[ibad[0][index],ibad[1][index],ibad[2][index]]
 
     k_gas_w_g_l = kgood
     return k_gas_w_g_l
@@ -158,6 +150,7 @@ def rankg(weight, cont, del_g):
     -------
     k_g(NG) : ndarray
         Combined k-dist.
+        Unit: cm^2 (per particle)
     """
     ng = len(del_g)
     nloop = ng*ng
@@ -208,8 +201,10 @@ def noverlapg(k_gas_g, amount, del_g):
     k_gas_g(NGAS,NG) : ndarray
         K-distributions of the different gases.
         Each row contains a k-distribution defined at NG g-ordinates.
+        Unit: cm^2 (per particle)
     amount(NGAS) : ndarray
         Absorber amount of each gas.
+        Unit: (no. of partiicles) cm^-2
     del_g(NG) : ndarray
         Gauss quadrature weights for the g-ordinates.
         These are the widths of the bins in g-space.
@@ -218,6 +213,7 @@ def noverlapg(k_gas_g, amount, del_g):
     -------
     k_g(NG) : ndarray
         Combined k-distribution.
+        Unit: cm^2 (per particle)
     """
     # amount = VMR_layer x U_layer
     NGAS = len(amount)
@@ -258,9 +254,8 @@ def noverlapg(k_gas_g, amount, del_g):
             # skip if first k-distribution = 0.0
             if k_g1[NG-1] == 0:
                 k_g = k_g2*a2
-            # skip if second k-distribution = 0.0
+            # Skip if second k-distribution = 0.0
             elif k_g2[NG-1]*a2== 0:
-                # print('elif',k_g)
                 k_g = k_g1
             else:
                 nloop = 0
@@ -280,7 +275,8 @@ def calc_tau_gas(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
     Parameters
     ----------
     k_gas_w_g_p_t(NGAS,NWAVE,NG,NPRESSK,NTEMPK) : ndarray
-        Raw k-coefficients.
+        k-coefficients.
+        Unit: cm^2 (per particle)
         Has dimension: NWAVE x NG x NPRESSK x NTEMPK.
     P_layer(NLAYER) : ndarray
         Atmospheric pressure grid.
@@ -293,7 +289,7 @@ def calc_tau_gas(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
         Has dimensioin: NLAYER x NGAS
     U_layer(NLAYER) : ndarray
         Total number of gas particles in each layer.
-        Unit: no. of particle/m^2
+        Unit: (no. of particle) m^-2
     P_grid(NPRESSK) : ndarray
         Pressure grid on which the k-coeff's are pre-computed.
     T_grid(NTEMPK) : ndarray
@@ -305,8 +301,7 @@ def calc_tau_gas(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
     Returns
     -------
     tau_w_g_l(NWAVE,NG,NLAYER) : ndarray
-        DESCRIPTION.
-
+        Optical path due to spectral line absorptions.
 
     Notes
     -----
@@ -315,7 +310,7 @@ def calc_tau_gas(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
     """
 
     Scaled_U_layer = U_layer * 1.0e-20
-    Scaled_U_layer *= 1.0e-4 # convert from absorbers per m^2 to per cm^2
+    Scaled_U_layer *= 1.0e-4 # convert from per m^2 to per cm^2
 
     k_gas_w_g_l = interp_k(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t)
     Ngas, Nwave, Ng, Nlayer = k_gas_w_g_l.shape

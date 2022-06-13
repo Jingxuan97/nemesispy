@@ -14,9 +14,17 @@ TO DO:
 13. Isotopologue (limited effects)
 14. Gas ID check; active and background species
 15. Include opacity units
+16. Derive constants in Planck function from fundamental constants
 ERRORS:
 1.
 /Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/radtran/calc_path.py:270:
 RuntimeWarning: invalid value encountered in reciprocal
   Gas_layer = (Gas_layer.T * scale**-1 ).T
+no idea where this RuntimeWarning is coming up
+
 2. Speed up trig routines
+
+p = np.array([5.95470461,5.7835182,5.64078699,5.51909612,5.41390052,5.32229798
+,5.24221413,5.1720133,5.11029669,5.05587078,5.0077084,4.96482754
+,4.92627099,4.89122167,4.85910147,4.829544,4.80227157,4.77698932
+,4.7533452, 4.73095118])

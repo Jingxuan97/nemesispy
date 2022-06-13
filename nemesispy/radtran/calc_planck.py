@@ -2,9 +2,13 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 from numba import jit
-
+"""
+In the current Fortran Nemesis code, the values of constants used are
+C1 = 1.1911e-12 W cm2
+C2 = 1.439 cm K-1
+"""
 @jit(nopython=True)
-def calc_planck(wave_grid,temp,ispace=1):
+def calc_planck(wave_grid,T,ispace=1):
     """
     Calculates the blackbody radiation.
 
@@ -12,7 +16,8 @@ def calc_planck(wave_grid,temp,ispace=1):
     ----------
     wave_grid(nwave) : ndarray
         Wavelength or wavenumber array
-    temp : real
+        Unit: um or cm-1
+    T : real
         Temperature of the blackbody (K)
     ispace : int
         Flag indicating the spectral units
@@ -22,22 +27,26 @@ def calc_planck(wave_grid,temp,ispace=1):
     Returns
     -------
 	bb(nwave) : ndarray
-        Planck function
+        Spectral radiance.
         Unit: (0) W cm-2 sr-1 (cm-1)-1
               (1) W cm-2 sr-1 um-1
     """
-    c1 = np.array([1.1911e-12])
-    c2 = np.array([1.439])
+    wave = wave_grid.astype(np.float64)
+    if np.any(wave<=0) or T < 0:
+        raise(Exception('error in calc_planck: negative wavelengths' \
+            +' or temperature'))
+    C1 = np.array([1.1910e-12]) # W cm2 2*PLANCK*C_LIGHT**2
+    C2 = np.array([1.4388]) # cm K-1 PLANCK*C_LIGHT/K_B
     if ispace==0:
-        y = wave_grid
-        a = c1 * (y**3.)
+        y = wave
+        a = C1 * (y**3.)
     elif ispace==1:
-        y = 1.0e4/wave_grid
-        a = c1 * (y**5.) / 1.0e4
+        y = 1.0e4/wave
+        a = C1 * (y**5.) / 1.0e4
     else:
         raise Exception('error in calc_planck: ISPACE must be either 0 or 1')
 
-    tmp = c2 * y / temp
+    tmp = C2 * y / T
     b = np.exp(tmp) - 1
     bb = (a/b)
 
