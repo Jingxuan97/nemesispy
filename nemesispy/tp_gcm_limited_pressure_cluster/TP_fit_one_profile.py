@@ -18,9 +18,9 @@ This is what we do here.
 """
 # Read GCM data
 from process_gcm import (nlon,nlat,xlon,xlat,npv,pv,\
-    tmap,h2omap,comap,co2map,ch4map,hemap,h2map,vmrmap,hvmap,\
+    tmap,h2omap,comap,co2map,ch4map,hemap,h2map,vmrmap,\
     tmap_mod,h2omap_mod,comap_mod,co2map_mod,ch4map_mod,\
-    hemap_mod,h2map_mod,vmrmap_mod,hvmap_mod,phase_grid,\
+    hemap_mod,h2map_mod,vmrmap_mod,phase_grid,\
     kevin_phase_by_wave,kevin_wave_by_phase,\
     pat_phase_by_wave,pat_wave_by_phase,\
     vmrmap_mod_new,tmap_hot)
@@ -48,9 +48,9 @@ mmw = 3.92945509119087e-27 # kg
 n_params = 5
 # Range of TP profile parameters follow Feng et al. 2020
 def Prior(cube, ndim, nparams):
-    cube[0] = -3. + (2-(-3.))*cube[0] # kappa
-    cube[1] = -3. + (2-(-3.))*cube[1] # gamma1
-    cube[2] = -3. + (2-(-3.))*cube[2] # gamma2
+    cube[0] = -4. + (2-(-3.))*cube[0] # kappa
+    cube[1] = -4. + (2-(-3.))*cube[1] # gamma1
+    cube[2] = -4. + (2-(-3.))*cube[2] # gamma2
     cube[3] = 0. + (1.-0.)*cube[3] # alpha
     cube[4] = 0. + (4000.-0.)*cube[4] # beta
 
@@ -59,7 +59,7 @@ if __name__ == "__main__":
         os.mkdir('chains')
     ilon = 0
     ilat = 0
-    basename = 'lon{}lat{}'.format(ilon,ilat)
+    err = 5
     T_GCM = tmap_mod[ilon,ilat,:]
     T_GCM_interped = np.interp(P_range,pv[::-1],T_GCM[::-1])
     # Convert model differences to LogLikelihood
@@ -81,7 +81,7 @@ if __name__ == "__main__":
         T_model = Mod.temperature()
         T_diff = T_model - T_GCM_interped
         # calculate loglikelihood, = goodness of fit
-        yerr = 100
+        yerr = err
         loglikelihood= -0.5*(np.sum(T_diff**2/yerr**2))
         print('loglikelihood',loglikelihood)
         return loglikelihood
@@ -93,7 +93,7 @@ if __name__ == "__main__":
                     Prior,
                     n_params,
                     n_live_points=400,
-                    outputfiles_basename='chains/{}{}-'.format(ilon,ilat)
+                    outputfiles_basename='chains/{}_{}-'.format(ilon,ilat)
                     )
     end_time = time.time()
     runtime = end_time - start_time
