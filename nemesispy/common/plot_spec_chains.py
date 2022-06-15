@@ -122,11 +122,11 @@ for iphase,phase in enumerate(phase_grid):
     axs[ix,iy].plot(wave_grid, retrieved_TP_phase_by_wave[iphase,:]*1e3,
                     marker='s',ms=0.1,mfc='b',color='b',
                     linewidth=0.1,label='1D')
-    
+
     axs[ix,iy].plot(wave_grid, gcm_phase_by_wave[iphase,:]*1e3,
                     marker='s',ms=0.1,mfc='r',color='r',
                     linewidth=0.1,label='GCM limited')
-    
+
     axs[ix,iy].plot(wave_grid, pat_phase_by_wave[iphase,:]*1e3,
                     marker='s',ms=0.1,mfc='g',color='g',
                     linewidth=0.1,label='GCM full')
@@ -162,11 +162,11 @@ for iwave,wave in enumerate(wave_grid[::-1]):
     axs[iwave].plot(phase_grid, retrieved_TP_wave_by_phase[16-iwave,:]*1e3,
                         marker='s',ms=0.1,mfc='b',color='b',linewidth=0.5,linestyle='--',
                         label='1D')
-    
+
     axs[iwave].plot(phase_grid, retrieved_TP_wave_by_phase[16-iwave,:]*1e3,
                         marker='s',ms=0.1,mfc='r',color='r',linewidth=0.5,linestyle=':',
                         label='GCM limited')
-    
+
     axs[iwave].plot(phase_grid, pat_wave_by_phase[16-iwave,:]*1e3,
                     marker='s',ms=0.1,mfc='g',color='g',
                     linewidth=0.5,label='GCM full')

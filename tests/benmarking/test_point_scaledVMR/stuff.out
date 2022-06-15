@@ -1,0 +1,161 @@
+ Enter run name : checking files
+ Reading reference file from : test_point_scaledVMR.ref                                                                            
+ Runname : test_point_scaledVMR.ref                                                                            
+ NPRO, NVMR :           40           6
+ Reading reference file from : test_point_scaledVMR.ref                                                                            
+ Files OK T
+ Nemesis - corr-k calculation
+ iform1 =            1
+ percbool =  F
+ lin =            0
+ wavesetb: nwave =           17
+           1          17          17
+ Reading in            1  variables
+ Total number of variables (nx) :            1
+ coreret: Checking can invert Sa
+ dinvertm: Cholesky decomposition
+ dinvertm.f: Matrix inversion OK
+ Calling setifix
+ j,ifix(j) :            1           1
+ Calling forwardavfovX - B
+ Reading reference file from : test_point_scaledVMR.ref                                                                            
+ forwardavfovX: jsurf,jalb,jtan,jpre          -1          -1          -1          -1
+ Warning from nemesis/setup.f. Surface temperature must
+ be greater than 0.0 for some parts of code that deal
+ with sensitivity to surface temperature
+ ForwardavfovX. Spectrum            1  of            1
+ gsetrad, lin =            0
+ NLATREF =            1
+ Snapping to first latitude
+ XX. ISCALE =            1           1           1           1           1           1
+ XhydrostatH: JZERO =            1
+ XhydrostatH: JZERO =            1
+ XhydrostatH: JZERO =            1
+  
+ IPAR =            1
+ ISCALE :            0           1           1           1           1           1
+ IERR  =            0
+ XhydrostatH: JZERO =            1
+ gsetrad -            1           1
+ gsetrad - iflagcloud,iflagsrom =  F           0
+ gsetrad - cbflag, iflagcb =  F           0
+ AA ISCAT =            0
+  RDMOD.f :: reading model: test_point_scaledvmr.prf                                                                            
+ RDMOD: AMFORM =            1
+  RDDMOD.f :: reading dust-model: aerosol.prf                                                                                         
+  RDDMOD.f :: dust-model has            1  aerosol types
+ Check_profile called
+ Checking : test_point_scaledVMR.sca                                                                            
+ icheck =            0
+ Reading reference file from : test_point_scaledVMR.ref                                                                            
+ CIRSRTFG_WAVE - ILBL =            0
+  
+  SUBPATHG.f :: iconv =           24
+  SUBPATHG.f :: vmin =    1.14250004     , vmax =    4.50000000    
+  SUBPATHG.f :: delv =   0.209843755     , fwhm =    0.00000000    
+  SUBPATHG.f :: wing =    0.00000000     , vrel =    0.00000000    
+  SUBPATHG.f :: reading spectral data from:  TEST_POINT_SCALEDVMR.KLS                                                                           
+  RDMOD.f :: reading model: test_point_scaledvmr.prf                                                                            
+ RDMOD: AMFORM =            1
+  RDDMOD.f :: reading dust-model: aerosol.prf                                                                                         
+  RDDMOD.f :: dust-model has            1  aerosol types
+ radius layer=   74065.7031    
+  LAYERG.f :: Number of dust types:            1
+  LAYERG.f :: Dust type =            1
+  LAYERG.f :: Total number/cm2 for path=    0.00000000    
+
+Klist filename: test_point_scaledVMR.kls                                                                            
+      CALLING read_klist
+ klist file : test_point_scaledVMR.kls                                                                            
+  READ_KLIST.f :: Number of k-files =            4
+      read_klist COMPLETE
+  
+ Reading_xsec: X-section file : test_point_scaledVMR.xsc                                                                            
+ Ncont is           1
+ get_xsec: read_xsec OK
+ nsec1 =           20
+ NPATH =            1
+  
+  Waiting for CIRSradg_wave etal to complete ...
+  Percent Complete =    0.00000000    
+ ciaread. Reading File = /Users/jingxuanyang/radtrancode/raddata/exocia_hitran12_200-3800K.tab                               
+ ciaread : New Data read in
+  Percent Complete =    10.0000000    
+  Percent Complete =    20.0000000    
+  Percent Complete =    30.0000000    
+  Percent Complete =    40.0000000    
+  Percent Complete =    50.0000000    
+  Percent Complete =    60.0000000    
+  Percent Complete =    70.0000000    
+  Percent Complete =    80.0000000    
+  Percent Complete =    90.0000000    
+  Percent Complete =    100.000000    
+ ForwardavfovX: Npath,sol_ang,emiss_ang =            1   0.00000000       0.00000000    
+           1   1.00000000       1.39409769E-03   1.39409769E-03   1.39409769E-03
+           2   1.00000000       1.45456532E-03   1.45456532E-03   1.45456532E-03
+           3   1.00000000       1.49516377E-03   1.49516377E-03   1.49516377E-03
+           4   1.00000000       1.55053369E-03   1.55053369E-03   1.55053369E-03
+           5   1.00000000       1.63209927E-03   1.63209927E-03   1.63209927E-03
+           6   1.00000000       1.67341228E-03   1.67341228E-03   1.67341228E-03
+           7   1.00000000       1.64968695E-03   1.64968695E-03   1.64968695E-03
+           8   1.00000000       1.63698185E-03   1.63698185E-03   1.63698185E-03
+           9   1.00000000       1.61505968E-03   1.61505968E-03   1.61505968E-03
+          10   1.00000000       1.56263704E-03   1.56263704E-03   1.56263704E-03
+          11   1.00000000       1.50619971E-03   1.50619971E-03   1.50619971E-03
+          12   1.00000000       1.43334107E-03   1.43334107E-03   1.43334107E-03
+          13   1.00000000       1.36843009E-03   1.36843009E-03   1.36843009E-03
+          14   1.00000000       1.31473411E-03   1.31473411E-03   1.31473411E-03
+          15   1.00000000       1.25681330E-03   1.25681330E-03   1.25681330E-03
+          16   1.00000000       4.72259149E-03   4.72259149E-03   4.72259149E-03
+          17   1.00000000       5.70620457E-03   5.70620457E-03   5.70620457E-03
+ Calc_gain_matrix: Inverting...
+ dinvertm: Cholesky decomposition
+ dinvertm.f: Matrix inversion OK
+ calc_phiret: phi1,phi2 =    400367.312       0.00000000    
+ Assess:
+ Average of diagonal elements of Kk*Sx*Kt :    1.0000009154083770E-010
+ Average of diagonal elements of Se :    1.0000009154076395E-010
+ Ratio =    1.0000000000007374     
+ Average of Kk*Sx*Kt/Se element ratio :    1.0000000000007372     
+ iterred,kiter           1          -1
+ chisq/ny is equal to :    23551.0176    
+ Coreret: WARNING
+ chisq/ny should be less than 1 if correctly retrieved
+ Calculating final covariance matrix
+ Matrix calculated
+ Writeout: ispace,iform,xfac :            1           1   1.00000000    
+ D           3          40   0.00000000    
+ E           1
+ Warning from nemesis/setup.f. Surface temperature must
+ be greater than 0.0 for some parts of code that deal
+ with sensitivity to surface temperature
+ Angles :    0.00000000       0.00000000       0.00000000    
+ nf =            1
+ calling gsetrad
+ gsetrad, lin =            0
+ NLATREF =            1
+ Snapping to first latitude
+ XX. ISCALE =            1           1           1           1           1           1
+ XhydrostatH: JZERO =            1
+ XhydrostatH: JZERO =            1
+ XhydrostatH: JZERO =            1
+  
+ IPAR =            1
+ ISCALE :            0           1           1           1           1           1
+ IERR  =            0
+ XhydrostatH: JZERO =            1
+ gsetrad -            1           1
+ gsetrad - iflagcloud,iflagsrom =  F           0
+ gsetrad - cbflag, iflagcb =  F           0
+ AA ISCAT =            0
+  RDMOD.f :: reading model: test_point_scaledvmr.prf                                                                            
+ RDMOD: AMFORM =            1
+  RDDMOD.f :: reading dust-model: aerosol.prf                                                                                         
+  RDDMOD.f :: dust-model has            1  aerosol types
+ Check_profile called
+ Checking : test_point_scaledVMR.sca                                                                            
+ icheck =            0
+ Reading reference file from : test_point_scaledVMR.ref                                                                            
+ gsetrad called OK
+ Model run OK
+ Elapsed time (s) =      1.1

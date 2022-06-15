@@ -105,19 +105,54 @@ class ForwardModel():
         self.is_opacity_data_set = True
 
     def calc_point_spectrum(self, H_model, P_model, T_model, VMR_model,
-        path_angle, solspec=np.array([0])):
+        path_angle, solspec=[]):
         """
         First get layer properties from model inputs
         Then calculate the spectrum at a single point on the disc.
         """
+        H_layer,P_layer,T_layer,VMR_layer,U_layer,\
+        MMW_layer,Gas_layer,scale,del_S,del_H = calc_layer(
+            self.R_plt, H_model, P_model, T_model, VMR_model,
+            self.gas_id_list, self.NLAYER, path_angle, layer_type=1,
+            H_0=0.0, NSIMPS=101
+            )
 
-        H_layer,P_layer,T_layer,VMR_layer,U_layer,MMW_layer,Gas_layer,scale,del_S,del_H\
-            = calc_layer(self.R_plt, H_model, P_model, T_model, VMR_model,
-            self.gas_id_list, self.NLAYER, path_angle, layer_type=1, H_0=0.0,
-            NSIMPS=101)
-
-        if not solspec.all():
+        if len(solspec)==0:
             solspec = np.ones(len(self.wave_grid))
+
+        point_spectrum = calc_radiance(self.wave_grid, U_layer, P_layer, T_layer,
+            VMR_layer, self.k_gas_w_g_p_t, self.k_table_P_grid,
+            self.k_table_T_grid, self.del_g, ScalingFactor=scale,
+            RADIUS=self.R_plt, solspec=solspec, k_cia=self.k_cia_pair_t_w,
+            ID=self.gas_id_list,cia_nu_grid=self.cia_nu_grid,
+            cia_T_grid=self.cia_T_grid, DEL_S=del_H)
+
+        return point_spectrum
+
+    def calc_point_spectrum_hydro(self, P_model, T_model, VMR_model,
+        path_angle, solspec=[]):
+        """
+        Use the hydrodynamic equation to calculate layer height
+        First get layer properties from model inputs
+        Then calculate the spectrum at a single point on the disc.
+        """
+        NPRO = len(P_model)
+        mmw = np.zeros(NPRO)
+        for ipro in range(NPRO):
+            mmw[ipro] = calc_mmw(self.gas_id_list,VMR_model[ipro,:])
+        H_model = calc_hydrostat(P=P_model, T=T_model, mmw=mmw,
+            M_plt=self.M_plt, R_plt=self.R_plt)
+
+        H_layer,P_layer,T_layer,VMR_layer,U_layer,\
+        MMW_layer,Gas_layer,scale,del_S,del_H = calc_layer(
+            self.R_plt, H_model, P_model, T_model, VMR_model,
+            self.gas_id_list, self.NLAYER, path_angle, layer_type=1,
+            H_0=0.0, NSIMPS=101
+            )
+
+        if len(solspec)==0:
+            solspec = np.ones(len(self.wave_grid))
+
         point_spectrum = calc_radiance(self.wave_grid, U_layer, P_layer, T_layer,
             VMR_layer, self.k_gas_w_g_p_t, self.k_table_P_grid,
             self.k_table_T_grid, self.del_g, ScalingFactor=scale,
@@ -175,15 +210,44 @@ class ForwardModel():
         # print('number of point spectrum = ',nav)
         return disc_spectrum
 
-    def run_point_spectrum(self, H_model, P_model, T_model,\
-            VMR_model, path_angle, solspec=None):
-        if self.is_planet_model_set == False:
-            raise('Planet model has not been set yet')
-        elif self.is_opacity_data_set == False:
-            raise('Opacity data has not been set yet')
-        point_spectrum = self.calc_point_spectrum(H_model, P_model, T_model,\
-            VMR_model, path_angle, solspec=solspec)
-        return point_spectrum
+    def calc_disc_spectrum_uniform(self, nmu, P_model, T_model, VMR_model,
+        H_model=[],solspec=[]):
+        """Caculate the disc integrated spectrum of a homogeneous atmosphere
+        """
+        # initialise output array
+        disc_spectrum = np.zeros(len(self.wave_grid))
+        nav, wav = gauss_lobatto_weights(0, nmu)
+        fov_emission_angles = wav[3,:]
+        fov_weights = wav[5,:]
+
+        # Hydrostatic case
+        if len(H_model) == 0:
+            for iav in range(nav):
+                path_angle = fov_emission_angles[iav]
+                weight = fov_weights[iav]
+                point_spectrum = self.calc_point_spectrum_hydro(
+                    P_model, T_model, VMR_model, path_angle,
+                    solspec=solspec)
+                disc_spectrum += point_spectrum * weight
+        else:
+            for iav in range(nav):
+                path_angle = fov_emission_angles[iav]
+                weight = fov_weights[iav]
+                point_spectrum = self.calc_point_spectrum(
+                    H_model, P_model, T_model, VMR_model, path_angle,
+                    solspec=solspec)
+                disc_spectrum += point_spectrum * weight
+        return disc_spectrum
+
+    # def run_point_spectrum(self, H_model, P_model, T_model,\
+    #         VMR_model, path_angle, solspec=None):
+    #     if self.is_planet_model_set == False:
+    #         raise('Planet model has not been set yet')
+    #     elif self.is_opacity_data_set == False:
+    #         raise('Opacity data has not been set yet')
+    #     point_spectrum = self.calc_point_spectrum(H_model, P_model, T_model,\
+    #         VMR_model, path_angle, solspec=solspec)
+    #     return point_spectrum
 
 
     # def test_point_spectrum(self,U_layer,P_layer,T_layer,VMR_layer,del_S,

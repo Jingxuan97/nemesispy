@@ -57,7 +57,7 @@ FM.set_opacity_data(kta_file_paths=lowres_files, cia_file_path=cia_file_path)
 
 ### Testing one particular orbital phase (inhomogeneouus disc averaging)
 start2 = time.time()
-one_phase =  FM.calc_disc_spectrum(phase=phase, nmu=nmu, P_model = P_model,
+one_phase =  FM.calc_disc(phase=phase, nmu=nmu, P_model = P_model,
     global_model_P_grid=pv,
     global_T_model=tmap_mod, global_VMR_model=vmrmap_mod,
     mod_lon=xlon,
@@ -68,7 +68,7 @@ print(end2-start2)
 
 start_time = time.time()
 for i in range(NITER):
-    one_phase =  FM.calc_disc_spectrum(phase=phase, nmu=nmu, P_model = P_model,
+    one_phase =  FM.calc_disc(phase=phase, nmu=nmu, P_model = P_model,
         global_model_P_grid=pv,
         global_T_model=tmap_mod, global_VMR_model=vmrmap_mod,
         mod_lon=xlon,
