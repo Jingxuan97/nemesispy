@@ -107,8 +107,8 @@ for ilon in range(nlon):
     for ilat in range(nlat):
         for ipv in range(npv):
             vmrmap[ilon,ilat,ipv,0] = h2omap[ilon,ilat,ipv]
-            vmrmap[ilon,ilat,ipv,1] = comap[ilon,ilat,ipv]
-            vmrmap[ilon,ilat,ipv,2] = co2map[ilon,ilat,ipv]
+            vmrmap[ilon,ilat,ipv,1] = co2map[ilon,ilat,ipv]
+            vmrmap[ilon,ilat,ipv,2] = comap[ilon,ilat,ipv]
             vmrmap[ilon,ilat,ipv,3] = ch4map[ilon,ilat,ipv]
             vmrmap[ilon,ilat,ipv,4] = hemap[ilon,ilat,ipv]
             vmrmap[ilon,ilat,ipv,5] = h2map[ilon,ilat,ipv]

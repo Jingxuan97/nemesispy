@@ -11,6 +11,15 @@ folder_name = 'test_disc_gcm'
 ### Reference Opacity Data
 from helper import lowres_file_paths, cia_file_path
 
+# Read GCM data
+from nemesispy.data.gcm.process_gcm import (nlon,nlat,xlon,xlat,npv,pv,\
+    tmap,h2omap,comap,co2map,ch4map,hemap,h2map,vmrmap,\
+    tmap_mod,h2omap_mod,comap_mod,co2map_mod,ch4map_mod,\
+    hemap_mod,h2map_mod,vmrmap_mod,phase_grid,\
+    kevin_phase_by_wave,kevin_wave_by_phase,\
+    pat_phase_by_wave,pat_wave_by_phase,\
+    vmrmap_mod_new,tmap_hot)
+
 ### Reference Planet Input
 M_plt = 3.8951064000000004e+27 # kg
 R_plt = 74065.70 * 1e3 # m
@@ -28,52 +37,17 @@ wasp43_spec = np.array([3.341320e+25, 3.215455e+25, 3.101460e+25, 2.987110e+25,
        2.283720e+25, 2.203690e+25, 2.136015e+25, 1.234010e+24,
        4.422200e+23])
 
-### Reference Atmospheric Model Input
-NMODEL = 20
-NLAYER = NMODEL
-# Height in m
-H = np.linspace(0,1e4,NMODEL)
-
-# Pressure in pa, note 1 atm = 101325 pa
-P = np.array([2.00000000e+06, 1.18757212e+06, 7.05163779e+05, 4.18716424e+05,
-       2.48627977e+05, 1.47631828e+05, 8.76617219e+04, 5.20523088e+04,
-       3.09079355e+04, 1.83527014e+04, 1.08975783e+04, 6.47083012e+03,
-       3.84228875e+03, 2.28149750e+03, 1.35472142e+03, 8.04414702e+02,
-       4.77650239e+02, 2.83622055e+02, 1.68410823e+02, 1.00000000e+02])
-
-# Temperature in Kelvin
-T = np.array([2294.22993056, 2275.69702232, 2221.47726725, 2124.54056941,
-       1996.03871629, 1854.89143353, 1718.53879797, 1599.14914582,
-       1502.97122783, 1431.0218576 , 1380.55933525, 1346.97814697,
-       1325.49943114, 1312.13831743, 1303.97872899, 1299.05347108,
-       1296.10266693, 1294.34217288, 1293.29484759, 1292.67284408])
-
-f_PT = scipy.interpolate.interp1d(P,T)
-
-P = np.geomspace(20*1e5,1e-3*1e5,NMODEL)
-T = f_PT(P)
 
 # Gas Volume Mixing Ratio, constant with height
 gas_id = np.array([  1, 2,  5,  6, 40, 39])
 iso_id = np.array([0, 0, 0, 0, 0, 0])
 H2_ratio = 0.864
-VMR_H2O = 1.0E-4 # volume mixing ratio of H2O
-VMR_CO2 = 1.0E-4  # volume mixing ratio of CO2
-VMR_CO = 1.0E-4 # volume mixing ratio of CO
-VMR_CH4 = 1.0E-4 # volume mixing ratio of CH4
-VMR_He = (np.ones(NMODEL)-VMR_H2O-VMR_CO2-VMR_CO-VMR_CH4)*(1-H2_ratio)
-VMR_H2 = (np.ones(NMODEL)-VMR_H2O-VMR_CO2-VMR_CO-VMR_CH4)*H2_ratio
-NVMR = 6
-VMR = np.zeros((NMODEL,NVMR))
-VMR[:,0] = VMR_H2O
-VMR[:,1] = VMR_CO2
-VMR[:,2] = VMR_CO
-VMR[:,3] = VMR_CH4
-VMR[:,4] = VMR_He
-VMR[:,5] = VMR_H2
 
-# Number of zenith angle ring used for disc integration
-nmu_list = [2,3,4,5]
+# Selected longitudes
+ilon_list = [0,15,31,47]
+ilat = 15
+NMODEL = npv
+NLAYER = npv
 
 ### Set up Python forward model
 FM_py = ForwardModel()
@@ -91,8 +65,6 @@ file_path = os.path.dirname(os.path.realpath(__file__))
 os.chdir(file_path+'/'+folder_name) # move to designated process folder
 
 
-
-
 ### Set up figure
 fig, axs = plt.subplots(nrows=4,ncols=2,sharex='all',sharey='col',
     figsize=[8,10],dpi=600)
@@ -103,8 +75,14 @@ plt.tick_params(labelcolor='none',which='both',
     top=False,bottom=False,left=False,right=False)
 plt.xlabel(r'Wavelength ($\mu$m)')
 
-for index,nmu in enumerate(nmu_list):
+for index,ilon in enumerate(ilon_list):
+    nmu = 5
+    H = np.linspace(0,1e6,NMODEL)
+    P = pv
+    T = tmap[ilon,ilat,:]
+    VMR = vmrmap[ilon,ilat,:,:]
 
+    ## Run forward models
     python_disc_spec = FM_py.calc_disc_spectrum_uniform(nmu=nmu,
         P_model=P, T_model=T, VMR_model=VMR, solspec=wasp43_spec)
 
@@ -125,7 +103,7 @@ for index,nmu in enumerate(nmu_list):
         marker='x',markersize=2,label='Python')
 
     # Mark the path angle
-    axs[index,0].text(1.3,2.5e-3,"{} rings".format(nmu))
+    axs[index,0].text(1.3,2.5e-3,"lon={}".format(xlon[ilon]))
 
     ## Upper panel format
     axs[index,0].ticklabel_format(axis="y", style="sci", scilimits=(0,0))
