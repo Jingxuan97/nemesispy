@@ -1,12 +1,12 @@
 import numpy as np
-import os
 import matplotlib.pyplot as plt
-
+import os
+import scipy.interpolate
 from nemesispy.radtran.forward_model import ForwardModel
 from disc_benchmarking_fortran import Nemesis_api
 import time
 
-folder_name = 'discspec'
+folder_name = 'test_disc_rings'
 
 ### Reference Opacity Data
 from helper import lowres_file_paths, cia_file_path
@@ -29,12 +29,10 @@ wasp43_spec = np.array([3.341320e+25, 3.215455e+25, 3.101460e+25, 2.987110e+25,
        4.422200e+23])
 
 ### Reference Atmospheric Model Input
+NMODEL = 20
+NLAYER = NMODEL
 # Height in m
-H = np.array([      0.     ,  103738.07012,  206341.39335,  305672.8162 ,
-        400037.91149,  488380.27388,  570377.57036,  646857.33242,
-        718496.09845,  785987.95083,  851242.50591,  914520.46249,
-        976565.39549, 1037987.38369, 1099327.5361 , 1158956.80091,
-       1221026.73382, 1280661.28989, 1341043.14058, 1404762.36466])
+H = np.linspace(0,1e4,NMODEL)
 
 # Pressure in pa, note 1 atm = 101325 pa
 P = np.array([2.00000000e+06, 1.18757212e+06, 7.05163779e+05, 4.18716424e+05,
@@ -50,12 +48,10 @@ T = np.array([2294.22993056, 2275.69702232, 2221.47726725, 2124.54056941,
        1325.49943114, 1312.13831743, 1303.97872899, 1299.05347108,
        1296.10266693, 1294.34217288, 1293.29484759, 1292.67284408])
 
-NMODEL = len(H)
-NLAYER = 20
+f_PT = scipy.interpolate.interp1d(P,T)
 
-# Phase for disc averaging
-orbital_phase = 0
-central_long = 360 - orbital_phase
+P = np.geomspace(20*1e5,1e-3*1e5,NMODEL)
+T = f_PT(P)
 
 # Gas Volume Mixing Ratio, constant with height
 gas_id = np.array([  1, 2,  5,  6, 40, 39])
@@ -76,43 +72,29 @@ VMR[:,3] = VMR_CH4
 VMR[:,4] = VMR_He
 VMR[:,5] = VMR_H2
 
-###############################################################################
-### Run Fortran forward model
-# Create nemesis folder
-if not os.path.isdir(folder_name):
-    os.mkdir(folder_name)
-file_path = os.path.dirname(os.path.realpath(__file__))
-os.chdir(file_path+'/'+folder_name) # move to designated process folder
-# Initialise python FM_fo
-FM_fo = Nemesis_api(name=folder_name, NLAYER=NLAYER, gas_id_list=gas_id,
-    iso_id_list=iso_id, wave_grid=wave_grid)
-# Run Fortran code
-F_start = time.time()
-FM_fo.write_files(path_angle=0, H_model=H, P_model=P, T_model=T,
-    VMR_model=VMR)
-FM_fo.run_forward_model()
-wave, yerr, fortran_disc_spec = FM_fo.read_output()
-F_end = time.time()
-# Read Output files
-F_delH, F_totam, F_pres, F_temp, F_scaling = FM_fo.read_drv_file()
-H_prf, P_prf, T_prf = FM_fo.read_prf_file()
+# Number of zenith angle ring used for disc integration
+nmu_list = [2,3,4,5]
 
-###############################################################################
-### Run Python forward model
-# Initialise python forward model
+### Set up Python forward model
 FM_py = ForwardModel()
 FM_py.set_planet_model(M_plt=M_plt, R_plt=R_plt, gas_id_list=gas_id,
     iso_id_list=iso_id, NLAYER=NLAYER)
 FM_py.set_opacity_data(kta_file_paths=lowres_file_paths,
     cia_file_path=cia_file_path)
-python_disc_spec = FM_py.calc_disc_spectrum_uniform(nmu=2,
-    P_model=P, T_model=T, VMR_model=VMR, solspec=wasp43_spec)
+
+### Set up Fortran forward model
+FM_fo = Nemesis_api(name=folder_name, NLAYER=NLAYER, gas_id_list=gas_id,
+    iso_id_list=iso_id, wave_grid=wave_grid)
+if not os.path.isdir(folder_name):
+    os.mkdir(folder_name)
+file_path = os.path.dirname(os.path.realpath(__file__))
+os.chdir(file_path+'/'+folder_name) # move to designated process folder
 
 
-###############################################################################
-### Compare output
+
+
 ### Set up figure
-fig, axs = plt.subplots(nrows=2,ncols=2,sharex='all',sharey='col',
+fig, axs = plt.subplots(nrows=4,ncols=2,sharex='all',sharey='col',
     figsize=[8,10],dpi=600)
 # add a big axis, hide frame
 fig.add_subplot(111,frameon=False)
@@ -121,33 +103,51 @@ plt.tick_params(labelcolor='none',which='both',
     top=False,bottom=False,left=False,right=False)
 plt.xlabel(r'Wavelength ($\mu$m)')
 
-# Fortran model plot
-axs[0,0].plot(wave_grid,fortran_disc_spec,color='k',linewidth=0.5,linestyle='-',
-    marker='x',markersize=2,label='Fortran')
+for index,nmu in enumerate(nmu_list):
 
-# Python model plot
-# plot spectrum with profile in .ref, test radtran, layering and hydrostatic
-axs[0,0].plot(wave_grid,python_disc_spec,color='b',linewidth=0.5,linestyle='--',
-    marker='x',markersize=2,label='Python')
+    python_disc_spec = FM_py.calc_disc_spectrum_uniform(nmu=nmu,
+        P_model=P, T_model=T, VMR_model=VMR, solspec=wasp43_spec)
 
-# Plot specs
-axs[0,0].legend(loc='upper right')
-axs[0,0].grid()
-axs[0,0].set_ylabel(r'total radiance(W sr$^{-1}$ $\mu$m$^{-1})$')
-axs[0,0].ticklabel_format(axis="y", style="sci", scilimits=(0,0))
+    FM_fo.write_files(NRING=nmu, H_model=H, P_model=P, T_model=T,
+        VMR_model=VMR)
+    FM_fo.run_forward_model()
+    wave, yerr, fortran_disc_spec = FM_fo.read_output()
+    F_delH, F_totam, F_pres, F_temp, F_scaling = FM_fo.read_drv_file()
+    H_prf, P_prf, T_prf = FM_fo.read_prf_file()
 
-# Plot differences
-diff = (fortran_disc_spec-python_disc_spec)/fortran_disc_spec
-axs[0,1].scatter(wave_grid, diff,marker='.', color='b',label='lay + hydro')
+    ## Upper panel
+    # Fortran plot
+    axs[index,0].plot(wave_grid,fortran_disc_spec,color='k',linewidth=0.5,linestyle='-',
+        marker='x',markersize=2,label='Fortran')
+
+    # Python model plot
+    axs[index,0].plot(wave_grid,python_disc_spec,color='b',linewidth=0.5,linestyle='--',
+        marker='x',markersize=2,label='Python')
+
+    # Mark the path angle
+    axs[index,0].text(1.3,2.5e-3,"{} rings".format(nmu))
+
+    ## Upper panel format
+    axs[index,0].ticklabel_format(axis="y", style="sci", scilimits=(0,0))
+    axs[index,0].grid()
+    axs[index,0].set_ylabel('Flux ratio')
+    handles, labels = axs[index,0].get_legend_handles_labels()
+
+    ## Lower panel
+    diff = (fortran_disc_spec-python_disc_spec)/fortran_disc_spec
+    axs[index,1].plot(wave_grid, diff, color='r', linewidth=0.5,linestyle=':',
+        marker='x',markersize=2,)
+    axs[index,1].set_ylabel('Relative residual')
+    axs[index,1].set_ylim(-1e-2,1e-2)
+
+    ## Lower panel format
+    axs[index,1].ticklabel_format(axis="y", style="sci", scilimits=(0,0))
+    axs[index,1].grid()
 
 # Plot config
-plt.xlabel(r'wavelength($\mu$m)')
-plt.ticklabel_format(axis="y", style="sci", scilimits=(0,0))
-plt.tight_layout()
-
-plt.legend()
-plt.grid()
 
 plt.tight_layout()
+
+fig.legend(handles, labels, loc='upper left', fontsize='x-small')
 
 plt.savefig('{}.pdf'.format(folder_name))

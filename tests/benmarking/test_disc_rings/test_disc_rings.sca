@@ -9,7 +9,7 @@ Output from NEMESIS mod_scatte
    1.49999997E-02                        ! Solar distance (AU)
            1                  ! Lower boundary condition
    0.00000000                                  ! Ground albedo
-   139.065094       63.4348984         ! Solar/emiss zenith angles
+   122.013000       80.4866028         ! Solar/emiss zenith angles
    0.00000000                                  ! Azimuth angle
            1                 ! Number of fourier components
            1                  ! Number of particle types

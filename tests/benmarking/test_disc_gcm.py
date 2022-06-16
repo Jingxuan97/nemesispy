@@ -3,10 +3,10 @@ import matplotlib.pyplot as plt
 import os
 import scipy.interpolate
 from nemesispy.radtran.forward_model import ForwardModel
-from point_benchmarking_fortran import Nemesis_api
+from disc_benchmarking_fortran import Nemesis_api
 import time
 
-folder_name = 'test_point_angle'
+folder_name = 'test_disc_gcm'
 
 ### Reference Opacity Data
 from helper import lowres_file_paths, cia_file_path
@@ -29,7 +29,7 @@ wasp43_spec = np.array([3.341320e+25, 3.215455e+25, 3.101460e+25, 2.987110e+25,
        4.422200e+23])
 
 ### Reference Atmospheric Model Input
-NMODEL = 200
+NMODEL = 20
 NLAYER = NMODEL
 # Height in m
 H = np.linspace(0,1e4,NMODEL)
@@ -57,10 +57,10 @@ T = f_PT(P)
 gas_id = np.array([  1, 2,  5,  6, 40, 39])
 iso_id = np.array([0, 0, 0, 0, 0, 0])
 H2_ratio = 0.864
-VMR_H2O = 1.0E-4
-VMR_CO2 = 1.0E-4
-VMR_CO = 1.0E-4
-VMR_CH4 = 1.0E-4
+VMR_H2O = 1.0E-4 # volume mixing ratio of H2O
+VMR_CO2 = 1.0E-4  # volume mixing ratio of CO2
+VMR_CO = 1.0E-4 # volume mixing ratio of CO
+VMR_CH4 = 1.0E-4 # volume mixing ratio of CH4
 VMR_He = (np.ones(NMODEL)-VMR_H2O-VMR_CO2-VMR_CO-VMR_CH4)*(1-H2_ratio)
 VMR_H2 = (np.ones(NMODEL)-VMR_H2O-VMR_CO2-VMR_CO-VMR_CH4)*H2_ratio
 NVMR = 6
@@ -72,17 +72,15 @@ VMR[:,3] = VMR_CH4
 VMR[:,4] = VMR_He
 VMR[:,5] = VMR_H2
 
-# Path angle
-path_angle_list = [0,30,60,90]
+# Number of zenith angle ring used for disc integration
+nmu_list = [2,3,4,5]
 
 ### Set up Python forward model
 FM_py = ForwardModel()
 FM_py.set_planet_model(M_plt=M_plt, R_plt=R_plt, gas_id_list=gas_id,
     iso_id_list=iso_id, NLAYER=NLAYER)
-FM_py.set_opacity_data(
-    kta_file_paths=lowres_file_paths,
-    cia_file_path=cia_file_path
-    )
+FM_py.set_opacity_data(kta_file_paths=lowres_file_paths,
+    cia_file_path=cia_file_path)
 
 ### Set up Fortran forward model
 FM_fo = Nemesis_api(name=folder_name, NLAYER=NLAYER, gas_id_list=gas_id,
@@ -91,6 +89,9 @@ if not os.path.isdir(folder_name):
     os.mkdir(folder_name)
 file_path = os.path.dirname(os.path.realpath(__file__))
 os.chdir(file_path+'/'+folder_name) # move to designated process folder
+
+
+
 
 ### Set up figure
 fig, axs = plt.subplots(nrows=4,ncols=2,sharex='all',sharey='col',
@@ -102,48 +103,46 @@ plt.tick_params(labelcolor='none',which='both',
     top=False,bottom=False,left=False,right=False)
 plt.xlabel(r'Wavelength ($\mu$m)')
 
-for ipath, path_angle in enumerate(path_angle_list):
+for index,nmu in enumerate(nmu_list):
 
-    spec_py = FM_py.calc_point_spectrum_hydro(
-        P_model=P, T_model=T, VMR_model=VMR, path_angle=path_angle,
-        solspec=wasp43_spec)
+    python_disc_spec = FM_py.calc_disc_spectrum_uniform(nmu=nmu,
+        P_model=P, T_model=T, VMR_model=VMR, solspec=wasp43_spec)
 
-    FM_fo.write_files(path_angle=path_angle, H_model=H, P_model=P, T_model=T,
+    FM_fo.write_files(NRING=nmu, H_model=H, P_model=P, T_model=T,
         VMR_model=VMR)
     FM_fo.run_forward_model()
-    wave, yerr, spec_fo = FM_fo.read_output()
-    F_delH,F_totam,F_pres,F_temp,scaling = FM_fo.read_drv_file()
+    wave, yerr, fortran_disc_spec = FM_fo.read_output()
+    F_delH, F_totam, F_pres, F_temp, F_scaling = FM_fo.read_drv_file()
     H_prf, P_prf, T_prf = FM_fo.read_prf_file()
 
     ## Upper panel
     # Fortran plot
-    axs[ipath,0].plot(wave_grid,spec_fo,color='k',linewidth=0.5,linestyle='-',
+    axs[index,0].plot(wave_grid,fortran_disc_spec,color='k',linewidth=0.5,linestyle='-',
         marker='x',markersize=2,label='Fortran')
 
     # Python model plot
-    axs[ipath,0].plot(wave_grid, spec_py,color='b',linewidth=0.5,linestyle='--',
+    axs[index,0].plot(wave_grid,python_disc_spec,color='b',linewidth=0.5,linestyle='--',
         marker='x',markersize=2,label='Python')
 
     # Mark the path angle
-    axs[ipath,0].text(1.3,2.5e-3,r"$\theta$={}$^\circ$".format(path_angle))
+    axs[index,0].text(1.3,2.5e-3,"{} rings".format(nmu))
 
     ## Upper panel format
-    axs[ipath,0].ticklabel_format(axis="y", style="sci", scilimits=(0,0))
-    # axs[ipath,0].legend(loc='upper left')
-    axs[ipath,0].grid()
-    axs[ipath,0].set_ylabel('Flux ratio')
-    handles, labels = axs[ipath,0].get_legend_handles_labels()
+    axs[index,0].ticklabel_format(axis="y", style="sci", scilimits=(0,0))
+    axs[index,0].grid()
+    axs[index,0].set_ylabel('Flux ratio')
+    handles, labels = axs[index,0].get_legend_handles_labels()
 
     ## Lower panel
-    diff = (spec_fo-spec_py)/spec_fo
-    axs[ipath,1].plot(wave_grid, diff, color='r', linewidth=0.5,linestyle=':',
+    diff = (fortran_disc_spec-python_disc_spec)/fortran_disc_spec
+    axs[index,1].plot(wave_grid, diff, color='r', linewidth=0.5,linestyle=':',
         marker='x',markersize=2,)
-    axs[ipath,1].set_ylabel('Relative residual')
-    axs[ipath,1].set_ylim(-1e-2,1e-2)
+    axs[index,1].set_ylabel('Relative residual')
+    axs[index,1].set_ylim(-1e-2,1e-2)
 
     ## Lower panel format
-    axs[ipath,1].ticklabel_format(axis="y", style="sci", scilimits=(0,0))
-    axs[ipath,1].grid()
+    axs[index,1].ticklabel_format(axis="y", style="sci", scilimits=(0,0))
+    axs[index,1].grid()
 
 # Plot config
 

@@ -1,9 +1,9 @@
- original name of this file: discspec.drv                  
+ original name of this file: test_disc_rings.drv           
       1.143   0.209844        17   0.000     :Vmin dV Npts FWHM-CORRK
     0.000   0.000       : Additional codes PAR1 and PAR2
-  DISCSPEC.KLS                                                                                       
+  TEST_DISC_RINGS.KLS                                                                                
    24   0     1   0             : spectral model code, FLAGH2P, NCONT, FLAGC
- discspec.xsc                   : Dust x-section file
+ test_disc_rings.xsc            : Dust x-section file
    20   1   6           : number of layers, paths and gases
     1                                    : identifier for gas 1
       0   0                              : isotope ID and process parameter
@@ -65,17 +65,17 @@ format of layer data
          0.30902E+21 0.11113E-04 0.30902E+21 0.11113E-04 0.30902E+21 0.11113E-04
  0.30902E+21 0.11113E-04 0.42011E+24 0.15108E-01 0.26688E+25 0.95976E-01
          0.00000E+00
- 12  775.19   52.12 0.85065E-01 1363.276 0.18836E+25 0.67789E-01 1349.851  0.0000
-         0.18836E+21 0.67789E-05 0.18836E+21 0.67789E-05 0.18836E+21 0.67789E-05
- 0.18836E+21 0.67789E-05 0.25607E+24 0.92160E-02 0.16267E+25 0.58546E-01
+ 12  775.19   52.12 0.85065E-01 1363.276 0.18836E+25 0.67791E-01 1349.852  0.0000
+         0.18836E+21 0.67791E-05 0.18836E+21 0.67791E-05 0.18836E+21 0.67791E-05
+ 0.18836E+21 0.67791E-05 0.25608E+24 0.92162E-02 0.16268E+25 0.58548E-01
          0.00000E+00
- 13  827.31   51.28 0.51844E-01 1337.028 0.11489E+25 0.41382E-01 1328.321  0.0000
-         0.11489E+21 0.41382E-05 0.11489E+21 0.41382E-05 0.11489E+21 0.41382E-05
- 0.11489E+21 0.41382E-05 0.15619E+24 0.56259E-02 0.99221E+24 0.35740E-01
+ 13  827.31   51.28 0.51844E-01 1337.028 0.11489E+25 0.41384E-01 1328.322  0.0000
+         0.11489E+21 0.41384E-05 0.11489E+21 0.41384E-05 0.11489E+21 0.41384E-05
+ 0.11489E+21 0.41384E-05 0.15619E+24 0.56261E-02 0.99225E+24 0.35741E-01
          0.00000E+00
- 14  878.59   50.74 0.31597E-01 1320.014 0.70132E+24 0.25280E-01 1314.522  0.0000
-         0.70132E+20 0.25280E-05 0.70132E+20 0.25280E-05 0.70132E+20 0.25280E-05
- 0.70132E+20 0.25280E-05 0.95345E+23 0.34368E-02 0.60570E+24 0.21833E-01
+ 14  878.59   50.74 0.31597E-01 1320.014 0.70133E+24 0.25280E-01 1314.522  0.0000
+         0.70133E+20 0.25280E-05 0.70133E+20 0.25280E-05 0.70133E+20 0.25280E-05
+ 0.70133E+20 0.25280E-05 0.95346E+23 0.34368E-02 0.60570E+24 0.21833E-01
          0.00000E+00
  15  929.33   50.39 0.19257E-01 1309.230 0.42842E+24 0.15453E-01 1305.834  0.0000
          0.42842E+20 0.15453E-05 0.42842E+20 0.15453E-05 0.42842E+20 0.15453E-05
@@ -109,8 +109,8 @@ format of layer data
    5   16 1300.424  0.99987E+00  :     layer or path, emission temp, scale
    6   15 1305.834  0.10000E+01  :     layer or path, emission temp, scale
    7   14 1314.522  0.10000E+01  :     layer or path, emission temp, scale
-   8   13 1328.321  0.99996E+00  :     layer or path, emission temp, scale
-   9   12 1349.851  0.10001E+01  :     layer or path, emission temp, scale
+   8   13 1328.322  0.10001E+01  :     layer or path, emission temp, scale
+   9   12 1349.852  0.99994E+00  :     layer or path, emission temp, scale
   10   11 1382.587  0.10000E+01  :     layer or path, emission temp, scale
   11   10 1430.595  0.99995E+00  :     layer or path, emission temp, scale
   12    9 1497.774  0.99996E+00  :     layer or path, emission temp, scale
@@ -124,7 +124,7 @@ format of layer data
   20    1 2286.031  0.10000E+01  :     layer or path, emission temp, scale
     1                                    : number of filter profile points
   0.00000E+00     0.000                  : filter profile point   1
- discspec.out                                                                                        
+ test_disc_rings.out                                                                                 
    1                                     :number of calculations
     2   2   2   0                        :type and # of parameters for calc  1
            1

@@ -3,13 +3,13 @@ interval
    1.14250004       4.50000000      0.209843755       0.00000000    
    24  0  0
  
-spec data discspec.kls                                                          
+spec data test_disc_rings.kls                                                   
  
-model discspec.prf                                                              
+model test_disc_rings.prf                                                       
   
 dust model aerosol.prf                                                          
   
-dust spectra discspec.xsc                                                       
+dust spectra test_disc_rings.xsc                                                
   
 layer
 nlay  20
@@ -19,7 +19,7 @@ layint   1
 laytyp   1
  
 atm
-nadir   63.43   1   0
+nadir   80.49   1   0
 therm
 noscatter
 nowf
