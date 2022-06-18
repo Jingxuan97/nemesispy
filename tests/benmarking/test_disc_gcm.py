@@ -64,7 +64,6 @@ if not os.path.isdir(folder_name):
 file_path = os.path.dirname(os.path.realpath(__file__))
 os.chdir(file_path+'/'+folder_name) # move to designated process folder
 
-
 ### Set up figure
 fig, axs = plt.subplots(nrows=4,ncols=2,sharex='all',sharey='col',
     figsize=[8,10],dpi=600)

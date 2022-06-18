@@ -118,8 +118,8 @@ for ilon in range(nlon):
     for ilat in range(nlat):
         for ipv in range(npv):
             vmrmap_mod[ilon,ilat,ipv,0] = h2omap_mod[ilon,ilat,ipv]
-            vmrmap_mod[ilon,ilat,ipv,1] = comap_mod[ilon,ilat,ipv]
-            vmrmap_mod[ilon,ilat,ipv,2] = co2map_mod[ilon,ilat,ipv]
+            vmrmap_mod[ilon,ilat,ipv,1] = co2map_mod[ilon,ilat,ipv]
+            vmrmap_mod[ilon,ilat,ipv,2] = comap_mod[ilon,ilat,ipv]
             vmrmap_mod[ilon,ilat,ipv,3] = ch4map_mod[ilon,ilat,ipv]
             vmrmap_mod[ilon,ilat,ipv,4] = hemap_mod[ilon,ilat,ipv]
             vmrmap_mod[ilon,ilat,ipv,5] = h2map_mod[ilon,ilat,ipv]
@@ -129,8 +129,8 @@ for ilon in range(nlon):
     for ilat in range(nlat):
         for ipv in range(npv):
             vmrmap_mod_new[ilon,ilat,ipv,0] = 0.000479650 # h2o
-            vmrmap_mod_new[ilon,ilat,ipv,1] = 0.000464342 # co
-            vmrmap_mod_new[ilon,ilat,ipv,2] = 7.38846e-08 # co2
+            vmrmap_mod_new[ilon,ilat,ipv,1] = 7.38846e-08 # co2
+            vmrmap_mod_new[ilon,ilat,ipv,2] = 0.000464342 # co
             vmrmap_mod_new[ilon,ilat,ipv,3] = 1.32733e-07 # ch4
             vmrmap_mod_new[ilon,ilat,ipv,4] = 0.162329 # He
             vmrmap_mod_new[ilon,ilat,ipv,5] = 0.836727 # H2

@@ -6,7 +6,7 @@ from nemesispy.radtran.forward_model import ForwardModel
 from disc_benchmarking_fortran import Nemesis_api
 import time
 
-folder_name = 'test_curve_wasp43'
+folder_name = 'test_curve_wasp43_one_phase'
 
 ### Reference Opacity Data
 from helper import lowres_file_paths, cia_file_path

@@ -3,8 +3,6 @@ import numpy as np
 import time
 start1 = time.time()
 from nemesispy.radtran.forward_model import ForwardModel
-
-################################################################################
 # Read GCM data
 from nemesispy.data.gcm.process_gcm import (nlon,nlat,xlon,xlat,npv,pv,\
     tmap,h2omap,comap,co2map,ch4map,hemap,h2map,vmrmap,\
@@ -14,16 +12,9 @@ from nemesispy.data.gcm.process_gcm import (nlon,nlat,xlon,xlat,npv,pv,\
     pat_phase_by_wave,pat_wave_by_phase,\
     vmrmap_mod_new,tmap_hot)
 end1 = time.time()
-print(end1-start1)
-### Opacity data
-lowres_files = ['/Users/jingxuanyang/ktables/h2owasp43.kta',
-'/Users/jingxuanyang/ktables/cowasp43.kta',
-'/Users/jingxuanyang/ktables/co2wasp43.kta',
-'/Users/jingxuanyang/ktables/ch4wasp43.kta']
-cia_file_path = '/Users/jingxuanyang/Desktop/Workspace/' \
-    + 'nemesispy2022/nemesispy/data/cia/exocia_hitran12_200-3800K.tab'
 
-################################################################################
+from nemesispy.common.helper import lowres_file_paths, cia_file_path
+
 ### Wavelengths grid and orbital phase grid
 wave_grid = np.array([1.1425, 1.1775, 1.2125, 1.2475, 1.2825, 1.3175, 1.3525, 1.3875,
        1.4225, 1.4575, 1.4925, 1.5275, 1.5625, 1.5975, 1.6325, 3.6   ,
@@ -53,7 +44,7 @@ NITER = 1
 FM = ForwardModel()
 FM.set_planet_model(M_plt=M_plt,R_plt=R_plt,gas_id_list=gas_id,iso_id_list=iso_id,
     NLAYER=NLAYER)
-FM.set_opacity_data(kta_file_paths=lowres_files, cia_file_path=cia_file_path)
+FM.set_opacity_data(kta_file_paths=lowres_file_paths, cia_file_path=cia_file_path)
 
 ### Testing one particular orbital phase (inhomogeneouus disc averaging)
 start2 = time.time()
@@ -66,24 +57,18 @@ one_phase =  FM.calc_disc_spectrum(phase=phase, nmu=nmu, P_model = P_model,
 end2 = time.time()
 print(end2-start2)
 
-start_time = time.time()
-for i in range(NITER):
-    one_phase =  FM.calc_disc_spectrum(phase=phase, nmu=nmu, P_model = P_model,
-        global_model_P_grid=pv,
-        global_T_model=tmap_mod, global_VMR_model=vmrmap_mod,
-        mod_lon=xlon,
-        mod_lat=xlat,
-        solspec=wasp43_spec)
-end_time = time.time()
-print('RUNTIME = ',(end_time-start_time)/NITER)
 
 
 fig, axs = plt.subplots(nrows=2,ncols=1,sharex=True,
     dpi=100)
 axs[0].set_title('phase = {}'.format(phase))
-axs[0].plot(wave_grid,one_phase,color='b',label='Python')
+axs[0].plot(wave_grid,one_phase,color='b',
+    linewidth=0.5,linestyle='--',
+    marker='x',markersize=2,label='Python')
 axs[0].scatter(wave_grid,kevin_phase_by_wave[phasenumber,:,0],color='r',marker='+',label='Data')
-axs[0].plot(wave_grid,pat_phase_by_wave[phasenumber,:],color ='k',label='Fortran')
+axs[0].plot(wave_grid,pat_phase_by_wave[phasenumber],color='k',
+    linewidth=0.5,linestyle='-',
+    marker='x',markersize=2,label='Fortran')
 axs[0].legend()
 axs[0].grid()
 
