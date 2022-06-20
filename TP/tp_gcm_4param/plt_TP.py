@@ -20,7 +20,7 @@ def calc_T(cube):
     alpha = cube[3]
     beta = cube[4]
     T_int = 200
-
+    
     Mod = Model2(T_star, R_star, M_plt, R_plt, SMA, P_range, mmw,
                     kappa = kappa,
                     gamma1 = gamma1,
@@ -75,3 +75,4 @@ plt.tick_params(length=10,width=1,labelsize='x-large',which='major')
 plt.tight_layout()
 plt.savefig('BestFit_TP_{}_{}.pdf'.format(ilon,ilat), format='pdf')
 plt.show()
+

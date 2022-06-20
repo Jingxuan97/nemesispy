@@ -57,8 +57,6 @@ one_phase =  FM.calc_disc_spectrum(phase=phase, nmu=nmu, P_model = P_model,
 end2 = time.time()
 print(end2-start2)
 
-
-
 fig, axs = plt.subplots(nrows=2,ncols=1,sharex=True,
     dpi=100)
 axs[0].set_title('phase = {}'.format(phase))
