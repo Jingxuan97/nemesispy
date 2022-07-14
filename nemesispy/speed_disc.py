@@ -14,6 +14,9 @@ from nemesispy.data.gcm.process_gcm import (nlon,nlat,xlon,xlat,npv,pv,\
 end1 = time.time()
 
 from nemesispy.common.helper import lowres_file_paths, cia_file_path
+### Speed test parameters
+nrun_list = np.array([2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192])
+nring_list = np.array([2,3,4,5])
 
 ### Wavelengths grid and orbital phase grid
 wave_grid = np.array([1.1425, 1.1775, 1.2125, 1.2475, 1.2825, 1.3175, 1.3525, 1.3875,
@@ -89,41 +92,3 @@ print(diff)
 # # input()
 # plt.close()
 plt.savefig('eg.pdf')
-
-"""
-### This is for plotting specta at all phases
-for iphase in range(nphase):
-    phasenumber = iphase
-    nmu = 5
-    phase = phase_grid[phasenumber]
-    P_model = np.geomspace(20e5,1,NLAYER)
-    P_model = pv
-    one_phase =  FM.test_disc_spectrum(phase=phase, nmu=nmu, P_model = pv,
-        global_model_P_grid=pv,
-        global_T_model=tmap, global_VMR_model=vmrmap_mod_new,
-        model_longitudes=xlon,
-        model_lattitudes=xlat,
-        solspec=wasp43_spec)
-
-    fig, axs = plt.subplots(nrows=2,ncols=1,sharex=True,
-        dpi=800)
-    axs[0].set_title('phase = {}'.format(phase))
-    axs[0].plot(wave_grid,one_phase,color='b',label='Python')
-    axs[0].scatter(wave_grid,kevin_phase_by_wave[phasenumber,:,0],color='r',marker='+',label='Data')
-    axs[0].plot(wave_grid,pat_phase_by_wave[phasenumber,:],color ='k',label='Fortran')
-    axs[0].legend(loc='upper left')
-    axs[0].grid()
-    axs[0].set_ylabel('Flux ratio')
-
-    diff = (one_phase - pat_phase_by_wave[phasenumber,:])/one_phase
-    axs[1].scatter(wave_grid,diff,marker='.',color='b')
-    axs[1].grid()
-    axs[1].set_ylabel('Relative diff')
-    axs[1].set_xlabel('Wavelength (Micron)')
-    print(iphase,diff)
-    plt.tight_layout()
-
-    plt.show()
-    # plt.savefig('good_discav_planet{}.pdf'.format(iphase),dpi=800)
-
-"""
