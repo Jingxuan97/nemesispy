@@ -4,7 +4,6 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import pymultinest
-sys.path.append('/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/')
 from nemesispy.common.constants import R_SUN, R_JUP_E, AMU, AU, M_JUP, R_JUP, SIGMA_SB
 from nemesispy.models.models import Model2
 from nemesispy.AAwaitlist.utils import calc_mmw
@@ -17,13 +16,12 @@ This is what we do here.
 """
 # Read GCM data
 from nemesispy.data.gcm.process_gcm import (nlon,nlat,xlon,xlat,npv,pv,\
-    tmap,h2omap,comap,co2map,ch4map,hemap,h2map,vmrmap,hvmap,\
+    tmap,h2omap,comap,co2map,ch4map,hemap,h2map,vmrmap,\
     tmap_mod,h2omap_mod,comap_mod,co2map_mod,ch4map_mod,\
-    hemap_mod,h2map_mod,vmrmap_mod,hvmap_mod,phase_grid,\
+    hemap_mod,h2map_mod,vmrmap_mod,phase_grid,\
     kevin_phase_by_wave,kevin_wave_by_phase,\
     pat_phase_by_wave,pat_wave_by_phase,\
     vmrmap_mod_new,tmap_hot)
-
 
 ### Reference Planet Input: WASP 43b
 T_star = 4520 # star temperature in K

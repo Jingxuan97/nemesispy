@@ -9,6 +9,8 @@ def calc_tau_rayleigh(wave_grid,U_layer,ISPACE=1):
     Calculate the Rayleigh scattering optical depth for Gas Giant atmospheres
     using data from Allen (1976) Astrophysical Quantities.
 
+    Assume H2 ratio of 0.864.
+
     Parameters
     ----------
     wave_grid(NWAVE) : ndarray
@@ -68,4 +70,5 @@ def calc_tau_rayleigh(wave_grid,U_layer,ISPACE=1):
 
     for ilay in range(NLAYER):
         tau_rayleigh[:,ilay] = k_rayleighj[:] * U_layer[ilay] #(NWAVE,NLAYER)
+
     return tau_rayleigh

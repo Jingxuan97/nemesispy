@@ -1,8 +1,10 @@
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import time
 start1 = time.time()
 from nemesispy.radtran.forward_model import ForwardModel
+matplotlib.interactive(True)
 # Read GCM data
 from nemesispy.data.gcm.process_gcm import (nlon,nlat,xlon,xlat,npv,pv,\
     tmap,h2omap,comap,co2map,ch4map,hemap,h2map,vmrmap,\
@@ -76,7 +78,7 @@ axs[1].grid()
 print(diff)
 
 plt.show()
-# input()
+input()
 plt.close()
 
 """
