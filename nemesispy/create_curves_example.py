@@ -16,7 +16,7 @@ from nemesispy.data.gcm.process_gcm import (nlon,nlat,xlon,xlat,npv,pv,\
 end1 = time.time()
 
 from nemesispy.common.helper import lowres_file_paths, cia_file_path
-
+print('creating example phase curve')
 ### Wavelengths grid and orbital phase grid
 wave_grid = np.array([1.1425, 1.1775, 1.2125, 1.2475, 1.2825, 1.3175, 1.3525, 1.3875,
        1.4225, 1.4575, 1.4925, 1.5275, 1.5625, 1.5975, 1.6325, 3.6   ,
@@ -38,7 +38,7 @@ gas_id = np.array([  1, 2,  5,  6, 40, 39])
 iso_id = np.array([0, 0, 0, 0, 0, 0])
 NLAYER = 20
 phasenumber = 3
-nmu = 3
+nmu = 5
 phase = phase_grid[phasenumber]
 P_model = np.geomspace(20e5,100,NLAYER)
 NITER = 1

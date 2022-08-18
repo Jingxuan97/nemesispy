@@ -138,7 +138,8 @@ def split(H_model, P_model, NLAYER, layer_type=1, H_0=0.0,
 def average(planet_radius, H_model, P_model, T_model, VMR_model, ID, H_base,
         path_angle, H_0=0.0, NSIMPS=101):
     """
-    Calculates average atmospheric layer properties.
+    Calculates absorber-amount-weighted average layer properties of an
+    atmosphere.
 
     Inputs
     ------

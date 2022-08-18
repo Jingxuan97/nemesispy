@@ -1,5 +1,9 @@
 #!/usr/local/bin/python3
 # -*- coding: utf-8 -*-
+"""
+Use hydrostatic equilibrium to find the altitudes of points in the atmosphere
+given their pressures, temperatures and mean molecular weights.
+"""
 import numpy as np
 from numba import jit
 from nemesispy.common.constants import G, K_B
