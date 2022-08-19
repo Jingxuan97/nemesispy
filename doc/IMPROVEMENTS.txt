@@ -1,31 +1,22 @@
 TO DO:
-1. Add routines to generate ktables from line lists
-2. Add routines to output and plot transmission weighting function.
-3. Generally more routines to make nice plots of TP profiles and spectra.
-4. Tests to facilitate upscaling
-5. Packaging
-6. Timing and benchmark
+1. Generate ktables from line data
+2. Output and plot transmission weighting function.
+3. Plotting routines of TP profiles and spectra.
+5. Packaging and distribution
 7. Interfacing with Multinest
 8. MPI support
 9. Optimal estimation interfacing
-10. Old Nemesis file interfacing
+10. Fortran Nemesis file interfacing
 11. MultiNest convergence requirement tests and maximum number of parameters
-12. Apply jit to the functions in calc_path.py
-13. Isotopologue (limited effects)
-14. Gas ID check; active and background species
-15. Include opacity units
-16. Derive constants in Planck function from fundamental constants
+12. Isotopologue (limited effects)
+13. Gas ID check; active and background species
+14. Include opacity units
+15. Derive constants in Planck function from fundamental constants
 
-ERRORS:
-1.
+Warnings:
+1. RuntimeWarning
 /Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/radtran/calc_path.py:270:
 RuntimeWarning: invalid value encountered in reciprocal
   Gas_layer = (Gas_layer.T * scale**-1 ).T
-no idea where this RuntimeWarning is coming up
 
-2. Speed up trig routines
-
-p = np.array([5.95470461,5.7835182,5.64078699,5.51909612,5.41390052,5.32229798
-,5.24221413,5.1720133,5.11029669,5.05587078,5.0077084,4.96482754
-,4.92627099,4.89122167,4.85910147,4.829544,4.80227157,4.77698932
-,4.7533452, 4.73095118])
+Errors:
