@@ -1,5 +1,8 @@
 #!/usr/local/bin/python3
 # -*- coding: utf-8 -*-
+"""
+Calculate mean molecular weight
+"""
 from nemesispy.common.info_mol import mol_info
 from nemesispy.common.constants import AMU
 

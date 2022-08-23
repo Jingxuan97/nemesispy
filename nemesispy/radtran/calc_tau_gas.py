@@ -1,8 +1,9 @@
 #!/usr/local/bin/python3
 # -*- coding: utf-8 -*-
 """
-Calculate the opacity of a mixture of gases using the correlated-k method and
-pre-tabulated ktables, assuming random overlap.
+Calculate the optical path due to atomic and molecular transitions.
+The opacity of a mixture of gases is calculated by the correlated-k method and
+using pre-tabulated ktables, assuming random overlap.
 """
 import numpy as np
 from numba import jit

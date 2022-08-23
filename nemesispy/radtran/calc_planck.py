@@ -1,12 +1,14 @@
 #!/usr/local/bin/python3
 # -*- coding: utf-8 -*-
-import numpy as np
-from numba import jit
 """
-In the current Fortran Nemesis code, the values of constants used are
+Calculate the Planck function.
+Note that in the Fortran Nemesis code, the values of constants used are
 C1 = 1.1911e-12 W cm2
 C2 = 1.439 cm K-1
 """
+import numpy as np
+from numba import jit
+
 @jit(nopython=True)
 def calc_planck(wave_grid,T,ispace=1):
     """

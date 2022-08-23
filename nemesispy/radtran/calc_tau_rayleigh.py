@@ -1,5 +1,8 @@
 #!/usr/local/bin/python3
 # -*- coding: utf-8 -*-
+"""
+Calculate Rayleigh scattering optical path.
+"""
 from numba import jit
 import numpy as np
 

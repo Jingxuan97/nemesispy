@@ -1,5 +1,8 @@
 #!/usr/local/bin/python3
 # -*- coding: utf-8 -*-
+"""
+Calculate collision-induced-absorption optical path.
+"""
 import numpy as np
 from numba import jit
 
