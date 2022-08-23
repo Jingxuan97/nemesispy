@@ -10,7 +10,7 @@ from nemesispy.radtran.calc_radiance import calc_radiance, calc_planck
 from nemesispy.radtran.read import read_cia
 from nemesispy.common.calc_trig import gauss_lobatto_weights
 from nemesispy.common.interpolate_gcm import interpvivien_point
-from nemesispy.radtran.calc_hydrostat import calc_hydrostat
+from nemesispy.common.calc_hydrostat import calc_hydrostat
 
 class ForwardModel():
 

@@ -2,8 +2,11 @@
 # -*- coding: utf-8 -*-
 """
 Constants used in this package.
-Follow the CODATA Recommended Values of the Fundamental Physical Constants.
-J. Phys. Chem. Ref. Data 50, 033105 (2021); https://doi.org/10.1063/5.0064853
+Follow the CODATA Recommended Values of Fundamental Physical Constants.
+J. Phys. Chem. Ref. Data 50, 033105 (2021);
+https://doi.org/10.1063/5.0064853
+
+from nemesispy.common.constants import R_SUN,M_SUN
 """
 # CODATA
 C_LIGHT = 299792458       # ms-1 speed of light in vacuum
