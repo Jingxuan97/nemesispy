@@ -1,12 +1,13 @@
 #!/usr/local/bin/python3
 # -*- coding: utf-8 -*-
-import matplotlib.pyplot as plt
+"""
+Interface class for running forward models.
+"""
 import numpy as np
-from nemesispy.common.constants import R_SUN, R_JUP_E, AMU, AU, M_JUP, R_JUP
 from nemesispy.radtran.calc_mmw import calc_mmw
 from nemesispy.radtran.calc_layer import calc_layer
 from nemesispy.radtran.read import read_kls
-from nemesispy.radtran.calc_radiance import calc_radiance, calc_planck
+from nemesispy.radtran.calc_radiance import calc_radiance
 from nemesispy.radtran.read import read_cia
 from nemesispy.common.calc_trig import gauss_lobatto_weights
 from nemesispy.common.interpolate_gcm import interpvivien_point
