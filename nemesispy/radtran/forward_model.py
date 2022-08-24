@@ -69,9 +69,9 @@ class ForwardModel():
         """
         self.M_plt = M_plt
         self.R_plt = R_plt
-        self.R_star = R_star
-        self.T_star = T_star
-        self.semi_major_axis = semi_major_axis
+        # self.R_star = R_star
+        # self.T_star = T_star
+        # self.semi_major_axis = semi_major_axis
         self.gas_name_list = gas_name_list
         self.gas_id_list = gas_id_list
         self.iso_id_list = iso_id_list
@@ -96,7 +96,7 @@ class ForwardModel():
         self.del_g = del_g
         self.k_table_P_grid = k_table_P_grid
         self.k_table_T_grid = k_table_T_grid
-        self.k_gas_w_g_p_t = k_gas_w_g_p_t
+        self.k_gas_w_g_p_t = k_gas_w_g_p_t # key
 
         cia_nu_grid, cia_T_grid, k_cia_pair_t_w = read_cia(cia_file_path)
         self.cia_nu_grid = cia_nu_grid

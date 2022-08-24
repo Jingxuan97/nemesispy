@@ -128,6 +128,7 @@ def TP_Line(P,g_plt,T_eq,k_IR,gamma1,gamma2,alpha,beta,T_int):
     TP = (flux1+flux2+flux3)**0.25
     return TP
 
+"""
 NLAYER = 100
 P_grid = np.geomspace(10e8,100,NLAYER) # pressure in pa
 T_eq = 1469/(2**0.5)
@@ -154,3 +155,4 @@ plt.semilogy()
 plt.gca().invert_yaxis()
 plt.xlim(0,3000)
 plt.show()
+"""

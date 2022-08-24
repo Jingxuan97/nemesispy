@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
-
+"""Copy of Dan Foreman-Mackey's plotting routine for posterior distributiion
+https://corner.readthedocs.io/en/latest/
+"""
 from __future__ import print_function, absolute_import
 
 import logging
