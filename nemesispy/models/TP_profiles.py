@@ -23,8 +23,10 @@ def TP_Guillot(P,g_plt,T_eq,k_IR,gamma,f,T_int=100):
         Temperature corresponding to the stellar flux.
         T_eq = T_star * (R_star/(2*semi_major_axis))**0.5
     gamma : real
+        Range ~ [1e-3,1e2]
         gamma = k_V/k_IR, ratio of visible to thermal opacities
     k_IR : real
+        Range [1e-5,1e3]
         Mean absorption coefficient in the thermal wavelengths.
     f : real
         f parameter (positive), See eqn. (29) in Guillot 2010.
@@ -89,7 +91,7 @@ def TP_Line(P,g_plt,T_eq,k_IR,gamma1,gamma2,alpha,beta,T_int):
         Temperature corresponding to the stellar flux.
         T_eq = T_star * (R_star/(2*semi_major_axis))**0.5
     k_IR : real
-        Range [1e-5,1e3]
+        Range ~ [1e-5,1e3]
         Mean absorption coefficient in the thermal wavelengths.
         m^2/kg
     gamma_1 : real
