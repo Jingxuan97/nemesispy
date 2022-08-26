@@ -52,27 +52,6 @@ def TP_Guillot(P,g_plt,T_eq,k_IR,gamma,f,T_int=100):
     TP = (flux1+flux2)**0.25
     return TP
 
-import matplotlib.pyplot as plt
-
-"""
-NLAYER = 100
-P_grid = np.geomspace(10e8,100,NLAYER) # pressure in pa
-T_eq = 1469/(2**0.5)
-k_V = 4e-4
-k_IR = 1e-3
-g = 25
-#f = 3
-for f in np.linspace(0,2,10):
-    for T_int in np.linspace(10,3000,10):
-        x = TP_Guillot(P=P_grid,g_plt=g,T_eq=T_eq,k_IR=k_IR,gamma=k_V/k_IR,
-                f=f,T_int=T_int)
-        plt.plot(x,P_grid/1e5,linewidth=0.5)
-
-plt.semilogy()
-plt.gca().invert_yaxis()
-plt.xlim(0,3000)
-plt.show()
-"""
 
 def TP_Line(P,g_plt,T_eq,k_IR,gamma1,gamma2,alpha,beta,T_int):
     """
@@ -127,6 +106,7 @@ def TP_Line(P,g_plt,T_eq,k_IR,gamma1,gamma2,alpha,beta,T_int):
     flux3 = T_irr**4 * alpha * xi2
     TP = (flux1+flux2+flux3)**0.25
     return TP
+
 
 """
 NLAYER = 100
