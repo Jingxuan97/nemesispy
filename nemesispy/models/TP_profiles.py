@@ -130,7 +130,7 @@ for k_IR in [1e-5,1e-2,1,10]:
                         x = TP_Line(P=P_grid,g_plt=g,T_eq=T_eq,k_IR=k_IR,gamma1=gamma1,gamma2=gamma2,
                                 alpha=alpha,beta=beta,T_int=T_int)
                         plt.plot(x,P_grid/1e5,linewidth=0.5)
-                        
+
 plt.semilogy()
 plt.gca().invert_yaxis()
 plt.xlim(0,3000)
