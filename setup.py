@@ -12,9 +12,9 @@ setup(name="nemesispy",
       long_description=LONG_DESCRIPTION,
       author="Jingxuan Yang",
       author_email="<jingxuanyang15@gmail.com>",
-      # packages=["nemesispy"],
       packages=find_packages(),
-      install_requires=[
-          "numpy",
-          "scipy",
-          "matplotlib"])
+    #   install_requires=[
+    #       "numpy",
+    #       "scipy",
+    #       "matplotlib"]
+        )

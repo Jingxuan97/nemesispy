@@ -1,8 +1,9 @@
 import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 import time
-start1 = time.time()
 from nemesispy.radtran.forward_model import ForwardModel
 matplotlib.interactive(True)
 # Read GCM data
@@ -13,9 +14,9 @@ from nemesispy.data.gcm.process_gcm import (nlon,nlat,xlon,xlat,npv,pv,\
     kevin_phase_by_wave,kevin_wave_by_phase,\
     pat_phase_by_wave,pat_wave_by_phase,\
     vmrmap_mod_new,tmap_hot)
-end1 = time.time()
 
 from nemesispy.common.helper import lowres_file_paths, cia_file_path
+
 print('creating example phase curve')
 ### Wavelengths grid and orbital phase grid
 wave_grid = np.array([1.1425, 1.1775, 1.2125, 1.2475, 1.2825, 1.3175, 1.3525, 1.3875,
@@ -38,7 +39,7 @@ gas_id = np.array([  1, 2,  5,  6, 40, 39])
 iso_id = np.array([0, 0, 0, 0, 0, 0])
 NLAYER = 20
 phasenumber = 3
-nmu = 5
+nmu = 3
 phase = phase_grid[phasenumber]
 P_model = np.geomspace(20e5,100,NLAYER)
 NITER = 1
@@ -49,6 +50,16 @@ FM.set_planet_model(M_plt=M_plt,R_plt=R_plt,gas_id_list=gas_id,iso_id_list=iso_i
 FM.set_opacity_data(kta_file_paths=lowres_file_paths, cia_file_path=cia_file_path)
 
 ### Testing one particular orbital phase (inhomogeneouus disc averaging)
+start1 = time.time()
+one_phase =  FM.calc_disc_spectrum(phase=phase, nmu=nmu, P_model = P_model,
+    global_model_P_grid=pv,
+    global_T_model=tmap_mod, global_VMR_model=vmrmap_mod,
+    mod_lon=xlon,
+    mod_lat=xlat,
+    solspec=wasp43_spec)
+end1 = time.time()
+print('compile+run time = ',end1-start1)
+
 start2 = time.time()
 one_phase =  FM.calc_disc_spectrum(phase=phase, nmu=nmu, P_model = P_model,
     global_model_P_grid=pv,
@@ -57,7 +68,7 @@ one_phase =  FM.calc_disc_spectrum(phase=phase, nmu=nmu, P_model = P_model,
     mod_lat=xlat,
     solspec=wasp43_spec)
 end2 = time.time()
-print(end2-start2)
+print('run time = ',end2-start2)
 
 fig, axs = plt.subplots(nrows=2,ncols=1,sharex=True,
     dpi=100)
@@ -77,9 +88,7 @@ axs[1].scatter(wave_grid,diff,marker='.',color='b')
 axs[1].grid()
 print(diff)
 
-plt.show()
-input()
-plt.close()
+plt.savefig('create_example.pdf')
 
 """
 ### This is for plotting specta at all phases

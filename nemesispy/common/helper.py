@@ -7,7 +7,13 @@ import os
 # ktable_path = os.path.abspath(os.path.join(data_path,'ktables'))
 # cia_path = os.path.abspath(os.path.join(data_path,'cia'))
 
-ktable_path = "/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/ktables"
+__location__ = os.path.realpath(
+    os.path.join(os.getcwd(), os.path.dirname(__file__)))
+nemesis_location =  os.path.realpath(
+    os.path.join(__location__,os.pardir)
+    )
+
+ktable_path = os.path.join(nemesis_location, "data/ktables")
 lowres_file_paths = [
     'h2owasp43.kta',
     'co2wasp43.kta',
@@ -32,5 +38,5 @@ hires_file_paths = [
 for ipath,path in enumerate(ariel_file_paths):
     ariel_file_paths[ipath] = os.path.join(ktable_path,path)
 
-cia_file_path = "/Users/jingxuanyang/Desktop/Workspace/nemesispy2022/nemesispy/data/cia"
+cia_file_path = ktable_path = os.path.join(nemesis_location, "data/cia")
 cia_file_path = os.path.join(cia_file_path,'exocia_hitran12_200-3800K.tab')

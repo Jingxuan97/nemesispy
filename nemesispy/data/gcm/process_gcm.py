@@ -65,14 +65,16 @@ comap_mod = np.zeros((nlon,nlat,npv))
 h2omap = np.zeros((nlon,nlat,npv))
 h2omap_mod = np.zeros((nlon,nlat,npv))
 
-dirpath = os.path.dirname(__file__)
-f = open(os.path.join(dirpath,'process_vivien.txt'))
+__location__ = os.path.realpath(
+    os.path.join(os.getcwd(), os.path.dirname(__file__)))
+
+f = open(os.path.join(__location__,'process_vivien.txt'))
 vivien_gcm = f.read()
 f.close()
 vivien_gcm = vivien_gcm.split()
 vivien_gcm = [float(i) for i in vivien_gcm]
 
-f = open(os.path.join(dirpath,'process_vivien_mod.txt'))
+f = open(os.path.join(__location__,'process_vivien_mod.txt'))
 vivien_gcm_mod = f.read()
 f.close()
 vivien_gcm_mod = vivien_gcm_mod.split()
