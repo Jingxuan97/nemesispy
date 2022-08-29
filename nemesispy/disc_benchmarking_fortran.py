@@ -1,6 +1,6 @@
 import numpy as np
 import os
-from disc_benchmarking_utils import phase_curve_fil,wasp43b_spx_dayside_single_angle_45
+from nemesispy.disc_benchmarking_utils import phase_curve_fil,wasp43b_spx_dayside_single_angle_45
 
 ### Reference Opacity Data
 spx_2ring = """0.00000      0.00000      0.00000      1
@@ -185,11 +185,10 @@ spx_5ring = """0.00000      0.00000      0.00000      1
 4.50000  9.50000e-05  0.000133000
 """
 
-k_table_location = """/Users/jingxuanyang/ktables/h2owasp43.kta
-/Users/jingxuanyang/ktables/cowasp43.kta
-/Users/jingxuanyang/ktables/co2wasp43.kta
-/Users/jingxuanyang/ktables/ch4wasp43.kta
-"""
+k_table_location = """/gf3/planetary2/PGJI011_YANG_EXOPHASE/nemesispy2022/nemesispy/data/ktables/h2owasp43.kta
+/gf3/planetary2/PGJI011_YANG_EXOPHASE/nemesispy2022/nemesispy/data/ktables/co2wasp43.kta
+/gf3/planetary2/PGJI011_YANG_EXOPHASE/nemesispy2022/nemesispy/data/ktables/cowasp43.kta
+/gf3/planetary2/PGJI011_YANG_EXOPHASE/nemesispy2022/nemesispy/data/ktables/ch4wasp43.kta"""
 cia_file_name='exocia_hitran12_200-3800K.tab'
 
 ### Reference Constants
@@ -541,8 +540,9 @@ class Nemesis_api:
     def run_forward_model(self):
         # os.system("/gf3/planetary2/PGJI011_YANG_EXOPHASE/bin/Nemesis < {}.nam > /dev/null".format(self.name))
         # os.system("/gf3/planetary2/PGJI011_YANG_EXOPHASE/bin/Nemesis < {}.nam > stuff.out".format(self.name))
-        os.system("/gf3/planetary2/PGJI011_YANG_EXOPHASE/bin/Nemesis < {}.nam > stuff.out".format(self.name))
-        "/gf3/planetary2/PGJI011_YANG_EXOPHASE/bin/Nemesis < testing.nam > stuff.out"
+        os.system("~/bin/Nemesis < {}.nam > stuff.out".format(self.name))
+        # os.system("/gf3/planetary2/PGJI011_YANG_EXOPHASE/bin/Nemesis < {}.nam > stuff.out".format(self.name))
+        # "/gf3/planetary2/PGJI011_YANG_EXOPHASE/bin/Nemesis < testing.nam > stuff.out"
 
     def read_output(self):
         wave, yerr, model = np.loadtxt("{}.mre".format(self.name), skiprows=5,
