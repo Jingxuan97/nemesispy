@@ -106,33 +106,3 @@ def TP_Line(P,g_plt,T_eq,k_IR,gamma1,gamma2,alpha,beta,T_int):
     flux3 = T_irr**4 * alpha * xi2
     TP = (flux1+flux2+flux3)**0.25
     return TP
-
-
-"""
-NLAYER = 100
-P_grid = np.geomspace(10e8,100,NLAYER) # pressure in pa
-T_eq = 1469/(2**0.5)
-k_IR = 1e-3
-gamma1 = 0.1
-gamma2 = 0.1
-alpha = 0.9
-beta = 1
-g = 25
-#f = 3
-
-
-for k_IR in [1e-5,1e-2,1,10]:
-    for gamma1 in [1e-3,1e-2,1,10]:
-        for gamma2 in [1e-3,1e-2,1,10]:
-            for alpha in [0.25,0.5,0.75,1]:
-                for beta in [0,0.5,1,2]:
-                    for T_int in np.linspace(10,3000,10):
-                        x = TP_Line(P=P_grid,g_plt=g,T_eq=T_eq,k_IR=k_IR,gamma1=gamma1,gamma2=gamma2,
-                                alpha=alpha,beta=beta,T_int=T_int)
-                        plt.plot(x,P_grid/1e5,linewidth=0.5)
-
-plt.semilogy()
-plt.gca().invert_yaxis()
-plt.xlim(0,3000)
-plt.show()
-"""
