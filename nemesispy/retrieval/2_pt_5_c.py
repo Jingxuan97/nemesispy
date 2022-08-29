@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import numpy as np
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import os
 import pymultinest
 from nemesispy.common.helper import lowres_file_paths, cia_file_path
@@ -249,20 +249,20 @@ def LogLikelihood(cube,ndim,nparams):
 
         chi += np.sum(
             (pat_phase_by_wave[iphase,:] - one_phase)**2/err[:,iphase]**2 )
-    plt.plot()
+
     like = -0.5*chi
-    print(like)
-    plt.plot(wave_grid,pat_phase_by_wave[-1,:],color='k')
-    plt.plot(wave_grid,one_phase,color='r')
-    plt.show()
+    # print(like)
+    # plt.plot(wave_grid,pat_phase_by_wave[-1,:],color='k')
+    # plt.plot(wave_grid,one_phase,color='r')
+    # plt.show()
     return like
 
 n_params = 24
-if not os.path.isdir('chains1'):
-    os.mkdir('chains1')
+if not os.path.isdir('chains2'):
+    os.mkdir('chains2')
 pymultinest.run(LogLikelihood,
                 Prior,
                 n_params,
                 n_live_points=400,
-                outputfiles_basename='chains1/full-'
+                outputfiles_basename='chains2/full-'
                 )
