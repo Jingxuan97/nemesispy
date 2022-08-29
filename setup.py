@@ -8,14 +8,13 @@ correlated-k method. The code is based on the Fortran Nemesis library."""
 
 setup(name="nemesispy",
       version=VERSION,
-      author="Jingxuan Yang",
-      author_email="<jingxuanyang15@gmail.com>",
       description=DESCRIPTION,
       long_description=LONG_DESCRIPTION,
-      packages=["nemesispy"],
+      author="Jingxuan Yang",
+      author_email="<jingxuanyang15@gmail.com>",
+      # packages=["nemesispy"],
+      packages=find_packages(),
       install_requires=[
           "numpy",
-          "numba",
           "scipy",
-          "matplotlib",
-          "pymultinest"])
+          "matplotlib"])
