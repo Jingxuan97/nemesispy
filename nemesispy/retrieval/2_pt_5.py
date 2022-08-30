@@ -252,9 +252,9 @@ def LogLikelihood(cube,ndim,nparams):
     plt.plot()
     like = -0.5*chi
     print(like)
-    plt.plot(wave_grid,pat_phase_by_wave[-1,:],color='k')
-    plt.plot(wave_grid,one_phase,color='r')
-    plt.show()
+    #plt.plot(wave_grid,pat_phase_by_wave[-1,:],color='k')
+    #plt.plot(wave_grid,one_phase,color='r')
+    #plt.show()
     return like
 
 n_params = 24
