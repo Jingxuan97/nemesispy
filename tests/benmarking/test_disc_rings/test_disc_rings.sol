@@ -1,1 +1,0 @@
-wasp43_stellar_newgrav.txt
