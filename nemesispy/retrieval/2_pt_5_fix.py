@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import numpy as np
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import os
+# import matplotlib
+# import matplotlib.pyplot as plt
+# matplotlib.use('Agg')
 import pymultinest
 from nemesispy.common.helper import lowres_file_paths, cia_file_path
 from nemesispy.common.constants import G
@@ -30,7 +33,8 @@ global_lon_grid = np.array(
 global_lat_grid = np.array(
     [ 5., 10., 15., 20., 25., 30., 35., 40., 45., 50., 55., 60., 65.,
     70., 75., 80., 85.]) # 17
-err = np.array([[6.60e-05, 6.70e-05, 7.10e-05, 6.30e-05, 6.90e-05, 6.60e-05,
+err = np.array(
+    [[6.60e-05, 6.70e-05, 7.10e-05, 6.30e-05, 6.90e-05, 6.60e-05,
         5.90e-05, 4.50e-05, 6.10e-05, 6.50e-05, 7.10e-05, 6.60e-05,
         6.80e-05, 6.30e-05, 7.00e-05],
        [6.10e-05, 6.10e-05, 6.50e-05, 5.80e-05, 6.40e-05, 6.10e-05,
@@ -81,11 +85,12 @@ err = np.array([[6.60e-05, 6.70e-05, 7.10e-05, 6.30e-05, 6.90e-05, 6.60e-05,
        [1.33e-04, 1.33e-04, 1.36e-04, 1.34e-04, 1.19e-04, 1.03e-04,
         1.03e-04, 8.40e-05, 1.03e-04, 1.09e-04, 1.33e-04, 1.34e-04,
         1.34e-04, 1.33e-04, 1.33e-04]])
-def gen(x,ck0,ck1,ck2,sk1,sk2,cg0,cg1,cg2,sg1,sg2,cf0,cf1,cf2,sf1,sf2,
-    ct0,ct1,ct2,st1,st2):
-    """
-    Generate log(2-Stream Guillot parameters) from Fourier coefficients
-    """
+def gen(x,
+    ck0,ck1,ck2,sk1,sk2,
+    cg0,cg1,cg2,sg1,sg2,
+    cf0,cf1,cf2,sf1,sf2,
+    T_int):
+    """Generate log(2-Stream Guillot parameters) from Fourier coefficients"""
     y = x/180*np.pi
     log_kappa = ck0 + ck1 * np.cos(y) + ck2 * np.cos(2*y)\
         + sk1 * np.sin(y) + sk2 * np.sin(2*y)
@@ -93,14 +98,11 @@ def gen(x,ck0,ck1,ck2,sk1,sk2,cg0,cg1,cg2,sg1,sg2,cf0,cf1,cf2,sf1,sf2,
         + sg1 * np.sin(y) + sg2 * np.sin(2*y)
     log_f = cf0 + cf1 * np.cos(y) + cf2 * np.cos(2*y)\
         + sf1 * np.sin(y) + sf2 * np.sin(2*y)
-    log_T_int = ct0 + ct1 * np.cos(y) + ct2 * np.cos(2*y)\
-        + st1 * np.sin(y) + st2 * np.sin(2*y)
-    return log_kappa, log_gamma, log_f, log_T_int
+    T_int_array = np.ones(y.shape) * T_int
+    return log_kappa, log_gamma, log_f, T_int_array
 
-def tmap1(g_plt, T_eq, log_kappa, log_gamma, log_f, log_T_int):
-    """
-    Generate tmap
-    """
+def tmap1(g_plt, T_eq, log_kappa, log_gamma, log_f, T_int_array):
+    """Generate tmap"""
     # start with fixed grid
     P_grid = P_range
     lon_grid = global_lon_grid
@@ -116,7 +118,7 @@ def tmap1(g_plt, T_eq, log_kappa, log_gamma, log_f, log_T_int):
     k_array = 10**log_kappa
     g_array = 10**log_gamma
     f_array = 10**log_f
-    T_int_array = 10**log_T_int
+    T_int_array = T_int_array
 
     # calculate equatorial TP profiles
     for ilon in range(nlon):
@@ -132,13 +134,19 @@ def tmap1(g_plt, T_eq, log_kappa, log_gamma, log_f, log_T_int):
                 + (tp_grid[ilon,0,:]- TP_mean) * np.cos(lat/180*np.pi)**0.25
     return tp_grid
 
-def gen_tmap1(g_plt,T_eq,ck0,ck1,ck2,sk1,sk2,cg0,cg1,cg2,sg1,sg2,cf0,cf1,
-    cf2,sf1,sf2,ct0,ct1,ct2,st1,st2,):
+def gen_tmap1(g_plt,T_eq,
+    ck0,ck1,ck2,sk1,sk2,
+    cg0,cg1,cg2,sg1,sg2,
+    cf0,cf1,cf2,sf1,sf2,
+    T_int):
     lon_grid = global_lon_grid
-    log_kappa, log_gamma, log_f, log_T_int \
-        = gen(lon_grid,ck0,ck1,ck2,sk1,sk2,cg0,cg1,cg2,sg1,sg2,cf0,cf1,cf2,
-            sf1,sf2,ct0,ct1,ct2,st1,st2)
-    tp_grid = tmap1(g_plt, T_eq, log_kappa, log_gamma, log_f, log_T_int)
+    log_kappa, log_gamma, log_f, T_int_array \
+        = gen(lon_grid,
+            ck0,ck1,ck2,sk1,sk2,
+            cg0,cg1,cg2,sg1,sg2,
+            cf0,cf1,cf2,sf1,sf2,
+            T_int)
+    tp_grid = tmap1(g_plt, T_eq, log_kappa, log_gamma, log_f, T_int_array)
     return tp_grid
 
 def gen_vmrmap1(h2o,co2,co,ch4,nlon,nlat,npress):
@@ -201,68 +209,72 @@ def Prior(cube,ndim,nparams):
     cube[2] = -1 + (1 - (-1)) * cube[2]
     cube[3] = -1 + (1 - (-1)) * cube[3]
     cube[4] = -1 + (1 - (-1)) * cube[4]
-
     # log_gamma
     cube[5] = -4 + (1 - (-4)) * cube[5]
     cube[6] = -1 + (1 - (-1)) * cube[6]
     cube[7] = -1 + (1 - (-1)) * cube[7]
     cube[8] = -1 + (1 - (-1)) * cube[8]
     cube[9] = -1 + (1 - (-1)) * cube[9]
-
     # log_f
     cube[10] = -3 + (1 - (-3)) * cube[10]
     cube[11] = -1 + (1 - (-1)) * cube[11]
     cube[12] = -1 + (1 - (-1)) * cube[12]
     cube[13] = -1 + (1 - (-1)) * cube[13]
     cube[14] = -1 + (1 - (-1)) * cube[14]
-
-    # log_T_int
-    cube[15] = 2 + (4 - (2)) * cube[15]
-    cube[16] = -1 + (1 - (-1)) * cube[16]
-    cube[17] = -1 + (1 - (-1)) * cube[17]
-    cube[18] = -1 + (1 - (-1)) * cube[18]
-    cube[19] = -1 + (1 - (-1)) * cube[19]
-
-    # log VMR
-    cube[20] = -8 + (-2 - (-8)) * cube[20]
-    cube[21] = -8 + (-2 - (-8)) * cube[21]
-    cube[22] = -8 + (-2 - (-8)) * cube[22]
-    cube[23] = -8 + (-2 - (-8)) * cube[23]
+    # T_int
+    cube[15] = 100 + (1000 - (100)) * cube[15]
+    # log VMRs
+    cube[16] = -8 + (-2 - (-8)) * cube[16]
+    cube[17] = -8 + (-2 - (-8)) * cube[17]
+    cube[18] = -8 + (-2 - (-8)) * cube[18]
+    cube[19] = -8 + (-2 - (-8)) * cube[19]
 
 def LogLikelihood(cube,ndim,nparams):
     tp_grid = gen_tmap1(g,T_eq,
         cube[0],cube[1],cube[2],cube[3],cube[4],
         cube[5],cube[6],cube[7],cube[8],cube[9],
         cube[10],cube[11],cube[12],cube[13],cube[14],
-        cube[15],cube[16],cube[17],cube[18],cube[19])
-
-    vmr_grid = gen_vmrmap1(cube[20],cube[21],cube[22],cube[23],
+        cube[15])
+    # print('tp_grid shape',tp_grid.shape)
+    # print('tp_grid[0,0,:]',tp_grid[0,0,:])
+    vmr_grid = gen_vmrmap1(cube[16],cube[17],cube[18],cube[19],
         nlon=len(global_lon_grid), nlat=len(global_lat_grid),
         npress=len(P_range))
-
+    # print('vmr_grid shape',vmr_grid.shape)
+    # print('vmr_grid[0,0,:]',vmr_grid[0,0,:])
     chi = 0
     for iphase, phase in enumerate(phase_grid):
+        # print('iphase',iphase)
+        # print('phase',phase)
         one_phase =  FM.calc_disc_spectrum(phase=phase, nmu=nmu, P_model=P_range,
             global_model_P_grid=P_range, global_T_model=tp_grid,
             global_VMR_model=vmr_grid, mod_lon=global_lon_grid,
             mod_lat=global_lat_grid, solspec=wasp43_spec)
-
+        # print('one_phase',one_phase)
         chi += np.sum(
-            (pat_phase_by_wave[iphase,:] - one_phase)**2/err[:,iphase]**2 )
-    plt.plot()
+            (pat_phase_by_wave[iphase,:] \
+                - one_phase)**2/err[:,iphase]**2 )
+        # plt.title(phase)
+        # plt.plot(wave_grid, pat_phase_by_wave[iphase,:],color='k')
+        # plt.plot(wave_grid, one_phase,color='r')
+        # plt.savefig('phase_{}.pdf'.format(iphase))
+        # plt.close()
+
     like = -0.5*chi
-    print(like)
-    #plt.plot(wave_grid,pat_phase_by_wave[-1,:],color='k')
-    #plt.plot(wave_grid,one_phase,color='r')
-    #plt.show()
+    # print(like)
+    # plt.plot(wave_grid,pat_phase_by_wave[-1,:],color='k')
+    # plt.plot(wave_grid,one_phase,color='r')
+    # plt.show()
+    print('likelihood',like)
     return like
 
-n_params = 24
-if not os.path.isdir('chains1'):
-    os.mkdir('chains1')
+n_params = 20
+print('start')
+if not os.path.isdir('chains3'):
+    os.mkdir('chains3')
 pymultinest.run(LogLikelihood,
                 Prior,
                 n_params,
                 n_live_points=400,
-                outputfiles_basename='chains1/full-'
+                outputfiles_basename='chains3/fix-'
                 )

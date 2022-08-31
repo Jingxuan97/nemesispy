@@ -5,7 +5,7 @@ Interface class for running forward models.
 """
 import numpy as np
 from nemesispy.radtran.calc_mmw import calc_mmw
-from nemesispy.radtran.calc_layer import calc_layer
+from nemesispy.common.calc_layer import calc_layer
 from nemesispy.radtran.read import read_kls
 from nemesispy.radtran.calc_radiance import calc_radiance
 from nemesispy.radtran.read import read_cia
@@ -55,7 +55,7 @@ class ForwardModel():
         # phase curve debug data
         self.fov_H_model = None
         self.fake_fov_H_model = None
-        fov_lattitudes = None
+        fov_latitudes = None
         fov_longitudes = None
         fov_emission_angles = None
         fov_weights = None
@@ -138,28 +138,16 @@ class ForwardModel():
         Then calculate the spectrum at a single point on the disc.
         """
         NPRO = len(P_model)
-        mmw = np.zeros(NPRO)
+        mmw = np.zeros(P_model.shape)
+
         for ipro in range(NPRO):
             mmw[ipro] = calc_mmw(self.gas_id_list,VMR_model[ipro,:])
+
         H_model = calc_hydrostat(P=P_model, T=T_model, mmw=mmw,
             M_plt=self.M_plt, R_plt=self.R_plt)
 
-        H_layer,P_layer,T_layer,VMR_layer,U_layer,\
-        MMW_layer,Gas_layer,scale,del_S,del_H = calc_layer(
-            self.R_plt, H_model, P_model, T_model, VMR_model,
-            self.gas_id_list, self.NLAYER, path_angle, layer_type=1,
-            H_0=0.0, NSIMPS=101
-            )
-
-        if len(solspec)==0:
-            solspec = np.ones(len(self.wave_grid))
-
-        point_spectrum = calc_radiance(self.wave_grid, U_layer, P_layer, T_layer,
-            VMR_layer, self.k_gas_w_g_p_t, self.k_table_P_grid,
-            self.k_table_T_grid, self.del_g, ScalingFactor=scale,
-            RADIUS=self.R_plt, solspec=solspec, k_cia=self.k_cia_pair_t_w,
-            ID=self.gas_id_list,cia_nu_grid=self.cia_nu_grid,
-            cia_T_grid=self.cia_T_grid, DEL_S=del_H)
+        point_spectrum = self.calc_point_spectrum(H_model, P_model,
+            T_model, VMR_model, path_angle, solspec)
 
         return point_spectrum
 
@@ -180,7 +168,7 @@ class ForwardModel():
         # get locations and angles for disc averaging
         nav, wav = gauss_lobatto_weights(phase, nmu)
         wav = np.around(wav,decimals=8)
-        fov_lattitudes = wav[0,:]
+        fov_latitudes = wav[0,:]
         fov_longitudes = wav[1,:]
         fov_stellar_zen = wav[2,:]
         fov_emission_angles = wav[3,:]
@@ -189,7 +177,7 @@ class ForwardModel():
 
         for iav in range(nav):
             xlon = fov_longitudes[iav]
-            xlat = fov_lattitudes[iav]
+            xlat = fov_latitudes[iav]
             T_model, VMR_model = interpvivien_point(
                 lon=xlon,lat=xlat, p=P_model,
                 gcm_lon=mod_lon, gcm_lat=mod_lat,
