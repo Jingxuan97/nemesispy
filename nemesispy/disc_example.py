@@ -51,7 +51,7 @@ run_params = {
 #     return None
 
 
-from nemesispy.common.helper import lowres_file_paths, cia_file_path
+from nemesispy.data.helper import lowres_file_paths, cia_file_path
 
 print('creating example phase curve')
 ### Wavelengths grid and orbital phase grid

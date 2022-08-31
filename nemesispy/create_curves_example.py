@@ -15,7 +15,7 @@ from nemesispy.data.gcm.process_gcm import (nlon,nlat,xlon,xlat,npv,pv,\
     pat_phase_by_wave,pat_wave_by_phase,\
     vmrmap_mod_new,tmap_hot)
 
-from nemesispy.common.helper import lowres_file_paths, cia_file_path
+from nemesispy.data.helper import lowres_file_paths, cia_file_path
 
 print('creating example phase curve')
 ### Wavelengths grid and orbital phase grid

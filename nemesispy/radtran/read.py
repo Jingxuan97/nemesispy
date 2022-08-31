@@ -83,7 +83,7 @@ def read_kta(filepath):
     # Note that kta pressure grid is in ATM, conver to Pa
     P_grid = np.fromfile(f,dtype='float32',count=NPRESSKTA) * np.float32(ATM)
     T_grid = np.fromfile(f,dtype='float32',count=NTEMPKTA)
-    ioff += NPRESSKTA*nbytes_float32 + NTEMPKTA*nbytes_float32
+    ioff += NPRESSKTA*nbytes_float32 + NTEMPKTA * nbytes_float32
 
     # Read wavenumber/wavelength grid
     if delv>0.0:  # uniform grid
@@ -95,8 +95,8 @@ def read_kta(filepath):
         ioff += NWAVEKTA*nbytes_float32
 
     # Jump to the minimum wavenumber
-    if ioff > irec0-1:
-        raise('Error in kta file: too many headers')
+    if ioff > (irec0-1)*nbytes_float32:
+        raise(Exception('Error in {} : too many headers'.format(filepath)))
     ioff = (irec0-1)*nbytes_float32 # Python index starts at 0
     f.seek(ioff,0)
 
@@ -110,9 +110,11 @@ def read_kta(filepath):
                 k_w_g_p_t[iwave,:,ipress,itemp] = k_list[ig:ig+NG]
                 ig = ig + NG
     k_w_g_p_t = np.float32(k_w_g_p_t)
+
     # close file
     f.close()
-    return gas_id, iso_id, np.float64(wave_grid), g_ord, del_g, P_grid, T_grid, k_w_g_p_t
+    return gas_id, iso_id, np.float64(wave_grid), g_ord, del_g, P_grid,\
+        T_grid, k_w_g_p_t
 
 def read_kls(filepaths):
     """
@@ -189,7 +191,7 @@ def read_cia(filepath,dnu=10,npara=0):
     """
     if npara != 0:
         # might need sys.exit'
-        raise('Routines have not been adapted yet for npara!=0')
+        raise(Exception('Routines have not been adapted yet for npara!=0'))
 
     # Reading the actual CIA file
     if npara == 0:
