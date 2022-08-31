@@ -9,6 +9,8 @@
 """
 import numpy as np
 import scipy.interpolate as interpolate
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from nemesispy.data.helper import lowres_file_paths, cia_file_path, \
     lowres_wavelengths
@@ -168,15 +170,18 @@ fig.supylabel('Flux ratio (x$10^{3}$)')
 ix = 0
 iy = 0
 for iphase,phase in enumerate(phase_grid):
-    axs[ix,iy].plot(wave_grid, best_fit_TP_phase_by_wave_2_stream_Guillot_fixed_T_int[iphase,:]*1e3,
+    axs[ix,iy].plot(wave_grid,
+        best_fit_TP_phase_by_wave_2_stream_Guillot_fixed_T_int[iphase,:]*1e3,
         marker='s',ms=0.1,mfc='m',color='m', linestyle='-.',
         linewidth=0.3,label='2-stream\n'+r'fixed $T_{int}$')
 
-    axs[ix,iy].plot(wave_grid, best_fit_TP_phase_by_wave_2_stream_Guillot[iphase,:]*1e3,
+    axs[ix,iy].plot(wave_grid,
+        best_fit_TP_phase_by_wave_2_stream_Guillot[iphase,:]*1e3,
         marker='s',ms=0.1,mfc='b',color='b', linestyle='-.',
         linewidth=0.3,label='2-stream')
 
-    axs[ix,iy].plot(wave_grid, best_fit_TP_phase_by_wave_3_stream_Guillot_fixed_T_int[iphase,:]*1e3,
+    axs[ix,iy].plot(wave_grid,
+        best_fit_TP_phase_by_wave_3_stream_Guillot_fixed_T_int[iphase,:]*1e3,
         marker='s',ms=0.1,mfc='r',color='r',linestyle='-.',
         linewidth=0.3,label='3-stream\n'+r'fixed $T_{int}$')
 
@@ -189,9 +194,8 @@ for iphase,phase in enumerate(phase_grid):
         linewidth=0.3,label='GCM')
 
     if ix == 0 and iy == 0:
-        axs[ix,iy].legend(loc='upper left',fontsize='xx-small')
-
-    axs[ix,iy].text(2.7,3.5,r'$\phi$=' + r'{}'.format(phase/360),fontsize=6)
+        axs[ix,iy].legend(loc='upper left',fontsize='x-small')
+    axs[ix,iy].text(2.7,3.5,r'$\phi$=' + r'{}'.format(phase/360),fontsize=8)
 
     # populate plot
     iy += 1
@@ -200,7 +204,7 @@ for iphase,phase in enumerate(phase_grid):
         ix += 1
 
 fig.tight_layout()
-plt.savefig('compare_spectra.pdf')
+plt.savefig('figures/compare_spectra.pdf')
 # plt.show()
 
 # Plot phase curve at each wavelength
@@ -253,8 +257,8 @@ for iwave,wave in enumerate(wave_grid[::-1]):
 
 axs[8,1].set_visible(False)
 
-fig.legend(handles, labels, ncol=5, loc='lower right', fontsize='xx-small')
+fig.legend(handles, labels, ncol=2, loc='lower right', fontsize=12)
 fig.tight_layout()
 
-plt.savefig('compare_phase_curves.pdf')
+plt.savefig('figures/compare_phase_curves.pdf')
 # plt.show()
