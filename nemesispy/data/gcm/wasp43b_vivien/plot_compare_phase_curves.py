@@ -85,17 +85,20 @@ for ilon in range(nlon):
         best_fit_T_map_2_stream_Guillot[ilon,ilat,:] = f(pv)
 
 # 3 stream TP profiles with fixed T_int
-retrieved_TP_phase_by_wave_Line = np.zeros((nphase,nwave))
-retrieved_TP_wave_by_phase_Line = np.zeros((nwave,nphase))
-T_profiles_Line \
-    = np.loadtxt('AAbest_fit.txt',ndmin=2,delimiter=',')
-retrieved_T_map_Line = np.zeros((nlon,nlat,npv))
+best_fit_TP_phase_by_wave_3_stream_Guillot_fixed_T_int \
+    = np.zeros((nphase,nwave))
+best_fit_TP_wave_by_phase_3_stream_Guillot_fixed_T_int \
+    = np.zeros((nwave,nphase))
+TP_profiles_3_stream_Guillot_fixed_T \
+    = np.loadtxt('best_fit_TP_3_stream_Guillot_fixed_T.txt',
+    ndmin=2,delimiter=',')
+best_fit_T_map_3_sream_Guillot_fixed_T = np.zeros((nlon,nlat,npv))
 for ilon in range(nlon):
     for ilat in range(nlat):
-        TP = T_profiles_Line[ilon*32+ilat,]
+        TP = TP_profiles_3_stream_Guillot_fixed_T[ilon*32+ilat,]
         f = interpolate.interp1d(P_range,TP,fill_value=(TP[0],TP[-1]),
             bounds_error=False)
-        retrieved_T_map_Line[ilon,ilat,:] = f(pv)
+        best_fit_T_map_3_sream_Guillot_fixed_T[ilon,ilat,:] = f(pv)
 
 # Limited P gcm
 gcm_phase_by_wave = np.zeros((nphase,nwave))
@@ -105,7 +108,8 @@ gcm_wave_by_phase = np.zeros((nwave,nphase))
 # 1D Guillot fit spec with fixed T_int
 for iphase, phase in enumerate(phase_grid):
     one_phase =  FM.calc_disc_spectrum(phase=phase, nmu=nmu, P_model=P_range,
-        global_model_P_grid=pv, global_T_model=best_fit_T_map_2_stream_Guillot_fixed_T_int,
+        global_model_P_grid=pv,
+        global_T_model=best_fit_T_map_2_stream_Guillot_fixed_T_int,
         global_VMR_model=vmrmap_mod, mod_lon=xlon, mod_lat=xlat,
         solspec=wasp43_spec)
     best_fit_TP_phase_by_wave_2_stream_Guillot_fixed_T_int[iphase,:] = one_phase
@@ -117,7 +121,8 @@ for iwave in range(len(wave_grid)):
 # 1D Guillot fit spec
 for iphase, phase in enumerate(phase_grid):
     one_phase =  FM.calc_disc_spectrum(phase=phase, nmu=nmu, P_model=P_range,
-        global_model_P_grid=pv, global_T_model=best_fit_T_map_2_stream_Guillot,
+        global_model_P_grid=pv,
+        global_T_model=best_fit_T_map_2_stream_Guillot,
         global_VMR_model=vmrmap_mod, mod_lon=xlon, mod_lat=xlat,
         solspec=wasp43_spec)
     best_fit_TP_phase_by_wave_2_stream_Guillot[iphase,:] = one_phase
@@ -129,14 +134,15 @@ for iwave in range(len(wave_grid)):
 # 1D Line fit spec
 for iphase, phase in enumerate(phase_grid):
     one_phase =  FM.calc_disc_spectrum(phase=phase, nmu=nmu, P_model=P_range,
-        global_model_P_grid=pv, global_T_model=retrieved_T_map_Line,
+        global_model_P_grid=pv,
+        global_T_model=best_fit_T_map_3_sream_Guillot_fixed_T,
         global_VMR_model=vmrmap_mod, mod_lon=xlon, mod_lat=xlat,
         solspec=wasp43_spec)
-    retrieved_TP_phase_by_wave_Line[iphase,:] = one_phase
+    best_fit_TP_phase_by_wave_3_stream_Guillot_fixed_T_int[iphase,:] = one_phase
 for iwave in range(len(wave_grid)):
     for iphase in range(len(phase_grid)):
-        retrieved_TP_wave_by_phase_Line[iwave,iphase] \
-            = retrieved_TP_phase_by_wave_Line[iphase,iwave]
+        best_fit_TP_wave_by_phase_3_stream_Guillot_fixed_T_int[iwave,iphase] \
+            = best_fit_TP_phase_by_wave_3_stream_Guillot_fixed_T_int[iphase,iwave]
 
 # limited gcm spec
 for iphase, phase in enumerate(phase_grid):
@@ -153,7 +159,7 @@ for iwave in range(len(wave_grid)):
 ### Plots
 # Plot spectrum at each phase
 fig, axs = plt.subplots(nrows=5,ncols=3,sharex=True,sharey=True,
-                        figsize=[8.25,11.75],dpi=600)
+    figsize=[8.25,11.75],dpi=600)
 plt.xlim(1,4.6)
 plt.ylim(-5e-1,5)
 
@@ -170,7 +176,7 @@ for iphase,phase in enumerate(phase_grid):
         marker='s',ms=0.1,mfc='b',color='b', linestyle='-.',
         linewidth=0.3,label='2-stream')
 
-    axs[ix,iy].plot(wave_grid, retrieved_TP_phase_by_wave_Line[iphase,:]*1e3,
+    axs[ix,iy].plot(wave_grid, best_fit_TP_phase_by_wave_3_stream_Guillot_fixed_T_int[iphase,:]*1e3,
         marker='s',ms=0.1,mfc='r',color='r',linestyle='-.',
         linewidth=0.3,label='3-stream\n'+r'fixed $T_{int}$')
 
@@ -195,7 +201,7 @@ for iphase,phase in enumerate(phase_grid):
 
 fig.tight_layout()
 plt.savefig('compare_spectra.pdf')
-plt.show()
+# plt.show()
 
 # Plot phase curve at each wavelength
 fig, axs = plt.subplots(nrows=9,ncols=2,sharex=True,sharey=False,
@@ -208,15 +214,18 @@ ix = 0
 iy = 0
 for iwave,wave in enumerate(wave_grid[::-1]):
 
-    axs[ix,iy].plot(phase_grid, best_fit_TP_wave_by_phase_2_stream_Guillot_fixed_T_int[16-iwave,:]*1e3,
+    axs[ix,iy].plot(phase_grid,
+        best_fit_TP_wave_by_phase_2_stream_Guillot_fixed_T_int[16-iwave,:]*1e3,
         marker='s',ms=0.1,mfc='m',color='m',linewidth=0.5,linestyle=':',
         label='2-stream\n'+r'fixed $T_{int}$')
 
-    axs[ix,iy].plot(phase_grid, best_fit_TP_wave_by_phase_2_stream_Guillot[16-iwave,:]*1e3,
+    axs[ix,iy].plot(phase_grid,
+        best_fit_TP_wave_by_phase_2_stream_Guillot[16-iwave,:]*1e3,
         marker='s',ms=0.1,mfc='b',color='b',linewidth=0.5,linestyle='-.',
         label='2-stream')
 
-    axs[ix,iy].plot(phase_grid, retrieved_TP_wave_by_phase_Line[16-iwave,:]*1e3,
+    axs[ix,iy].plot(phase_grid,
+        best_fit_TP_wave_by_phase_3_stream_Guillot_fixed_T_int[16-iwave,:]*1e3,
         marker='s',ms=0.1,mfc='r',color='r',linewidth=0.5,linestyle='--',
         label='3-stream\n'+r'fixed $T_{int}$')
 
@@ -248,20 +257,4 @@ fig.legend(handles, labels, ncol=5, loc='lower right', fontsize='xx-small')
 fig.tight_layout()
 
 plt.savefig('compare_phase_curves.pdf')
-plt.show()
-
-# Calculate chi^2
-chi_Guillot_fixed = 0
-chi_Guillot = 0
-chi_Line = 0
-for iwave, wave in enumerate(wave_grid[::-1]):
-    chi_Guillot_fixed+=np.sum((gcm_wave_by_phase \
-     - best_fit_TP_wave_by_phase_2_stream_Guillot_fixed_T_int)**2/kevin_wave_by_phase[iwave,:,1]**2)
-    chi_Guillot+=np.sum((gcm_wave_by_phase \
-     - best_fit_TP_wave_by_phase_2_stream_Guillot)**2/kevin_wave_by_phase[iwave,:,1]**2)
-    chi_Line+=np.sum((gcm_wave_by_phase \
-     - retrieved_TP_wave_by_phase_Line)**2/kevin_wave_by_phase[iwave,:,1]**2)
-
-chi_Guillot_fixed = chi_Guillot_fixed/(nwave*nphase)
-chi_Guillot = chi_Guillot/(nwave*nphase)
-chi_Line = chi_Line/(nwave*nphase)
+# plt.show()
