@@ -17,16 +17,11 @@ from nemesispy.data.gcm.wasp43b_vivien.process_wasp43b_gcm_vivien import (
     hemap_mod,h2map_mod,vmrmap_mod,phase_grid,\
     kevin_phase_by_wave,kevin_wave_by_phase,\
     pat_phase_by_wave,pat_wave_by_phase)
-
-
 from nemesispy.common.interpolate_gcm import interp_gcm_X
 
 # interpolate the temperature to the right pressure level
 NLAYER = 20
-# P_grid = np.geomspace(20e5,100,NLAYER) # pressure in bar
-# P_grid = np.array([20,10,1,0.5,0.1,0.05,0.01,0.005,0.001])*1e5 # Pressure in bar
 P_grid = np.geomspace(20e5,100,NLAYER) # pressure in bar
-# P_grid = pv
 N_P = len(P_grid)
 lon_grid = np.linspace(-180,180,100)
 N_lon = len(lon_grid)
@@ -45,13 +40,14 @@ for lat_index, lat in enumerate(lat_grid):
     T_lat = np.zeros((N_P,N_lon))
     color = iter(cm.rainbow(np.linspace(0, 1, N_P+2)))
     for lon_index, longitude in enumerate(lon_grid):
-        iT = interp_gcm_X(longitude,lat,P_grid,gcm_lon=xlon,gcm_lat=xlat,gcm_p=pv,
-            X=tmap, substellar_point_longitude_shift=0)
+        iT = interp_gcm_X(longitude,lat,P_grid,gcm_lon=xlon,gcm_lat=xlat,
+            gcm_p=pv,X=tmap, substellar_point_longitude_shift=0)
         T_lat[:,lon_index] = iT
 
     for index, pressure in enumerate(P_grid):
         axs[irow,icol].plot(lon_grid,T_lat[-index-1,:],
-            label='{:.1e}'.format(P_grid[-index-1]/1e5), color=next(color),linewidth=0.5)
+            label='{:.1e}'.format(P_grid[-index-1]/1e5),
+            color=next(color),linewidth=0.5)
 
     axs[irow,icol].set_title(r'lat={}'.format(lat))
     irow = int((lat_index+1)/3)
@@ -60,13 +56,11 @@ for lat_index, lat in enumerate(lat_grid):
     icol = np.mod(icol+1,3)
     handles, labels = axs[irow,icol].get_legend_handles_labels()
 
-# axs[1,2].legend(loc='lower center',ncol=10,fontsize='xx-small',title='longitude')
 axs[1,2].set_xlim((-180,180))
 axs[1,2].set_ylim((400,2500))
 
-fig.legend(handles, labels, loc='center right',ncol=1,fontsize='xx-small',title='Pressure\n [bar]')
-# plt.legend()
-# fig.tight_layout()
 fig.supxlabel('Longitude [degree]')
 fig.supylabel('Temperature [K]')
-plt.savefig('T_lon_on_lat_ring.pdf',dpi=400)
+fig.legend(handles, labels, loc='center right',
+    ncol=1,fontsize='x-small',title='Pressure\n [bar]')
+plt.savefig('figures/T_lon.pdf',dpi=400)

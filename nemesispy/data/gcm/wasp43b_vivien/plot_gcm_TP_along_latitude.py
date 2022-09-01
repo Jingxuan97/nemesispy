@@ -4,32 +4,26 @@
 Plot TP profiles on latitudinal rings using WASP-43b GCM data from Irwin 2020.
 """
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import cm
+
 # Read GCM data
-from nemesispy.data.gcm.process_gcm import (nlon,nlat,xlon,xlat,npv,pv,\
+from nemesispy.data.gcm.wasp43b_vivien.process_wasp43b_gcm_vivien import (
+    nlon,nlat,xlon,xlat,npv,pv,\
     tmap,h2omap,comap,co2map,ch4map,hemap,h2map,vmrmap,\
     tmap_mod,h2omap_mod,comap_mod,co2map_mod,ch4map_mod,\
     hemap_mod,h2map_mod,vmrmap_mod,phase_grid,\
     kevin_phase_by_wave,kevin_wave_by_phase,\
-    pat_phase_by_wave,pat_wave_by_phase,\
-    vmrmap_mod_new,tmap_hot)
-
+    pat_phase_by_wave,pat_wave_by_phase)
 from nemesispy.common.interpolate_gcm import interp_gcm_X
-
 
 # set up figure : 5 TP plots in a row
 fig, axs = plt.subplots(nrows=1,ncols=5,sharex=True,sharey=True,
     figsize=[10,5],dpi=600)
-
-# add a big axis, hide frame, hide tick and tick label of the big axis
-fig.add_subplot(111,frameon=False)
-plt.tick_params(labelcolor='none',which='both',
-    top=False,bottom=False,left=False,right=False)
-
-# add overall axes labels to the plot
-plt.xlabel('Temperature [K]',size='large')
-plt.ylabel('Pressure [bar]',size='large')
+fig.supxlabel('Temperature [K]',size='large')
+fig.supylabel('Pressure [bar]',size='large')
 
 # interpolate the
 NLAYER = 20
@@ -90,10 +84,16 @@ axs[4].set_title(r'lat={}'.format(lat))
 
 # Since all axes are shared, edit all subplots in one go
 axs[4].invert_yaxis()
-axs[4].legend(loc='upper right',fontsize='xx-small',title='longitude')
+# axs[4].legend(loc='upper right',fontsize='xx-small',title='longitude')
 axs[4].set_xlim((500,2500))
 
-plt.savefig('plots/TPs_on_lat_band.pdf')
+for irow in range(4):
+    handles, labels = axs[irow].get_legend_handles_labels()
+
+fig.legend(handles, labels, loc='center right',
+    ncol=1,fontsize='x-small',title='longitude')
+
+plt.savefig('figures/TPs_on_lat_bands.pdf')
 
 
 # plt.minorticks_on()
