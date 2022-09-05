@@ -47,11 +47,13 @@ for ip in range(npv):
 
     plt.xticks(xticks)
     plt.yticks(yticks_loc,yticks_label)
-    plt.title('Pressure : {} bar'.format(pressure))
+    plt.title('Temperature Contour at P = {:.2f} bar'.format(pressure),
+        fontsize=16)
 
     plt.scatter(x,np.sin(y/180*np.pi)*90,s=1,marker='x',color='k')
-
+    plt.xlabel('Longitude [$^\circ$]',fontsize=14)
+    plt.ylabel('Latitude [$^\circ$]',fontsize=14)
     plt.tight_layout()
     plt.savefig('figures/gcm_contour_pressure_{}.pdf'.format(ip),
-        dpi=600)
+        dpi=800)
     plt.close()

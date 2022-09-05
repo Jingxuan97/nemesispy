@@ -209,10 +209,16 @@ plt.savefig('figures/compare_spectra.pdf')
 
 # Plot phase curve at each wavelength
 fig, axs = plt.subplots(nrows=9,ncols=2,sharex=True,sharey=False,
-                        figsize=[8.25,11.75],dpi=600)
+        figsize=[8.25,11.75],dpi=600)
 
-fig.supxlabel('phase')
-fig.supylabel(r'Wavelength [$\mu$m]')
+fig.supxlabel('phase [$^\circ$]',
+    fontsize='large')
+fig.supylabel(r'Wavelength [$\mu$m]',
+    fontsize='large')
+
+xticks = np.array(
+    [0, 90, 180, 270, 360]
+    )
 
 ix = 0
 iy = 0
@@ -256,9 +262,10 @@ for iwave,wave in enumerate(wave_grid[::-1]):
         iy += 1
 
 axs[8,1].set_visible(False)
-
+axs[8,0].set_xticks(xticks,)
 fig.legend(handles, labels, ncol=2, loc='lower right', fontsize=12)
 fig.tight_layout()
 
-plt.savefig('figures/compare_phase_curves.pdf')
+plt.savefig('figures/compare_phase_curves.pdf',
+    dpi=800)
 # plt.show()

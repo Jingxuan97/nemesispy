@@ -76,11 +76,12 @@ for ip in range(7,35):
 
     pressure = pressure_grid[ip]/1e5 # convert to unit of bar
 
-    fig,axs = plt.subplots(nrows=3, ncols=1,figsize=[4,4],dpi=400,
+    fig,axs = plt.subplots(nrows=3, ncols=1,figsize=[4,5],dpi=800,
         sharex=True,sharey=True,)
-    fig.supxlabel('Longitude [degree]',fontsize='small')
-    fig.supylabel('Latitude [degree]',fontsize='small')
-    fig.suptitle(r'$\Delta T$ at '+'Pressure = {:.1e} bar'.format(pressure),fontsize='x-small')
+    fig.supxlabel('Longitude [$^\circ$]',fontsize=10)
+    fig.supylabel('Latitude [$^\circ$]',fontsize=10)
+    fig.suptitle(r'$\Delta T$ at '+'P = {:.2f} bar'.format(pressure),
+        fontsize=12)
 
     # set up foreshortened latitude coordinates
     fs = np.sin(xlat/180*np.pi)*90
@@ -100,5 +101,6 @@ for ip in range(7,35):
     axs[2].set_yticks(yticks_loc,yticks_label)
 
     fig.tight_layout()
-    plt.savefig('figures/compare_T_contour_pressure_{}.pdf'.format(ip))
+    plt.savefig('figures/compare_T_contour_pressure_{}.pdf'.format(ip),
+        dpi=800)
     plt.close()
