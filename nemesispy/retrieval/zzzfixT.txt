@@ -1,0 +1,36 @@
+WARNING: $LD_LIBRARY_PATH does not agree with $LD_LIBRARY_PATH_modshare counter. The following directories' usage counters were adjusted to match. Note that this may mean that module unloading may not work correctly.
+ /network/software/linux-x86_64/compilers/intel/2018upd4/lib/intel64 /network/software/linux-x86_64/compilers/intel/2018upd4/compilers_and_libraries/linux/mkl/lib/intel64_lin
+WARNING: $LD_LIBRARY_PATH does not agree with $LD_LIBRARY_PATH_modshare counter. The following directories' usage counters were adjusted to match. Note that this may mean that module unloading may not work correctly.
+ /network/software/linux-x86_64/compilers/intel/2018upd4/lib/intel64 /network/software/linux-x86_64/compilers/intel/2018upd4/compilers_and_libraries/linux/mkl/lib/intel64_lin
+Wed 31 Aug 01:39:30 BST 2022
+[atmnode009.atm.ox.ac.uk:20694] 47 more processes have sent help message help-opal-runtime.txt / opal_init:warn-fork
+[atmnode009.atm.ox.ac.uk:20694] Set MCA parameter "orte_base_help_aggregate" to 0 to see all help / error messages
+forrtl: No such file or directory
+forrtl: severe (29): file not found, unit 55, file /gf3/planetary2/PGJI011_YANG_EXOPHASE/nemesispy2022/nemesispy/retrieval/chains3/fix-ev.dat
+Image              PC                Routine            Line        Source             
+libifcoremt.so.5   000014F5853D9622  for__io_return        Unknown  Unknown
+libifcoremt.so.5   000014F5853FD86F  for_open              Unknown  Unknown
+libmultinest_mpi.  000014F588340634  nested_mp_cluster     Unknown  Unknown
+libmultinest_mpi.  000014F58831C1AC  nested_mp_nestsam     Unknown  Unknown
+libmultinest_mpi.  000014F58831B4E0  nested_mp_nestrun     Unknown  Unknown
+libmultinest_mpi.  000014F5882923CC  run                   Unknown  Unknown
+libffi.so.6.0.4    000014F5B5BA9DAE  ffi_call_unix64       Unknown  Unknown
+libffi.so.6.0.4    000014F5B5BA971F  ffi_call              Unknown  Unknown
+_ctypes.cpython-3  000014F5B5E085A4  _ctypes_callproc      Unknown  Unknown
+_ctypes.cpython-3  000014F5B5E08C13  Unknown               Unknown  Unknown
+python3            000000000059FBDE  PyObject_Call         Unknown  Unknown
+python3            000000000050D8C2  _PyEval_EvalFrame     Unknown  Unknown
+python3.6          0000000000508144  Unknown               Unknown  Unknown
+python3.6          0000000000509E70  Unknown               Unknown  Unknown
+python3.6          000000000050A86D  Unknown               Unknown  Unknown
+python3            000000000050D1F5  _PyEval_EvalFrame     Unknown  Unknown
+python3.6          0000000000508144  Unknown               Unknown  Unknown
+python3            000000000050B273  PyEval_EvalCode       Unknown  Unknown
+python3.6          00000000006353D2  Unknown               Unknown  Unknown
+python3            0000000000635487  PyRun_FileExFlags     Unknown  Unknown
+python3            0000000000638CEF  PyRun_SimpleFileE     Unknown  Unknown
+python3            0000000000639891  Py_Main               Unknown  Unknown
+python3            00000000004B0BD0  main                  Unknown  Unknown
+libc-2.27.so       000014F61DAFDC87  __libc_start_main     Unknown  Unknown
+python3            00000000005B2AEA  _start                Unknown  Unknown
+Sun  4 Sep 01:43:25 BST 2022

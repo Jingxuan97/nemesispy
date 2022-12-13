@@ -90,19 +90,19 @@ print(diff)
 
 plt.savefig('create_example.pdf')
 
-"""
+
 ### This is for plotting specta at all phases
 for iphase in range(nphase):
     phasenumber = iphase
     nmu = 5
     phase = phase_grid[phasenumber]
-    P_model = np.geomspace(20e5,1,NLAYER)
-    P_model = pv
-    one_phase =  FM.test_disc_spectrum(phase=phase, nmu=nmu, P_model = pv,
+    P_model = np.geomspace(20e5,100,NLAYER)
+    # P_model = pv
+    one_phase =  FM.calc_disc_spectrum(phase=phase, nmu=nmu, P_model = P_model,
         global_model_P_grid=pv,
         global_T_model=tmap, global_VMR_model=vmrmap_mod_new,
-        model_longitudes=xlon,
-        model_lattitudes=xlat,
+        mod_lon=xlon,
+        mod_lat=xlat,
         solspec=wasp43_spec)
 
     fig, axs = plt.subplots(nrows=2,ncols=1,sharex=True,
@@ -116,14 +116,13 @@ for iphase in range(nphase):
     axs[0].set_ylabel('Flux ratio')
 
     diff = (one_phase - pat_phase_by_wave[phasenumber,:])/one_phase
+    print(phase,one_phase)
     axs[1].scatter(wave_grid,diff,marker='.',color='b')
     axs[1].grid()
     axs[1].set_ylabel('Relative diff')
     axs[1].set_xlabel('Wavelength (Micron)')
-    print(iphase,diff)
+    # print(iphase,list(one_phase))
     plt.tight_layout()
 
     plt.show()
     # plt.savefig('good_discav_planet{}.pdf'.format(iphase),dpi=800)
-
-"""
