@@ -1,5 +1,5 @@
 import matplotlib
-matplotlib.use('Agg')
+# matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -16,6 +16,10 @@ from nemesispy.data.gcm.process_gcm import (nlon,nlat,xlon,xlat,npv,pv,\
     vmrmap_mod_new,tmap_hot)
 
 from nemesispy.data.helper import lowres_file_paths, cia_file_path
+
+# import sys
+# np.set_printoptions(threshold=sys.maxsize)
+
 
 print('creating example phase curve')
 ### Wavelengths grid and orbital phase grid
@@ -39,7 +43,7 @@ gas_id = np.array([  1, 2,  5,  6, 40, 39])
 iso_id = np.array([0, 0, 0, 0, 0, 0])
 NLAYER = 20
 phasenumber = 3
-nmu = 3
+nmu = 5
 phase = phase_grid[phasenumber]
 P_model = np.geomspace(20e5,100,NLAYER)
 NITER = 1
@@ -60,15 +64,16 @@ one_phase =  FM.calc_disc_spectrum(phase=phase, nmu=nmu, P_model = P_model,
 end1 = time.time()
 print('compile+run time = ',end1-start1)
 
-start2 = time.time()
+print('real timing')
+s1 = time.time()
 one_phase =  FM.calc_disc_spectrum(phase=phase, nmu=nmu, P_model = P_model,
     global_model_P_grid=pv,
     global_T_model=tmap_mod, global_VMR_model=vmrmap_mod,
     mod_lon=xlon,
     mod_lat=xlat,
     solspec=wasp43_spec)
-end2 = time.time()
-print('run time = ',end2-start2)
+e1 = time.time()
+print('runtime=',e1-s1)
 
 fig, axs = plt.subplots(nrows=2,ncols=1,sharex=True,
     dpi=100)
@@ -89,20 +94,35 @@ axs[1].grid()
 print(diff)
 
 plt.savefig('create_example.pdf')
+print(list(one_phase))
+# print(vmrmap_mod[0,0])
 
-"""
+# ### time trial
+# start2 = time.time()
+# niter = 1000
+# for i in range(niter):
+#     one_phase =  FM.calc_disc_spectrum(phase=phase, nmu=nmu, P_model = P_model,
+#         global_model_P_grid=pv,
+#         global_T_model=tmap_mod, global_VMR_model=vmrmap_mod,
+#         mod_lon=xlon,
+#         mod_lat=xlat,
+#         solspec=wasp43_spec)
+# end2 = time.time()
+# print('run time = ',(end2-start2)/niter)
+
+
 ### This is for plotting specta at all phases
 for iphase in range(nphase):
     phasenumber = iphase
     nmu = 5
     phase = phase_grid[phasenumber]
-    P_model = np.geomspace(20e5,1,NLAYER)
-    P_model = pv
-    one_phase =  FM.test_disc_spectrum(phase=phase, nmu=nmu, P_model = pv,
+    P_model = np.geomspace(20e5,100,NLAYER)
+    # P_model = pv
+    one_phase =  FM.calc_disc_spectrum(phase=phase, nmu=nmu, P_model = P_model,
         global_model_P_grid=pv,
         global_T_model=tmap, global_VMR_model=vmrmap_mod_new,
-        model_longitudes=xlon,
-        model_lattitudes=xlat,
+        mod_lon=xlon,
+        mod_lat=xlat,
         solspec=wasp43_spec)
 
     fig, axs = plt.subplots(nrows=2,ncols=1,sharex=True,
@@ -120,10 +140,8 @@ for iphase in range(nphase):
     axs[1].grid()
     axs[1].set_ylabel('Relative diff')
     axs[1].set_xlabel('Wavelength (Micron)')
-    print(iphase,diff)
+    print(iphase,one_phase)
     plt.tight_layout()
 
     plt.show()
-    # plt.savefig('good_discav_planet{}.pdf'.format(iphase),dpi=800)
-
-"""
+    plt.savefig('good_discav_planet{}.pdf'.format(iphase),dpi=800)

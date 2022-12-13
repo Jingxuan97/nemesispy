@@ -14,14 +14,67 @@ import numpy as np
 from scipy.io import FortranFile
 from nemesispy.common.constants import ATM
 
+def read_kls(filepaths):
+    """
+    Read a list of k-tables from serveral Nemesis .kta files.
+
+    Parameters
+    ----------
+    filepaths : list
+        A list of strings containing filepaths to the .kta files to be read.
+
+    Returns
+    -------
+    gas_id_list(NGAS) : ndarray
+        Gas identifier list.
+    iso_id_list(NGAS) : ndarray
+        Isotopologue identifier list.
+    wave_grid(NWAVEKTA) : ndarray
+        Wavenumbers/wavelengths grid of the k-table.
+    g_ord(NG) : ndarray
+        Quadrature points on the g-ordinates
+    del_g(NG) : ndarray
+        Gauss quadrature weights for the g-ordinates.
+        These are the widths of the bins in g-space.
+    P_grid(NPRESSKTA) : ndarray
+        Pressure grid on which the k-coefficients are pre-computed.
+        Unit: Pa
+    T_grid(NTEMPKTA) : ndarray
+        Temperature grid on which the k-coefficients are pre-computed.
+        Unit: Kelvin
+    k_gas_w_g_p_t(NGAS,NWAVEKTA,NG,NPRESSKTA,NTEMPKTA) : ndarray
+        Array storing the k-coefficients.
+
+    Notes
+    -----
+    Assume the k-tables in all the kta files are computed on the same
+    wavenumber/wavelength, pressure and temperature grid and with
+    same g-ordinates and quadrature weights.
+    """
+    k_gas_w_g_p_t = []
+    gas_id_list = []
+    iso_id_list = []
+    for filepath in filepaths:
+        gas_id, iso_id, wave_grid, g_ord, del_g, P_grid, T_grid,\
+          k_g = read_kta(filepath)
+        gas_id_list.append(gas_id)
+        iso_id_list.append(iso_id)
+        k_gas_w_g_p_t.append(k_g)
+    # reformat data type to appease numba
+    gas_id_list = np.float32(gas_id_list)
+    iso_id_list = np.float32(iso_id_list)
+    k_gas_w_g_p_t = np.float32(k_gas_w_g_p_t)
+    return gas_id_list, iso_id_list, wave_grid, g_ord, del_g, P_grid, T_grid,\
+        k_gas_w_g_p_t
+
 def read_kta(filepath):
     """
-    Reads a pre-tabulated correlated-k look-up table from a Nemesis .kta file.
+    Reads a correlated-k look-up table from a .kta file in Nemesis format.
 
     Parameters
     ----------
     filepath : str
-        The filepath to the Nemesis .kta file to be read.
+        The filepath to the .kta file to be read.
 
     Returns
     -------
@@ -34,7 +87,7 @@ def read_kta(filepath):
     g_ord(NG) : ndarray
         Quadrature points on the g-ordinates
     del_g(NG) : ndarray
-        Gauss quadrature weights for the g-ordinates.
+        Gaussian quadrature weights for the g-ordinates.
         These are the widths of the bins in g-space.
     P_grid(NPRESSKTA) : ndarray
         Pressure grid on which the k-coefficients are pre-computed.
@@ -115,59 +168,6 @@ def read_kta(filepath):
     f.close()
     return gas_id, iso_id, np.float64(wave_grid), g_ord, del_g, P_grid,\
         T_grid, k_w_g_p_t
-
-def read_kls(filepaths):
-    """
-    Read a list of k-tables from serveral Nemesis .kta files.
-
-    Parameters
-    ----------
-    filepaths : list
-        A list of strings containing filepaths to the .kta files to be read.
-
-    Returns
-    -------
-    gas_id_list(NGAS) : ndarray
-        Gas identifier list.
-    iso_id_list(NGAS) : ndarray
-        Isotopologue identifier list.
-    wave_grid(NWAVEKTA) : ndarray
-        Wavenumbers/wavelengths grid of the k-table.
-    g_ord(NG) : ndarray
-        Quadrature points on the g-ordinates
-    del_g(NG) : ndarray
-        Gauss quadrature weights for the g-ordinates.
-        These are the widths of the bins in g-space.
-    P_grid(NPRESSKTA) : ndarray
-        Pressure grid on which the k-coefficients are pre-computed.
-        Unit: Pa
-    T_grid(NTEMPKTA) : ndarray
-        Temperature grid on which the k-coefficients are pre-computed.
-        Unit: Kelvin
-    k_gas_w_g_p_t(NGAS,NWAVEKTA,NG,NPRESSKTA,NTEMPKTA) : ndarray
-        Array storing the k-coefficients.
-
-    Notes
-    -----
-    Assume the k-tables in all the kta files are computed on the same
-    wavenumber/wavelength, pressure and temperature grid and with
-    same g-ordinates and quadrature weights.
-    """
-    k_gas_w_g_p_t = []
-    gas_id_list = []
-    iso_id_list = []
-    for filepath in filepaths:
-        gas_id, iso_id, wave_grid, g_ord, del_g, P_grid, T_grid,\
-          k_g = read_kta(filepath)
-        gas_id_list.append(gas_id)
-        iso_id_list.append(iso_id)
-        k_gas_w_g_p_t.append(k_g)
-    # reformat data type to appease numba
-    gas_id_list = np.float32(gas_id_list)
-    iso_id_list = np.float32(iso_id_list)
-    k_gas_w_g_p_t = np.float32(k_gas_w_g_p_t)
-    return gas_id_list, iso_id_list, wave_grid, g_ord, del_g, P_grid, T_grid,\
-        k_gas_w_g_p_t
 
 def read_cia(filepath,dnu=10,npara=0):
     """

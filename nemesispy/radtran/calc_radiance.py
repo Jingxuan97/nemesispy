@@ -17,9 +17,9 @@ from nemesispy.radtran.calc_tau_cia import calc_tau_cia
 from nemesispy.radtran.calc_tau_rayleigh import calc_tau_rayleigh
 
 @jit(nopython=True)
-def calc_radiance(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t,
-    P_grid, T_grid, del_g, ScalingFactor, RADIUS, solspec,
-    k_cia, ID, cia_nu_grid, cia_T_grid, DEL_S):
+def calc_radiance(wave_grid, U_layer, P_layer, T_layer, VMR_layer,
+    k_gas_w_g_p_t, P_grid, T_grid, del_g, ScalingFactor, R_plt, solspec,
+    k_cia, ID, cia_nu_grid, cia_T_grid, dH):
     """
     Calculate emission spectrum using the correlated-k method.
 
@@ -28,7 +28,7 @@ def calc_radiance(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t
     wave_grid(NWAVE) : ndarray
         Wavelengths (um) grid for calculating spectra.
     U_layer(NLAYER) : ndarray
-        Total number of gas particles in each layer.
+        Surface density of gas particles in each layer.
         Unit: no. of particle/m^2
     P_layer(NLAYER) : ndarray
         Atmospheric pressure grid.
@@ -51,7 +51,7 @@ def calc_radiance(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t
         Quadrature weights of the g-ordinates.
     ScalingFactor(NLAYER) : ndarray
         Scale stuff to line of sight
-    RADIUS : real
+    R_plt : real
         Planetary radius
         Unit: m
     solspec : ndarray
@@ -71,7 +71,7 @@ def calc_radiance(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t
     T_layer = T_layer[::-1] # layer temperatures (K)
     U_layer = U_layer[::-1] # layer absorber amounts (no./m^2)
     VMR_layer = VMR_layer[::-1,:] # layer volume mixing ratios
-    DEL_S = DEL_S[::-1] # path lengths in each layer
+    dH = dH[::-1] # lengths of each layer
 
     # Record array dimensions
     NGAS, NWAVE, NG, NPRESS, NTEMP = k_gas_w_g_p_t.shape
@@ -83,7 +83,7 @@ def calc_radiance(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t
     # Collision induced absorptioin optical path (NWAVE x NLAYER)
     tau_cia = calc_tau_cia(wave_grid=wave_grid,K_CIA=k_cia,ISPACE=1,
         ID=ID,TOTAM=U_layer,T_layer=T_layer,P_layer=P_layer,VMR_layer=VMR_layer,
-        DELH=DEL_S,cia_nu_grid=cia_nu_grid,TEMPS=cia_T_grid,INORMAL=1,NPAIR=9)
+        DELH=dH,cia_nu_grid=cia_nu_grid,TEMPS=cia_T_grid,INORMAL=1,NPAIR=9)
 
     # Rayleigh scattering optical path (NWAVE x NLAYER)
     tau_rayleigh = calc_tau_rayleigh(wave_grid=wave_grid,U_layer=U_layer)
@@ -93,57 +93,56 @@ def calc_radiance(wave_grid, U_layer, P_layer, T_layer, VMR_layer, k_gas_w_g_p_t
 
     # FORTRAN straight transcript
     tau_gas = calc_tau_gas(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
-            P_grid, T_grid, del_g)
+        P_grid, T_grid, del_g)
 
     # Merge all different opacities
-    for ig in range(NG):
-        tau_total_w_g_l[:,ig,:] = tau_gas[:,ig,:] + tau_cia[:,:] \
-            + tau_dust[:,:] + tau_rayleigh[:,:]
+    for iwave in range(NWAVE):
+        for ilayer in range(NLAYER):
+            for ig in range(NG):
+                tau_total_w_g_l[iwave,ig,ilayer] = tau_gas[iwave,ig,ilayer] \
+                    + tau_cia[iwave,ilayer] \
+                    + tau_dust[iwave,ilayer] \
+                    + tau_rayleigh[iwave,ilayer]
 
-    #Scale to the line-of-sight opacities
-    tau_total_w_g_l = tau_total_w_g_l * ScalingFactor
+    # Scale to the line-of-sight opacities
+    tau_total_w_g_l *=  ScalingFactor
 
     # Defining the units of the output spectrum / divide by stellar spectrum
-    # IFORM = 1
-    # radextra = np.sum(DEL_S[:-1])
-    # radextra = 0
-    # xfac = np.pi*4.*np.pi*((RADIUS+radextra)*1e2)**2./solspec[:]
-    xfac = np.pi*4.*np.pi*(RADIUS*1e2)**2./solspec[:]
+    # radextra = np.sum(dH[:-1])
+    # xfac = np.pi*4.*np.pi*((R_plt+radextra)*1e2)**2./solspec[:]
+    xfac = np.pi*4.*np.pi*(R_plt*1e2)**2./solspec[:]
 
     # Calculating atmospheric gases contribution
-    tau_cumulative_w_g = np.zeros((NWAVE,NG))
+    tau_cum_w_g = np.zeros((NWAVE,NG))
     tr_old_w_g = np.ones((NWAVE,NG))
     spec_w_g = np.zeros((NWAVE,NG))
 
     for ilayer in range(NLAYER):
-        tau_cumulative_w_g[:,:] =  tau_total_w_g_l[:,:,ilayer] + tau_cumulative_w_g[:,:]
-        tr_w_g = np.exp(-tau_cumulative_w_g[:,:]) # transmission function
-        bb = calc_planck(wave_grid, T_layer[ilayer]) # blackbody function
+        for iwave in range(NWAVE):
+            for ig in range(NG):
+                tau_cum_w_g[iwave,ig] \
+                    =  tau_total_w_g_l[iwave,ig,ilayer] + tau_cum_w_g[iwave,ig]
+        tr_w_g = np.exp(-tau_cum_w_g[:,:]) # transmission function
+        bb = calc_planck(wave_grid[:], T_layer[ilayer]) # blackbody function
 
         for iwave in range(NWAVE):
             for ig in range(NG):
                 spec_w_g[iwave,ig] = spec_w_g[iwave,ig] \
-                    + np.float32(tr_old_w_g[iwave,ig]-tr_w_g[iwave,ig])\
-                    *bb[iwave]*xfac[iwave]
+                    + (tr_old_w_g[iwave,ig]-tr_w_g[iwave,ig])\
+                    * bb[iwave] * xfac[iwave]
 
         tr_old_w_g = tr_w_g
 
-    # surface/bottom layer contribution
-    p1 = P_layer[int(len(P_layer)/2-1)] #midpoint
-    p2 = P_layer[-1] # lowest point in altitude/highest in pressure
-
-    surface = None
-    if p2 > p1: # i.e. if not a limb path
-        if not surface:
-            radground = calc_planck(wave_grid,T_layer[-1])
-
-        for ig in range(NG):
-            spec_w_g[:,ig] = spec_w_g[:,ig] + tr_old_w_g[:,ig]*radground*xfac
+    # Add radiation from below deepest layer
+    radground = calc_planck(wave_grid,T_layer[-1])
+    for ig in range(NG):
+        spec_w_g[:,ig] = spec_w_g[:,ig] \
+            + tr_old_w_g[:,ig] * radground[:] * xfac[:]
 
     # Integrate over g-ordinates
     spectrum = np.zeros((NWAVE))
     for iwave in range(NWAVE):
         for ig in range(NG):
-            spectrum[iwave] += spec_w_g[iwave,ig]*del_g[ig]
+            spectrum[iwave] += spec_w_g[iwave,ig] * del_g[ig]
 
     return spectrum

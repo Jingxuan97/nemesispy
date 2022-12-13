@@ -132,3 +132,4 @@ dmypy.json
 #   There files are usually too large to be uploaded.
 *R1000.kta
 *.pdf
+*.png

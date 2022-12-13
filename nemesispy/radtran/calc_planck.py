@@ -12,7 +12,7 @@ from numba import jit
 @jit(nopython=True)
 def calc_planck(wave_grid,T,ispace=1):
     """
-    Calculates the blackbody radiation.
+    Calculates the blackbody radiance.
 
     Parameters
     ----------

@@ -5,7 +5,6 @@ import scipy as sp
 from scipy import special
 from nemesispy.common.constants import R_SUN,M_SUN
 
-
 def TP_Guillot(P,g_plt,T_eq,k_IR,gamma,f,T_int=100):
     """
     TP profile from eqn. (29) in Guillot 2010.
@@ -51,7 +50,6 @@ def TP_Guillot(P,g_plt,T_eq,k_IR,gamma,f,T_int=100):
         * np.exp(-gamma * tau * sqrt3))
     TP = (flux1+flux2)**0.25
     return TP
-
 
 def TP_Line(P,g_plt,T_eq,k_IR,gamma1,gamma2,alpha,beta,T_int):
     """

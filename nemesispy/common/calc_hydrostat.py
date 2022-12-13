@@ -1,8 +1,8 @@
 #!/usr/local/bin/python3
 # -*- coding: utf-8 -*-
 """
-Use hydrostatic equilibrium to find the altitudes of points in the atmosphere
-given their pressures, temperatures and mean molecular weights.
+Use hydrostatic equilibrium to find altitudes given pressures, temperatures
+and mean molecular weights.
 """
 import numpy as np
 from numba import jit
@@ -86,19 +86,14 @@ def calc_hydrostat(P, T, mmw, M_plt, R_plt, H=np.array([])):
     dummy_H = np.zeros(NPRO)
     while xdepth > 1:
 
-        h = np.zeros(NPRO)
-        dummy_H[:] = adjusted_H
+        dummy_H = adjusted_H
 
-        #Calculating the atmospheric model depth
+        # Calculate the atmospheric model depth
         atdepth = dummy_H[-1] - dummy_H[0]
-
-        #Calculate the gravity at each altitude level
-        gravity = np.zeros(NPRO)
-        gravity[:] =  calc_grav_simple(h=dummy_H, M_plt=M_plt, R_plt=R_plt)
-
-        #Calculate the scale height
-        scale = np.zeros(NPRO)
-        scale[:] = K_B*T[:]/(mmw[:]*gravity[:])
+        # Calculate the gravity at each altitude level
+        gravity =  calc_grav_simple(h=dummy_H, M_plt=M_plt, R_plt=R_plt)
+        # Calculate the scale height
+        scale = K_B*T/(mmw*gravity)
 
         if ialt > 0 and ialt < NPRO-1 :
             dummy_H[ialt] = 0.0
@@ -106,12 +101,10 @@ def calc_hydrostat(P, T, mmw, M_plt, R_plt, H=np.array([])):
         # nupper = NPRO - ialt - 1
         for i in range(ialt+1, NPRO):
             sh = 0.5 * (scale[i-1] + scale[i])
-            #self.H[i] = self.H[i-1] - sh * np.log(self.P[i]/self.P[i-1])
             dummy_H[i] = dummy_H[i-1] - sh * np.log(P[i]/P[i-1])
 
         for i in range(ialt-1,-1,-1):
             sh = 0.5 * (scale[i+1] + scale[i])
-            #self.H[i] = self.H[i+1] - sh * np.log(self.P[i]/self.P[i+1])
             dummy_H[i] = dummy_H[i+1] - sh * np.log(P[i]/P[i+1])
 
         atdepth1 = dummy_H[-1] - dummy_H[0]
