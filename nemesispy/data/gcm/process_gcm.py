@@ -9,7 +9,7 @@ from nemesispy.data.gcm.process_gcm import (nlon,nlat,xlon,xlat,npv,pv,pvmap,\
     tmap_mod,h2omap_mod,comap_mod,co2map_mod,ch4map_mod,\
     hemap_mod,h2map_mod,vmrmap_mod,hvmap_mod,phase_grid,\
     kevin_phase_by_wave,kevin_wave_by_phase,\
-    pat_phase_by_wave,pat_wave_by_phase,vmrmap_mod_new)
+    pat_phase_by_wave,pat_wave_by_phase)
 """
 # Read in GCM data stored in process_vivien.txt and process_vivien_mod.txt
 nlon = 64

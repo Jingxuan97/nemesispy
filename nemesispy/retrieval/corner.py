@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
-"""Copy of Dan Foreman-Mackey's plotting routine for posterior distributiion
-https://corner.readthedocs.io/en/latest/
+"""
+Altered for a 4 parameter plot!!!!!
 """
 from __future__ import print_function, absolute_import
 
@@ -25,6 +25,7 @@ def corner(xs, bins=20, range=None, weights=None, color="k",
            labels=None, label_kwargs=None,
            show_titles=False, title_fmt=".2f", title_kwargs=None,
            truths=None, truth_color="#4682b4",
+           MAPs=None, MAP_color='green',
            scale_hist=False, quantiles=None, verbose=False, fig=None,
            max_n_ticks=5, top_ticks=False, use_math_text=False, reverse=False,
            hist_kwargs=None, **hist2d_kwargs):
@@ -90,6 +91,13 @@ def corner(xs, bins=20, range=None, weights=None, color="k",
 
     truth_color : str
         A ``matplotlib`` style color for the ``truths`` makers.
+
+    MAPs : iterable (ndim,)
+        A list of maximum a posterior values to indicate on the plots.
+        Individual values can be omitted by using ``None``.
+
+    MAP_color : str
+        A ``matplotlib`` style color for the ``MAPs`` makers.
 
     scale_hist : bool
         Should the 1-D histograms be scaled in such a way that the zero line
@@ -263,7 +271,13 @@ def corner(xs, bins=20, range=None, weights=None, color="k",
             ax.plot(x0, y0, **hist_kwargs)
 
         if truths is not None and truths[i] is not None:
-            ax.axvline(truths[i], color=truth_color)
+            ax.axvline(truths[i], color=truth_color, label='Truths')
+
+        if MAPs is not None and MAPs[i] is not None:
+            ax.axvline(MAPs[i], color=MAP_color, label='MAP')
+
+        if i==3:
+            ax.legend()
 
         # Plot quantiles if wanted.
         if len(quantiles) > 0:
@@ -368,6 +382,14 @@ def corner(xs, bins=20, range=None, weights=None, color="k",
                     ax.axvline(truths[j], color=truth_color)
                 if truths[i] is not None:
                     ax.axhline(truths[i], color=truth_color)
+
+            if MAPs is not None:
+                if MAPs[i] is not None and MAPs[j] is not None:
+                    ax.plot(MAPs[j], MAPs[i], "s", color=MAP_color)
+                if MAPs[j] is not None:
+                    ax.axvline(MAPs[j], color=MAP_color)
+                if MAPs[i] is not None:
+                    ax.axhline(MAPs[i], color=MAP_color)
 
             if max_n_ticks == 0:
                 ax.xaxis.set_major_locator(NullLocator())

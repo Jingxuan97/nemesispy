@@ -14,106 +14,6 @@ import numpy as np
 from scipy.io import FortranFile
 from nemesispy.common.constants import ATM
 
-def read_kta(filepath):
-    """
-    Reads a pre-tabulated correlated-k look-up table from a Nemesis .kta file.
-
-    Parameters
-    ----------
-    filepath : str
-        The filepath to the Nemesis .kta file to be read.
-
-    Returns
-    -------
-    gas_id : int
-        Gas identifier.
-    iso_id : int
-        Isotopologue identifier.
-    wave_grid(NWAVEKTA) : ndarray
-        Wavenumber/wavelength grid of the k-table.
-    g_ord(NG) : ndarray
-        Quadrature points on the g-ordinates
-    del_g(NG) : ndarray
-        Gauss quadrature weights for the g-ordinates.
-        These are the widths of the bins in g-space.
-    P_grid(NPRESSKTA) : ndarray
-        Pressure grid on which the k-coefficients are pre-computed.
-        Unit: Pa
-    T_grid(NTEMPKTA) : ndarray
-        Temperature grid on which the k-coefficients are pre-computed.
-        Unit: Kelvin
-    k_w_g_p_t(NWAVEKTA,NG,NPRESSKTA,NTEMPKTA) : ndarray
-        Array storing the k-coefficients.
-    """
-    # Open file
-    if filepath[-3:] == 'kta':
-        f = open(filepath,'r')
-    else:
-        f = open(filepath+'.kta','r')
-
-    # Define bytes consumed by elements of table
-    nbytes_int32 = 4
-    nbytes_float32 = 4
-    ioff = 0 # current position in the file
-
-    # Read headers, irec0 is where ktable data starts
-    irec0 = int(np.fromfile(f,dtype='int32',count=1))
-    NWAVEKTA = int(np.fromfile(f,dtype='int32',count=1))
-    vmin = float(np.fromfile(f,dtype='float32',count=1))
-    delv = float(np.fromfile(f,dtype='float32',count=1))
-    fwhm = float(np.fromfile(f,dtype='float32',count=1))
-    NPRESSKTA = int(np.fromfile(f,dtype='int32',count=1))
-    NTEMPKTA = int(np.fromfile(f,dtype='int32',count=1))
-    NG = int(np.fromfile(f,dtype='int32',count=1))
-    gas_id = int(np.fromfile(f,dtype='int32',count=1))
-    iso_id = int(np.fromfile(f,dtype='int32',count=1))
-
-    ioff += 10*nbytes_int32
-
-    # Read g-ordinates and quadrature weights
-    g_ord = np.fromfile(f,dtype='float32',count=NG)
-    del_g = np.fromfile(f,dtype='float32',count=NG)
-    dummy1 = np.fromfile(f,dtype='float32',count=1)
-    dummy2 = np.fromfile(f,dtype='float32',count=1)
-
-    ioff += 2*NG*nbytes_float32
-    ioff += 2*nbytes_float32
-
-    # Read temperature/pressure grid
-    # Note that kta pressure grid is in ATM, conver to Pa
-    P_grid = np.fromfile(f,dtype='float32',count=NPRESSKTA) * np.float32(ATM)
-    T_grid = np.fromfile(f,dtype='float32',count=NTEMPKTA)
-    ioff += NPRESSKTA*nbytes_float32 + NTEMPKTA*nbytes_float32
-
-    # Read wavenumber/wavelength grid
-    if delv>0.0:  # uniform grid
-        vmax = delv*(NWAVEKTA-1) + vmin
-        wave_grid = np.linspace(vmin,vmax,NWAVEKTA)
-    else:   # non-uniform grid
-        wave_grid = np.zeros((NWAVEKTA))
-        wave_grid = np.fromfile(f,dtype='float32',count=NWAVEKTA)
-        ioff += NWAVEKTA*nbytes_float32
-
-    # Jump to the minimum wavenumber
-    if ioff > irec0-1:
-        raise('Error in kta file: too many headers')
-    ioff = (irec0-1)*nbytes_float32 # Python index starts at 0
-    f.seek(ioff,0)
-
-    # Write the k-coefficients into array form
-    k_w_g_p_t = np.zeros((NWAVEKTA,NG,NPRESSKTA,NTEMPKTA))
-    k_list = np.fromfile(f,dtype='float32',count=NTEMPKTA*NPRESSKTA*NG*NWAVEKTA)
-    ig = 0
-    for iwave in range(NWAVEKTA):
-        for ipress in range(NPRESSKTA):
-            for itemp in range(NTEMPKTA):
-                k_w_g_p_t[iwave,:,ipress,itemp] = k_list[ig:ig+NG]
-                ig = ig + NG
-    k_w_g_p_t = np.float32(k_w_g_p_t)
-    # close file
-    f.close()
-    return gas_id, iso_id, np.float64(wave_grid), g_ord, del_g, P_grid, T_grid, k_w_g_p_t
-
 def read_kls(filepaths):
     """
     Read a list of k-tables from serveral Nemesis .kta files.
@@ -167,6 +67,108 @@ def read_kls(filepaths):
     return gas_id_list, iso_id_list, wave_grid, g_ord, del_g, P_grid, T_grid,\
         k_gas_w_g_p_t
 
+def read_kta(filepath):
+    """
+    Reads a correlated-k look-up table from a .kta file in Nemesis format.
+
+    Parameters
+    ----------
+    filepath : str
+        The filepath to the .kta file to be read.
+
+    Returns
+    -------
+    gas_id : int
+        Gas identifier.
+    iso_id : int
+        Isotopologue identifier.
+    wave_grid(NWAVEKTA) : ndarray
+        Wavenumber/wavelength grid of the k-table.
+    g_ord(NG) : ndarray
+        Quadrature points on the g-ordinates
+    del_g(NG) : ndarray
+        Gaussian quadrature weights for the g-ordinates.
+        These are the widths of the bins in g-space.
+    P_grid(NPRESSKTA) : ndarray
+        Pressure grid on which the k-coefficients are pre-computed.
+        Unit: Pa
+    T_grid(NTEMPKTA) : ndarray
+        Temperature grid on which the k-coefficients are pre-computed.
+        Unit: Kelvin
+    k_w_g_p_t(NWAVEKTA,NG,NPRESSKTA,NTEMPKTA) : ndarray
+        Array storing the k-coefficients.
+    """
+    # Open file
+    if filepath[-3:] == 'kta':
+        f = open(filepath,'r')
+    else:
+        f = open(filepath+'.kta','r')
+
+    # Define bytes consumed by elements of table
+    nbytes_int32 = 4
+    nbytes_float32 = 4
+    ioff = 0 # current position in the file
+
+    # Read headers, irec0 is where ktable data starts
+    irec0 = int(np.fromfile(f,dtype='int32',count=1))
+    NWAVEKTA = int(np.fromfile(f,dtype='int32',count=1))
+    vmin = float(np.fromfile(f,dtype='float32',count=1))
+    delv = float(np.fromfile(f,dtype='float32',count=1))
+    fwhm = float(np.fromfile(f,dtype='float32',count=1))
+    NPRESSKTA = int(np.fromfile(f,dtype='int32',count=1))
+    NTEMPKTA = int(np.fromfile(f,dtype='int32',count=1))
+    NG = int(np.fromfile(f,dtype='int32',count=1))
+    gas_id = int(np.fromfile(f,dtype='int32',count=1))
+    iso_id = int(np.fromfile(f,dtype='int32',count=1))
+
+    ioff += 10*nbytes_int32
+
+    # Read g-ordinates and quadrature weights
+    g_ord = np.fromfile(f,dtype='float32',count=NG)
+    del_g = np.fromfile(f,dtype='float32',count=NG)
+    dummy1 = np.fromfile(f,dtype='float32',count=1)
+    dummy2 = np.fromfile(f,dtype='float32',count=1)
+
+    ioff += 2*NG*nbytes_float32
+    ioff += 2*nbytes_float32
+
+    # Read temperature/pressure grid
+    # Note that kta pressure grid is in ATM, conver to Pa
+    P_grid = np.fromfile(f,dtype='float32',count=NPRESSKTA) * np.float32(ATM)
+    T_grid = np.fromfile(f,dtype='float32',count=NTEMPKTA)
+    ioff += NPRESSKTA*nbytes_float32 + NTEMPKTA * nbytes_float32
+
+    # Read wavenumber/wavelength grid
+    if delv>0.0:  # uniform grid
+        vmax = delv*(NWAVEKTA-1) + vmin
+        wave_grid = np.linspace(vmin,vmax,NWAVEKTA)
+    else:   # non-uniform grid
+        wave_grid = np.zeros((NWAVEKTA))
+        wave_grid = np.fromfile(f,dtype='float32',count=NWAVEKTA)
+        ioff += NWAVEKTA*nbytes_float32
+
+    # Jump to the minimum wavenumber
+    if ioff > (irec0-1)*nbytes_float32:
+        raise(Exception('Error in {} : too many headers'.format(filepath)))
+    ioff = (irec0-1)*nbytes_float32 # Python index starts at 0
+    f.seek(ioff,0)
+
+    # Write the k-coefficients into array form
+    k_w_g_p_t = np.zeros((NWAVEKTA,NG,NPRESSKTA,NTEMPKTA))
+    k_list = np.fromfile(f,dtype='float32',count=NTEMPKTA*NPRESSKTA*NG*NWAVEKTA)
+    ig = 0
+    for iwave in range(NWAVEKTA):
+        for ipress in range(NPRESSKTA):
+            for itemp in range(NTEMPKTA):
+                k_w_g_p_t[iwave,:,ipress,itemp] = k_list[ig:ig+NG]
+                ig = ig + NG
+    k_w_g_p_t = np.float32(k_w_g_p_t)
+
+    # close file
+    f.close()
+    return gas_id, iso_id, np.float64(wave_grid), g_ord, del_g, P_grid,\
+        T_grid, k_w_g_p_t
+
 def read_cia(filepath,dnu=10,npara=0):
     """
     Parameters
@@ -189,7 +191,7 @@ def read_cia(filepath,dnu=10,npara=0):
     """
     if npara != 0:
         # might need sys.exit'
-        raise('Routines have not been adapted yet for npara!=0')
+        raise(Exception('Routines have not been adapted yet for npara!=0'))
 
     # Reading the actual CIA file
     if npara == 0:
