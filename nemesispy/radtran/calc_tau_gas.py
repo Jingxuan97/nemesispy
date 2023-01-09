@@ -231,67 +231,64 @@ def interp_k(P_grid, T_grid, P_layer, T_layer, k_w_g_p_t):
     return k_w_g_l
 
 @jit(nopython=True)
-def rank(random_weight, random_tau, del_g):
+def rank(weight, cont, del_g):
     """
     Combine the randomly overlapped k distributions of two gases into a single
     k distribution.
 
     Parameters
     ----------
-    random_weight(NG*NG) : ndarray
-        Weights of k-coeffs in the randomly overlapped k-dist
-    random_tau(NG*NG) : ndarray
-        k-coeffs in the randomly overlapped k-dist.
+    weight(NG) : ndarray
+        Weights of points in the random k-dist
+    cont(NG) : ndarray
+        Random k-coeffs in the k-dist.
     del_g(NG) : ndarray
         Required weights of final k-dist.
 
     Returns
     -------
-    tau_g(NG) : ndarray
+    k_g(NG) : ndarray
         Combined k-dist.
-        Unit: dimensionless
+        Unit: cm^2 (per particle)
     """
-    NG = len(del_g)
-    tau_g = np.zeros(NG)
+    ng = len(del_g)
+    nloop = ng*ng
 
-    # sum delta gs to get cumulative g bins
-    g_bin = np.zeros(NG+1)
-    for ibin in range(0,NG-1):
-        g_bin[ibin+1] = g_bin[ibin] + del_g[ibin] # g_bin[1:] = np.cumsum(del_g)
-    g_bin[NG] = 1
+    # sum delta gs to get cumulative g ordinate
+    g_ord = np.zeros(ng+1)
+    g_ord[1:] = np.cumsum(del_g)
+    g_ord[ng] = 1
 
-    # RESORT
-    # Sort random k-coeffs into ascending order. Integer array sort_index records
+    # Sort random k-coeffs into ascending order. Integer array ico records
     # which swaps have been made so that we can also re-order the weights.
-    sort_index = np.argsort(random_tau)
-    sorted_tau = random_tau[sort_index]
-    sorted_weight = random_weight[sort_index] # sort weights accordingly
-    gdist = sorted_weight
-    for idist in range(1,NG*NG):
-        gdist[idist] = gdist[idist-1] + gdist[idist] # gdist = np.cumsum(sorted_weight)
+    ico = np.argsort(cont)
+    cont = cont[ico]
+    weight = weight[ico] # sort weights accordingly
+    gdist = np.cumsum(weight)
+    k_g = np.zeros(ng)
 
-    # REBIN
     ig = 0
-    sum_weight = 0
-    weighted_tau = sorted_tau * sorted_weight
-    for iloop in range(NG*NG):
-        if gdist[iloop] < g_bin[ig+1]:
-            tau_g[ig] = tau_g[ig] + weighted_tau[iloop]
-            sum_weight = sum_weight + sorted_weight[iloop]
+    sum1 = 0.0
+    cont_weight = cont * weight
+    for iloop in range(nloop):
+        if gdist[iloop] < g_ord[ig+1]:
+            k_g[ig] = k_g[ig] + cont_weight[iloop]
+            sum1 = sum1 + weight[iloop]
         else:
-            frac = (g_bin[ig+1] - gdist[iloop-1])/(gdist[iloop]-gdist[iloop-1])
-            tau_g[ig] = tau_g[ig] + frac * weighted_tau[iloop]
-            sum_weight = sum_weight + frac * sorted_weight[iloop]
-            tau_g[ig] = tau_g[ig] / sum_weight
+            frac = (g_ord[ig+1] - gdist[iloop-1])/(gdist[iloop]-gdist[iloop-1])
+            k_g[ig] = k_g[ig] + np.float32(frac)*cont_weight[iloop]
+
+            sum1 = sum1 + frac * weight[iloop]
+            k_g[ig] = k_g[ig]/np.float32(sum1)
 
             ig = ig +1
-            sum_weight = (1.0-frac) * sorted_weight[iloop]
-            tau_g[ig] = (1.0-frac) * weighted_tau[iloop]
+            sum1 = (1.0-frac)*weight[iloop]
+            k_g[ig] = np.float32(1.0-frac)*cont_weight[iloop]
 
-    if ig == NG-1:
-        tau_g[ig] = tau_g[ig]/sum_weight
+    if ig == ng-1:
+        k_g[ig] = k_g[ig]/np.float32(sum1)
 
-    return tau_g
+    return k_g
 
 @jit(nopython=True)
 def noverlapg(k_gas_g, amount, del_g):

@@ -97,52 +97,52 @@ plt.savefig('create_example.pdf')
 print(list(one_phase))
 # print(vmrmap_mod[0,0])
 
-# ### time trial
-# start2 = time.time()
-# niter = 1000
-# for i in range(niter):
-#     one_phase =  FM.calc_disc_spectrum(phase=phase, nmu=nmu, P_model = P_model,
-#         global_model_P_grid=pv,
-#         global_T_model=tmap_mod, global_VMR_model=vmrmap_mod,
-#         mod_lon=xlon,
-#         mod_lat=xlat,
-#         solspec=wasp43_spec)
-# end2 = time.time()
-# print('run time = ',(end2-start2)/niter)
-
-
-### This is for plotting specta at all phases
-for iphase in range(nphase):
-    phasenumber = iphase
-    nmu = 5
-    phase = phase_grid[phasenumber]
-    P_model = np.geomspace(20e5,100,NLAYER)
-    # P_model = pv
+### time trial
+start2 = time.time()
+niter = 1000
+for i in range(niter):
     one_phase =  FM.calc_disc_spectrum(phase=phase, nmu=nmu, P_model = P_model,
         global_model_P_grid=pv,
-        global_T_model=tmap, global_VMR_model=vmrmap_mod_new,
+        global_T_model=tmap_mod, global_VMR_model=vmrmap_mod,
         mod_lon=xlon,
         mod_lat=xlat,
         solspec=wasp43_spec)
+end2 = time.time()
+print('run time = ',(end2-start2)/niter)
 
-    fig, axs = plt.subplots(nrows=2,ncols=1,sharex=True,
-        dpi=800)
-    axs[0].set_title('phase = {}'.format(phase))
-    axs[0].plot(wave_grid,one_phase,color='b',label='Python')
-    axs[0].scatter(wave_grid,kevin_phase_by_wave[phasenumber,:,0],color='r',marker='+',label='Data')
-    axs[0].plot(wave_grid,pat_phase_by_wave[phasenumber,:],color ='k',label='Fortran')
-    axs[0].legend(loc='upper left')
-    axs[0].grid()
-    axs[0].set_ylabel('Flux ratio')
 
-    diff = (one_phase - pat_phase_by_wave[phasenumber,:])/one_phase
-    print(phase,one_phase)
-    axs[1].scatter(wave_grid,diff,marker='.',color='b')
-    axs[1].grid()
-    axs[1].set_ylabel('Relative diff')
-    axs[1].set_xlabel('Wavelength (Micron)')
-    print(iphase,one_phase)
-    plt.tight_layout()
+# ### This is for plotting specta at all phases
+# for iphase in range(nphase):
+#     phasenumber = iphase
+#     nmu = 5
+#     phase = phase_grid[phasenumber]
+#     P_model = np.geomspace(20e5,100,NLAYER)
+#     # P_model = pv
+#     one_phase =  FM.calc_disc_spectrum(phase=phase, nmu=nmu, P_model = P_model,
+#         global_model_P_grid=pv,
+#         global_T_model=tmap, global_VMR_model=vmrmap_mod_new,
+#         mod_lon=xlon,
+#         mod_lat=xlat,
+#         solspec=wasp43_spec)
 
-    plt.show()
-    plt.savefig('good_discav_planet{}.pdf'.format(iphase),dpi=800)
+#     fig, axs = plt.subplots(nrows=2,ncols=1,sharex=True,
+#         dpi=800)
+#     axs[0].set_title('phase = {}'.format(phase))
+#     axs[0].plot(wave_grid,one_phase,color='b',label='Python')
+#     axs[0].scatter(wave_grid,kevin_phase_by_wave[phasenumber,:,0],color='r',marker='+',label='Data')
+#     axs[0].plot(wave_grid,pat_phase_by_wave[phasenumber,:],color ='k',label='Fortran')
+#     axs[0].legend(loc='upper left')
+#     axs[0].grid()
+#     axs[0].set_ylabel('Flux ratio')
+
+#     diff = (one_phase - pat_phase_by_wave[phasenumber,:])/one_phase
+#     print(phase,one_phase)
+#     axs[1].scatter(wave_grid,diff,marker='.',color='b')
+#     axs[1].grid()
+#     axs[1].set_ylabel('Relative diff')
+#     axs[1].set_xlabel('Wavelength (Micron)')
+#     print(iphase,one_phase)
+#     plt.tight_layout()
+
+#     plt.show()
+#     plt.savefig('good_discav_planet{}.pdf'.format(iphase),dpi=800)
