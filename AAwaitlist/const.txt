@@ -1,2 +1,0 @@
-NLAYER # number of atmospheric layers used in forward modelling
-NMODEL # number of points used in the input atmospheric model

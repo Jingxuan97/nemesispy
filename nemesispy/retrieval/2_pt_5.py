@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 import pymultinest
-from nemesispy.common.helper import lowres_file_paths, cia_file_path
+from nemesispy.data.helper import lowres_file_paths, cia_file_path
 from nemesispy.common.constants import G
 from nemesispy.radtran.forward_model import ForwardModel
 from nemesispy.models.TP_profiles import TP_Guillot
@@ -143,12 +143,12 @@ def gen_tmap1(g_plt,T_eq,ck0,ck1,ck2,sk1,sk2,cg0,cg1,cg2,sg1,sg2,cf0,cf1,
 
 def gen_vmrmap1(h2o,co2,co,ch4,nlon,nlat,npress):
     vmr_grid = np.ones((nlon,nlat,npress,6))
-    vmr_grid[:,:,:,0] * 10**h2o
-    vmr_grid[:,:,:,1] * 10**co2
-    vmr_grid[:,:,:,2] * 10**co
-    vmr_grid[:,:,:,3] * 10**co2
-    vmr_grid[:,:,:,4] * 0.162329
-    vmr_grid[:,:,:,5] * 0.836727
+    vmr_grid[:,:,:,0] *= 10**h2o
+    vmr_grid[:,:,:,1] *= 10**co2
+    vmr_grid[:,:,:,2] *= 10**co
+    vmr_grid[:,:,:,3] *= 10**ch4
+    vmr_grid[:,:,:,4] *= 0.16 * (1-10**h2o-10**co2-10**co-10**ch4)
+    vmr_grid[:,:,:,5] *= 0.84 * (1-10**h2o-10**co2-10**co-10**ch4)
     return vmr_grid
 
 ### test

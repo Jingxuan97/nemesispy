@@ -18,11 +18,10 @@ def calc_mmw(ID, VMR, ISO=[]):
     VMR : ndarray or list
         A list of VMRs corresponding to the gases in ID.
     ISO : ndarray or list
-        If ISO = [] then terrestrial relative isotopic abundance is assumed
-        for all gases.
-        Otherwise, if ISO[i] = 0 then terrestrial relative isotopic abundance
-        is assumed for the ith gas. To specify particular isotopologue, input
-        the corresponding Radtran isotopologue identifiers.
+        If ISO=[], assume terrestrial relative isotopic abundance for all gases.
+        Otherwise, if ISO[i]=0, then use terrestrial relative isotopic abundance
+        for the ith gas. To specify particular isotopologue, input the
+        corresponding Radtran isotopologue identifiers.
 
     Returns
     -------
@@ -36,70 +35,14 @@ def calc_mmw(ID, VMR, ISO=[]):
     """
     mmw = 0
     if len(ISO) == 0:
-        for gas_index, gas_id in enumerate(ID):
-            mmw += mol_info['{}'.format(gas_id)]['mmw']*VMR[gas_index]
+        for gas_index in range(len(ID)):
+            mmw += mol_info['{}'.format(ID[gas_index])]['mmw']*VMR[gas_index]
     else:
-        for gas_index, gas_id in enumerate(ID):
+        for gas_index in range(len(ID)):
             if ISO[gas_index] == 0:
-                mmw += mol_info['{}'.format(gas_id)]['mmw']*VMR[gas_index]
+                mmw += mol_info['{}'.format(ID[gas_index])]['mmw']*VMR[gas_index]
             else:
-                mmw += mol_info['{}'.format(gas_id)]['isotope']\
+                mmw += mol_info['{}'.format(ID[gas_index])]['isotope']\
                     ['{}'.format(ISO[gas_index])]['mass']*VMR[gas_index]
     mmw *= AMU # keep in SI unit
     return mmw
-
-"""
-import time
-start = time.time()
-for i in range(2000000):
-    mmw = calc_mmw([1,2],VMR=[0.5,0.5],ISO=[1,1])
-    # print('mmw',mmw)
-end = time.time()
-print('runtime1',end-start)
-
-start = time.time()
-for i in range(2000000):
-    mmw = calc_mmw([1,2],VMR=[0.5,0.5],ISO=[0,0])
-    # print('mmw',mmw)
-end = time.time()
-print('runtime2',end-start)
-
-start = time.time()
-for i in range(2000000):
-    mmw = calc_mmw([1,2],VMR=[0.5,0.5])
-    # print('mmw',mmw)
-end = time.time()
-print('runtime3',end-start)
-"""
-
-"""
-import numpy as np
-mmw = calc_mmw([1,2],VMR=[0.5,0.5],ISO=[1,1])
-print('mmw',mmw)
-mmw = calc_mmw([1,2],VMR=[0.5,0.5],ISO=[0,0])
-print('mmw',mmw)
-mmw = calc_mmw([1,2],VMR=[0.5,0.5])
-print('mmw',mmw)
-
-mmw = calc_mmw(np.array([1,2]),VMR=np.array([0.5,0.5]),ISO=np.array([1,1]))
-print('mmw',mmw)
-mmw = calc_mmw(np.array([1,2]),VMR=np.array([0.5,0.5]),ISO=np.array([0,0]))
-print('mmw',mmw)
-mmw = calc_mmw(np.array([1,2]),VMR=np.array([0.5,0.5]))
-print('mmw',mmw)
-"""
-
-"""Test
-# ID = [1,2,3]
-# ISO = None
-# VMR = [0.1,0.1,0.8]
-# mmw = calc_mmw(ID,VMR,ISO)
-ID = [1,2,3]
-ISO = [1,1,1]
-VMR = [0.1,0.1,0.8]
-mmw = calc_mmw(ID,VMR,ISO)
-ID = [1,2,3]
-ISO = None
-VMR = [0.1,0.1,0.8]
-mmw = calc_mmw(ID,VMR,ISO)
-"""

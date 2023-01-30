@@ -1,26 +1,98 @@
 #!/usr/local/bin/python3
 # -*- coding: utf-8 -*-
 """
-Calculate the optical path due to atomic and molecular transitions.
-The opacity of a mixture of gases is calculated by the correlated-k method and
-using pre-tabulated ktables, assuming random overlap.
+Calculate the optical path due to atomic and molecular lines.
+The opacity of gases is calculated by the correlated-k method
+using pre-tabulated ktables, assuming random overlap of lines.
 """
 import numpy as np
 from numba import jit
 
 @jit(nopython=True)
-def interp_k(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t):
+def calc_tau_gas(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
+    P_grid, T_grid, del_g):
     """
-    Interpolate the k coeffcients to given presures and temperatures
-    using pre-tabulated k-tables.
+    Parameters
+    ----------
+    k_gas_w_g_p_t(NGAS,NWAVE,NG,NPRESSK,NTEMPK) : ndarray
+        k-coefficients.
+        Unit: cm^2 (per particle)
+        Has dimension: NGAS x NWAVE x NG x NPRESSK x NTEMPK.
+    P_layer(NLAYER) : ndarray
+        Atmospheric pressure grid.
+        Unit: Pa
+    T_layer(NLAYER) : ndarray
+        Atmospheric temperature grid.
+        Unit: K
+    VMR_layer(NLAYER,NGAS) : ndarray
+        Array of volume mixing ratios for NGAS.
+        Has dimensioin: NLAYER x NGAS
+    U_layer(NLAYER) : ndarray
+        Total number of gas particles in each layer.
+        Unit: (no. of particle) m^-2
+    P_grid(NPRESSK) : ndarray
+        Pressure grid on which the k-coeff's are pre-computed.
+    T_grid(NTEMPK) : ndarray
+        Temperature grid on which the k-coeffs are pre-computed.
+    del_g(NG) : ndarray
+        Gauss quadrature weights for the g-ordinates.
+        These are the widths of the bins in g-space.
+    n_active : int
+        Number of spectrally active gases.
+
+    Returns
+    -------
+    tau_w_g_l(NWAVE,NG,NLAYER) : ndarray
+        Optical path due to spectral line absorptions.
+
+    Notes
+    -----
+    Absorber amounts (U_layer) is scaled down by a factor 1e-20 because Nemesis
+    k-tables are scaled up by a factor of 1e20.
+    """
+    # convert from per m^2 to per cm^2 and downscale Nemesis opacity by 1e-20
+    Scaled_U_layer = U_layer * 1.0e-20 * 1.0e-4
+    Ngas, Nwave, Ng = k_gas_w_g_p_t.shape[0:3]
+    Nlayer = len(P_layer)
+    tau_w_g_l = np.zeros((Nwave,Ng,Nlayer))
+
+    # if only has 1 active gas, skip random overlap
+    if Ngas == 1:
+        k_w_g_l = interp_k(P_grid, T_grid, P_layer, T_layer,
+            k_gas_w_g_p_t[0,:,:,:])
+        for ilayer in range(Nlayer):
+            tau_w_g_l[:,:,ilayer]  = k_w_g_l[:,:,ilayer] \
+                * Scaled_U_layer[ilayer] * VMR_layer[ilayer,0]
+
+    # if there are multiple gases, combine their opacities
+    else:
+        k_gas_w_g_l = np.zeros((Ngas,Nwave,Ng,Nlayer))
+        for igas in range(Ngas):
+            k_gas_w_g_l[igas,:,:,:,] \
+                = interp_k(P_grid, T_grid, P_layer, T_layer,
+                    k_gas_w_g_p_t[igas,:,:,:,:])
+        for iwave in range (Nwave):
+            for ilayer in range(Nlayer):
+                amount_layer = Scaled_U_layer[ilayer] * VMR_layer[ilayer,:Ngas]
+                tau_w_g_l[iwave,:,ilayer]\
+                    = noverlapg(k_gas_w_g_l[:,iwave,:,ilayer],
+                        amount_layer,del_g)
+
+    return tau_w_g_l
+
+@jit(nopython=True)
+def interp_k(P_grid, T_grid, P_layer, T_layer, k_w_g_p_t):
+    """
+    Interpolate the k coeffcients at given atmospheric presures and temperatures
+    using a k-table.
 
     Parameters
     ----------
     P_grid(NPRESSKTA) : ndarray
-        Pressure grid on which the k-coefficients are pre-computed.
+        Pressure grid of the k-tables.
         Unit: Pa
     T_grid(NTEMPKTA) : ndarray
-        Temperature grid on which the k-coefficients are pre-computed.
+        Temperature grid of the ktables.
         Unit: Kelvin
     P_layer(NLAYER) : ndarray
         Atmospheric pressure grid.
@@ -28,25 +100,26 @@ def interp_k(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t):
     T_layer(NLAYER) : ndarray
         Atmospheric temperature grid.
         Unit: Kelvin
-    k_gas_w_g_p_t(NGAS,NWAVEKTA,NG,NPRESSKTA,NTEMPKTA) : ndarray
+    k_w_g_p_t(NGAS,NWAVEKTA,NG,NPRESSKTA,NTEMPKTA) : ndarray
         Array storing the k-coefficients.
 
     Returns
     -------
-    k_gas_w_g_l(NGAS,NWAVEKTA,NG,NLAYER) : ndarray
+    k_w_g_l(NGAS,NWAVEKTA,NG,NLAYER) : ndarray
         The interpolated-to-atmosphere k-coefficients.
-        Has dimension: NGAS x NWAVE x NG x NLAYER.
+        Has dimension: NWAVE x NG x NLAYER.
+
     Notes
     -----
     Code breaks if P_layer/T_layer is out of the range of P_grid/T_grid.
     Mainly need to worry about max(T_layer)>max(T_grid).
     No extrapolation outside of the TP grid of ktable.
     """
-    NGAS, NWAVE, NG, NPRESS, NTEMP = k_gas_w_g_p_t.shape
+    NWAVE, NG, NPRESS, NTEMP = k_w_g_p_t.shape
     NLAYER = len(P_layer)
-    k_gas_w_g_l = np.zeros((NGAS,NWAVE,NG,NLAYER))
-    kgood = np.zeros((NGAS,NWAVE,NG,NLAYER))
+    k_w_g_l = np.zeros((NWAVE,NG,NLAYER))
 
+    # Interpolate the k values at the layer temperature and pressure
     for ilayer in range(NLAYER):
         p = P_layer[ilayer]
         t = T_layer[ilayer]
@@ -89,6 +162,31 @@ def interp_k(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t):
             else:
                 it_high = it + 1
 
+        # # Set up arrays for interpolation
+        # lnp = np.log(p)
+        # lnp_low = np.log(P_grid[ip_low])
+        # lnp_high = np.log(P_grid[ip_high])
+        # t_low = T_grid[it_low]
+        # t_high = T_grid[it_high]
+
+        # # Bilinear interpolation
+        # f11 = k_w_g_p_t[:,:,ip_low,it_low]
+        # f12 = k_w_g_p_t[:,:,ip_low,it_high]
+        # f21 = k_w_g_p_t[:,:,ip_high,it_high]
+        # f22 = k_w_g_p_t[:,:,ip_high,it_low]
+        # v = (lnp-lnp_low)/(lnp_high-lnp_low)
+        # u = (t-t_low)/(t_high-t_low)
+
+        # for iwave in range(NWAVE):
+        #     for ig in range(NG):
+        #         k_w_g_l[iwave,ig,ilayer] \
+        #             = (1.0-v)*(1.0-u)*f11[iwave,ig] \
+        #             + v*(1.0-u)*f22[iwave,ig] \
+        #             + v*u*f21[iwave,ig] \
+        #             + (1.0-v)*u*f12[iwave,ig]
+
+
+        ### test
         # Set up arrays for interpolation
         lnp = np.log(p)
         lnp_low = np.log(P_grid[ip_low])
@@ -96,15 +194,11 @@ def interp_k(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t):
         t_low = T_grid[it_low]
         t_high = T_grid[it_high]
 
-        f11 = np.zeros((NGAS,NWAVE,NG))
-        f12 = np.zeros((NGAS,NWAVE,NG))
-        f22 = np.zeros((NGAS,NWAVE,NG))
-        f21 = np.zeros((NGAS,NWAVE,NG))
-
-        f11[:,:,:] = k_gas_w_g_p_t[:,:,:,ip_low,it_low]
-        f12[:,:,:] = k_gas_w_g_p_t[:,:,:,ip_low,it_high]
-        f21[:,:,:] = k_gas_w_g_p_t[:,:,:,ip_high,it_high]
-        f22[:,:,:] = k_gas_w_g_p_t[:,:,:,ip_high,it_low]
+        # NGAS,NWAVE,NG
+        f11 = k_w_g_p_t[:,:,ip_low,it_low]
+        f12 = k_w_g_p_t[:,:,ip_low,it_high]
+        f21 = k_w_g_p_t[:,:,ip_high,it_high]
+        f22 = k_w_g_p_t[:,:,ip_high,it_low]
 
         # Bilinear interpolation
         v = (lnp-lnp_low)/(lnp_high-lnp_low)
@@ -113,27 +207,31 @@ def interp_k(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t):
         igood = np.where( (f11>0.0) & (f12>0.0) & (f22>0.0) & (f21>0.0) )
         ibad = np.where( (f11<=0.0) & (f12<=0.0) & (f22<=0.0) & (f21<=0.0) )
 
-        for index in range(len(igood[0])):
-            kgood[igood[0][index],igood[1][index],igood[2][index],ilayer] \
-                = (1.0-v)*(1.0-u)*np.log(f11[igood[0][index],igood[1][index],igood[2][index]]) \
-                + v*(1.0-u)*np.log(f22[igood[0][index],igood[1][index],igood[2][index]]) \
-                + v*u*np.log(f21[igood[0][index],igood[1][index],igood[2][index]]) \
-                + (1.0-v)*u*np.log(f12[igood[0][index],igood[1][index],igood[2][index]])
-            kgood[igood[0][index],igood[1][index],igood[2][index],ilayer] \
-                = np.exp(kgood[igood[0][index],igood[1][index],igood[2][index],ilayer])
+        # # print(f11)
+        # print('ibad',ibad)
+        # print('f11',f11[ibad])
+        # print('f11[ibad[0]]',f11[ibad[0]])
+        # print('ibad[0]',ibad[0])
+        for i in range(len(igood[0])):
+            k_w_g_l[igood[0][i],igood[1][i],ilayer] \
+                = (1.0-v)*(1.0-u)*np.log(f11[igood[0][i],igood[1][i]]) \
+                + v*(1.0-u)*np.log(f22[igood[0][i],igood[1][i]]) \
+                + v*u*np.log(f21[igood[0][i],igood[1][i]]) \
+                + (1.0-v)*u*np.log(f12[igood[0][i],igood[1][i]])
+            k_w_g_l[igood[0][i],igood[1][i],ilayer] \
+                = np.exp(k_w_g_l[igood[0][i],igood[1][i],ilayer])
 
-        for index in range(len(ibad[0])):
-            kgood[ibad[0][index],ibad[1][index],ibad[2][index],ilayer] \
-                = (1.0-v)*(1.0-u)*f11[ibad[0][index],ibad[1][index],ibad[2][index]] \
-                + v*(1.0-u)*f22[ibad[0][index],ibad[1][index],ibad[2][index]] \
-                + v*u*f21[ibad[0][index],ibad[1][index],ibad[2][index]] \
-                + (1.0-v)*u*f12[ibad[0][index],ibad[1][index],ibad[2][index]]
+        for i in range(len(ibad[0])):
+            k_w_g_l[ibad[0][i],ibad[1][i],ilayer] \
+                = (1.0-v)*(1.0-u)*f11[ibad[0][i],ibad[1][i]] \
+                + v*(1.0-u)*f22[ibad[0][i],ibad[1][i]] \
+                + v*u*f21[ibad[0][i],ibad[1][i]] \
+                + (1.0-v)*u*f12[ibad[0][i],ibad[1][i]]
 
-    k_gas_w_g_l = kgood
-    return k_gas_w_g_l
+    return k_w_g_l
 
 @jit(nopython=True)
-def rankg(weight, cont, del_g):
+def rank(weight, cont, del_g):
     """
     Combine the randomly overlapped k distributions of two gases into a single
     k distribution.
@@ -204,7 +302,8 @@ def noverlapg(k_gas_g, amount, del_g):
         Each row contains a k-distribution defined at NG g-ordinates.
         Unit: cm^2 (per particle)
     amount(NGAS) : ndarray
-        Absorber amount of each gas.
+        Absorber amount of each gas,
+        i.e. amount = VMR x layer absorber per area
         Unit: (no. of partiicles) cm^-2
     del_g(NG) : ndarray
         Gauss quadrature weights for the g-ordinates.
@@ -212,121 +311,51 @@ def noverlapg(k_gas_g, amount, del_g):
 
     Returns
     -------
-    k_g(NG) : ndarray
-        Combined k-distribution.
-        Unit: cm^2 (per particle)
+    tau_g(NG) : ndarray
+        Opatical path from mixing k-distribution weighted by absorber amounts.
+        Unit: dimensionless
     """
-    # amount = VMR_layer x U_layer
     NGAS = len(amount)
     NG = len(del_g)
-    k_g = np.zeros(NG)
-    weight = np.zeros(NG*NG)
-    contri = np.zeros(NG*NG)
+    tau_g = np.zeros(NG)
+    random_weight = np.zeros(NG*NG)
+    random_tau = np.zeros(NG*NG)
+    cutoff = 1e-12
     for igas in range(NGAS-1):
         # first pair of gases
         if igas == 0:
-            a1 = amount[igas]
-            a2 = amount[igas+1]
-
-            k_g1 = k_gas_g[igas,:]
-            k_g2 = k_gas_g[igas+1,:]
-
-            # skip if first k-distribution = 0.0
-            if k_g1[NG-1]*a1 == 0.0:
-                k_g = k_g2*a2
-            # skip if second k-distribution = 0.0
-            elif k_g2[NG-1]*a2 == 0.0:
-                k_g = k_g1*a1
+            # if opacity due to first gas is negligible
+            if k_gas_g[igas,:][-1] * amount[igas] < cutoff:
+                tau_g = k_gas_g[igas+1,:] * amount[igas+1]
+            # if opacity due to second gas is negligible
+            elif k_gas_g[igas+1,:][-1] * amount[igas+1] < cutoff:
+                tau_g = k_gas_g[igas,:] * amount[igas]
+            # else resort-rebin with random overlap approximation
             else:
-                nloop = 0
+                iloop = 0
                 for ig in range(NG):
                     for jg in range(NG):
-                        weight[nloop] = del_g[ig]*del_g[jg]
-                        contri[nloop] = k_g1[ig]*a1 + k_g2[jg]*a2
-                        nloop = nloop + 1
-                k_g = rankg(weight,contri,del_g)
-        # subsequuent gases .. add amount*k to previous summed k
+                        random_weight[iloop] = del_g[ig] * del_g[jg]
+                        random_tau[iloop] = k_gas_g[igas,:][ig] * amount[igas] \
+                            + k_gas_g[igas+1,:][jg] * amount[igas+1]
+                        iloop = iloop + 1
+                tau_g = rank(random_weight,random_tau,del_g)
+        # subsequent gases, add amount*k to previous summed k
         else:
-            a2 = amount[igas+1]
-            # print('a2',a2)
-            k_g1 = k_g
-            k_g2 = k_gas_g[igas+1,:]
-
-            # skip if first k-distribution = 0.0
-            if k_g1[NG-1] == 0:
-                k_g = k_g2*a2
-            # Skip if second k-distribution = 0.0
-            elif k_g2[NG-1]*a2== 0:
-                k_g = k_g1
+            # if opacity due to next gas is negligible
+            if k_gas_g[igas+1,:][-1] * amount[igas+1] < cutoff:
+                pass
+            # if opacity due to previous gases is negligible
+            elif tau_g[-1] < cutoff:
+                tau_g = k_gas_g[igas+1,:] * amount[igas+1]
+            # else resort-rebin with random overlap approximation
             else:
-                nloop = 0
+                iloop = 0
                 for ig in range(NG):
                     for jg in range(NG):
-                        weight[nloop] = del_g[ig]*del_g[jg]
-                        contri[nloop] = k_g1[ig]+k_g2[jg]*a2
-                        nloop = nloop + 1
-                k_g = rankg(weight,contri,del_g)
-
-    return k_g
-
-@jit(nopython=True)
-def calc_tau_gas(k_gas_w_g_p_t, P_layer, T_layer, VMR_layer, U_layer,
-    P_grid, T_grid, del_g):
-    """
-    Parameters
-    ----------
-    k_gas_w_g_p_t(NGAS,NWAVE,NG,NPRESSK,NTEMPK) : ndarray
-        k-coefficients.
-        Unit: cm^2 (per particle)
-        Has dimension: NWAVE x NG x NPRESSK x NTEMPK.
-    P_layer(NLAYER) : ndarray
-        Atmospheric pressure grid.
-        Unit: Pa
-    T_layer(NLAYER) : ndarray
-        Atmospheric temperature grid.
-        Unit: K
-    VMR_layer(NLAYER,NGAS) : ndarray
-        Array of volume mixing ratios for NGAS.
-        Has dimensioin: NLAYER x NGAS
-    U_layer(NLAYER) : ndarray
-        Total number of gas particles in each layer.
-        Unit: (no. of particle) m^-2
-    P_grid(NPRESSK) : ndarray
-        Pressure grid on which the k-coeff's are pre-computed.
-    T_grid(NTEMPK) : ndarray
-        Temperature grid on which the k-coeffs are pre-computed.
-    del_g(NG) : ndarray
-        Gauss quadrature weights for the g-ordinates.
-        These are the widths of the bins in g-space.
-
-    Returns
-    -------
-    tau_w_g_l(NWAVE,NG,NLAYER) : ndarray
-        Optical path due to spectral line absorptions.
-
-    Notes
-    -----
-    Absorber amounts (U_layer) is scaled down by a factor 1e-20 because Nemesis
-    k-tables are scaled up by a factor of 1e20.
-    """
-
-    Scaled_U_layer = U_layer * 1.0e-20
-    Scaled_U_layer *= 1.0e-4 # convert from per m^2 to per cm^2
-
-    k_gas_w_g_l = interp_k(P_grid, T_grid, P_layer, T_layer, k_gas_w_g_p_t)
-    Ngas, Nwave, Ng, Nlayer = k_gas_w_g_l.shape
-
-    amount_layer = np.zeros((Nlayer,Ngas))
-    for ilayer in range(Nlayer):
-        amount_layer[ilayer,:] = Scaled_U_layer[ilayer] * VMR_layer[ilayer,:4]
-
-    tau_w_g_l = np.zeros((Nwave,Ng,Nlayer))
-    for iwave in range (Nwave):
-        k_gas_g_l = k_gas_w_g_l[:,iwave,:,:]
-        k_g_l = np.zeros((Ng,Nlayer))
-        for ilayer in range(Nlayer):
-            k_g_l[:,ilayer]\
-                = noverlapg(k_gas_g_l[:,:,ilayer],amount_layer[ilayer,:],del_g)
-            tau_w_g_l[iwave,:,ilayer] = k_g_l[:,ilayer]
-
-    return tau_w_g_l
+                        random_weight[iloop] = del_g[ig] * del_g[jg]
+                        random_tau[iloop] = tau_g[ig] \
+                            + k_gas_g[igas+1,:][jg] * amount[igas+1]
+                        iloop = iloop + 1
+                tau_g = rank(random_weight,random_tau,del_g)
+    return tau_g

@@ -1,20 +1,17 @@
 from setuptools import setup, find_packages
 
 VERSION = "0.0.1"
-DESCRIPTION = "Python package to simulate exoplanet phase curves"
-LONG_DESCRIPTION = """Python package to simulate disk-averaged atmospheric \
-emission spectra of exoplanets at multiple orbital phases using the \
-correlated-k method. The code is based on the Fortran Nemesis library."""
-
+DESCRIPTION = "Tools for modelling exoplanet spectra"
 setup(name="nemesispy",
       version=VERSION,
       description=DESCRIPTION,
-      long_description=LONG_DESCRIPTION,
+      url='https://github.com/Jingxuan97/nemesispy2022',
       author="Jingxuan Yang",
-      author_email="<jingxuanyang15@gmail.com>",
+      author_email="jingxuanyang15@gmail.com",
       packages=find_packages(),
-    #   install_requires=[
-    #       "numpy",
-    #       "scipy",
-    #       "matplotlib"]
+      install_requires=[
+          "numpy",
+          "scipy",
+          "matplotlib",
+          "numba"]
         )
