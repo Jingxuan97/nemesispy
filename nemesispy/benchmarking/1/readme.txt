@@ -1,1 +1,0 @@
-First draft of benmarking pypi.
