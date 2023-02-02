@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-VERSION = "0.0.1"
+VERSION = "0.0.5"
 DESCRIPTION = "Tools for modelling exoplanet spectra"
 setup(name="nemesispy",
       version=VERSION,
@@ -9,6 +9,16 @@ setup(name="nemesispy",
       author="Jingxuan Yang",
       author_email="jingxuanyang15@gmail.com",
       packages=find_packages(),
+      package_data={
+          '':[
+               'nemesispy/data/*.txt',
+               'nemesispy/data/*/*.txt',
+               'nemesispy/data/*/*/*.txt',
+               'nemesispy/data/cia/*.tab',
+               'nemesispy/data/ktables/*.cia',
+          ]
+      },
+      include_package_data=True,
       install_requires=[
           "numpy",
           "scipy",
