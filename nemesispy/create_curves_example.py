@@ -17,10 +17,6 @@ from nemesispy.data.gcm.process_gcm import (nlon,nlat,xlon,xlat,npv,pv,\
 
 from nemesispy.data.helper import lowres_file_paths, cia_file_path
 
-# import sys
-# np.set_printoptions(threshold=sys.maxsize)
-
-
 print('creating example phase curve')
 ### Wavelengths grid and orbital phase grid
 wave_grid = np.array([1.1425, 1.1775, 1.2125, 1.2475, 1.2825, 1.3175, 1.3525, 1.3875,
@@ -101,15 +97,14 @@ axs[0].grid()
 diff = (one_phase - pat_phase_by_wave[phasenumber,:])/one_phase
 axs[1].scatter(wave_grid,diff,marker='.',color='b')
 axs[1].grid()
-print(diff)
+# print(diff)
 
 plt.savefig('create_example.pdf')
-print(list(one_phase))
-# print(vmrmap_mod[0,0])
+# print(list(one_phase))
 
 ### time trial
 start2 = time.time()
-niter = 1000
+niter = 10
 for i in range(niter):
     one_phase =  FM.calc_disc_spectrum(phase=phase, nmu=nmu, P_model = P_model,
         global_model_P_grid=pv,
@@ -118,7 +113,7 @@ for i in range(niter):
         mod_lat=xlat,
         solspec=wasp43_spec)
 end2 = time.time()
-print('run time = ',(end2-start2)/niter)
+print('average run time = ',(end2-start2)/niter)
 
 
 # ### This is for plotting specta at all phases
