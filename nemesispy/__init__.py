@@ -1,1 +1,0 @@
-from .radtran.read import read_kta
