@@ -5,7 +5,7 @@ import numpy as np
 import os
 # import pymultinest
 import ultranest
-from nemesispy.common.helper import lowres_file_paths, cia_file_path
+from nemesispy.data.helper import lowres_file_paths, cia_file_path
 from nemesispy.common.constants import G
 from nemesispy.radtran.forward_model import ForwardModel
 from nemesispy.models.TP_profiles import TP_Guillot
