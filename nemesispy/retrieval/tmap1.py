@@ -2,37 +2,6 @@
 #-*- coding: utf-8 -*-
 import numpy as np
 from nemesispy.models.TP_profiles import TP_Guillot
-def arctan(x,y):
-    """
-    Calculate the argument of the point (x,y) in the range [0,2pi).
-
-    Parameters
-    ----------
-        x : real
-            x-coordinate of the point (length of the adjacent side)
-        y : real
-            y-coordinate of the point (length of the opposite side)
-    Returns
-    -------
-        ang : real
-            Argument of (x,y) in radians
-    """
-    if(x == 0.0):
-        if (y == 0.0) : ang = 0.0 # (x,y) is the origin, ill-defined
-        elif (y > 0.0) : ang = 0.5*np.pi # (x,y) is on positive y-axis
-        else : ang = 1.5*np.pi  # (x,y) is on negative y-axis
-    else:
-        ang=np.arctan(y/x)
-        if (y > 0.0) :
-            if (x > 0.0) : ang = ang # (x,y) is in 1st quadrant
-            else : ang = ang+np.pi # (x,y) is in 2nd quadrant
-        elif (y == 0.0) :
-            if (x > 0.0) : ang = 0 # (x,y) is on positive x-axis
-            else : ang = np.pi # (x,y) is on negative x-axis
-        else:
-            if (x > 0.0) : ang = ang+2*np.pi # (x,y) is in 4th quadrant
-            else : ang = ang+np.pi # (x,y) is in 3rd quadrant
-    return ang
 
 def gen(x,
     ck0,ck1,ck2,sk1,sk2,
@@ -118,11 +87,40 @@ def tmap1(P_grid, lon_grid, lat_grid,
             f=f_array[ilon],T_int=T_int_array[ilon])
         tp_grid[ilon,0,:] = tp
 
+    ## NEED TO GENERALISE
     TP_mean = 0.5 * (tp_grid[17,0,:] + tp_grid[-18,0,:])
+    """
+    ### assume tg_grid[:,0,:] is defined around the equator
+    T_evening = np.zeros(nP)
+    T_morning = np.zeros(nP)
+    for iP in range(nP):
+        T_evening[iP] = np.interp(90,lon_grid,tp_grid[:,0,iP])
+        T_morning[iP] = np.interp(270,lon_grid,tp_grid[:,0,iP])
+    TP_mean = 0.5 * (T_morning + T_evening)
+    """
+    ##
+
     for ilat,lat in enumerate(lat_grid):
         for ilon in range(nlon):
             tp_grid[ilon,ilat,:] = TP_mean \
                 + (tp_grid[ilon,0,:]- TP_mean) * np.cos(lat/180*np.pi)**0.25
+    return tp_grid
+
+def gen_tmap1(P_grid, lon_grid, lat_grid,
+    g_plt,T_eq,
+    ck0,ck1,ck2,sk1,sk2,
+    cg0,cg1,cg2,sg1,sg2,
+    cf0,cf1,cf2,sf1,sf2,
+    T_int):
+
+    log_kappa, log_gamma, log_f, T_int_array \
+        = gen(lon_grid,
+            ck0,ck1,ck2,sk1,sk2,
+            cg0,cg1,cg2,sg1,sg2,
+            cf0,cf1,cf2,sf1,sf2,
+            T_int)
+    tp_grid = tmap1(P_grid, lon_grid, lat_grid,
+                g_plt, T_eq, log_kappa, log_gamma, log_f, T_int_array)
     return tp_grid
 
 def gen_vmrmap1(h2o,co2,co,ch4,nlon,nlat,npress):
