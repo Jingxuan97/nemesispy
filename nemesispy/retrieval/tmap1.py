@@ -2,8 +2,9 @@
 #-*- coding: utf-8 -*-
 import numpy as np
 from nemesispy.models.TP_profiles import TP_Guillot
+import scipy.interpolate as interpolate
 
-def gen(x,
+def gen(lon_grid,
     ck0,ck1,ck2,sk1,sk2,
     cg0,cg1,cg2,sg1,sg2,
     cf0,cf1,cf2,sf1,sf2,
@@ -13,7 +14,7 @@ def gen(x,
 
     Parameters
     ----------
-        x : ndarray
+        lon_grid : ndarray
             Input longitude array
             Unit: degree.
         ck0,ck1,ck2,sk1,sk2 : reals
@@ -35,8 +36,7 @@ def gen(x,
         T_int_array :
             T_int defined on the input longitude array
     """
-    y = x/180*np.pi
-    y = x/180*np.pi
+    y = lon_grid/180*np.pi
     log_kappa = ck0 + ck1 * np.cos(y) + ck2 * np.cos(2*y)\
         + sk1 * np.sin(y) + sk2 * np.sin(2*y)
     log_gamma = cg0 + cg1 * np.cos(y) + cg2 * np.cos(2*y)\
@@ -89,16 +89,24 @@ def tmap1(P_grid, lon_grid, lat_grid,
 
     ## NEED TO GENERALISE
     TP_mean = 0.5 * (tp_grid[17,0,:] + tp_grid[-18,0,:])
-    """
+
     ### assume tg_grid[:,0,:] is defined around the equator
     T_evening = np.zeros(nP)
     T_morning = np.zeros(nP)
     for iP in range(nP):
         T_evening[iP] = np.interp(90,lon_grid,tp_grid[:,0,iP])
-        T_morning[iP] = np.interp(270,lon_grid,tp_grid[:,0,iP])
-    TP_mean = 0.5 * (T_morning + T_evening)
-    """
+        print(T_evening[iP]-tp_grid[-18,0,iP])
+        T_morning[iP] = np.interp(-90,lon_grid,tp_grid[:,0,iP])
+        print(T_morning[iP]-tp_grid[17,0,iP])
+    # f = interpolate.interp1d(lon_grid, tp_grid[:,0,:],axis=0)
+
+    # T_evening = f(90)
+    # T_morning = f(270)
+    TP_mean_new = 0.5 * (T_morning + T_evening)
+
     ##
+    print('alert')
+    print(TP_mean-TP_mean_new)
 
     for ilat,lat in enumerate(lat_grid):
         for ilon in range(nlon):
