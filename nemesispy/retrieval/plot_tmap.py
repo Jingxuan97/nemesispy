@@ -103,6 +103,7 @@ def plot_gcm_tmap_contour_ip(ip,tmap,longitude_grid,latitude_grid,pressure_grid,
 
 def plot_tmap_contour(P,tmap,longitude_grid,latitude_grid,pressure_grid,
         foreshorten=True,T_range=(400,2600),nlevels=20,cmap='magma',
+        xlims=None,ylims=None,
         figsize=(11,5),fontsize=28,grid_points=True,title=None,
         figname='gcm_fig_P.pdf',dpi=400):
 
@@ -150,6 +151,12 @@ def plot_tmap_contour(P,tmap,longitude_grid,latitude_grid,pressure_grid,
             plt.scatter(x,np.sin(y/180*np.pi)*90,s=1,marker='x',color='k')
         else:
             plt.scatter(x,y,s=1,marker='x',color='k')
+
+    # plot limits
+    if ylims:
+        plt.ylim(ylims)
+    if xlims:
+        plt.xlim(xlims)
 
     # title
     if title:
