@@ -27,6 +27,7 @@ M_JUP = 1.898e27          # kg Jupiter mass
 
 # Others
 ATM = 101325              # Pa atmospheric pressure
+BAR = 100000              # Bar
 
 # Derived
 C1 = 1.1910429723971884e-12 # W cm2 2*PLANCK*C_LIGHT**2
