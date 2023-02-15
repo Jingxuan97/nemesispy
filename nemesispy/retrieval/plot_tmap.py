@@ -62,7 +62,7 @@ def plot_gcm_tmap_contour_ip(ip,tmap,longitude_grid,latitude_grid,pressure_grid,
     else:
         x,y = np.meshgrid(longitude_grid,latitude_grid,indexing='ij')
 
-    print(x,y)
+    # print(x,y)
     # read in GCM temperature map at the ip th pressure level
     z = tmap[:,:,ip]
 
@@ -70,6 +70,8 @@ def plot_gcm_tmap_contour_ip(ip,tmap,longitude_grid,latitude_grid,pressure_grid,
     plt.figure(figsize=figsize)
     plt.contourf(x,y,z,levels=nlevels,
         vmin=T_range[0],vmax=T_range[1],cmap=cmap)
+    # plt.contourf(x,y,z,levels=nlevels,
+    #     cmap=cmap)
     plt.colorbar()
 
     # set ticks
