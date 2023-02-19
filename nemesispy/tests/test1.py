@@ -29,3 +29,6 @@ z = (K_B*T1) / ( mmw *calc_grav_simple(adjusted_H,M_plt,R_plt))  * np.log(P1[0]/
 print(z)
 
 print((adjusted_H[1:] - z[1:])/z[1:])
+
+if __name__ == "__main__":
+    unittest.main()

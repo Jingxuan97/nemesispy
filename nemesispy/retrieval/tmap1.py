@@ -88,25 +88,25 @@ def tmap1(P_grid, lon_grid, lat_grid,
         tp_grid[ilon,0,:] = tp
 
     ## NEED TO GENERALISE
-    TP_mean = 0.5 * (tp_grid[17,0,:] + tp_grid[-18,0,:])
+    # TP_mean = 0.5 * (tp_grid[17,0,:] + tp_grid[-18,0,:])
 
     ### assume tg_grid[:,0,:] is defined around the equator
     T_evening = np.zeros(nP)
     T_morning = np.zeros(nP)
     for iP in range(nP):
         T_evening[iP] = np.interp(90,lon_grid,tp_grid[:,0,iP])
-        print(T_evening[iP]-tp_grid[-18,0,iP])
+        # print(T_evening[iP]-tp_grid[-18,0,iP])
         T_morning[iP] = np.interp(-90,lon_grid,tp_grid[:,0,iP])
-        print(T_morning[iP]-tp_grid[17,0,iP])
+        # print(T_morning[iP]-tp_grid[17,0,iP])
     # f = interpolate.interp1d(lon_grid, tp_grid[:,0,:],axis=0)
 
     # T_evening = f(90)
     # T_morning = f(270)
-    TP_mean_new = 0.5 * (T_morning + T_evening)
+    TP_mean = 0.5 * (T_morning + T_evening)
 
     ##
-    print('alert')
-    print(TP_mean-TP_mean_new)
+    # print('alert')
+    # print(TP_mean-TP_mean_new)
 
     for ilat,lat in enumerate(lat_grid):
         for ilon in range(nlon):
