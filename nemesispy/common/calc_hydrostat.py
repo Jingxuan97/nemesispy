@@ -12,10 +12,11 @@ from nemesispy.common.constants import G, K_B
 def calc_grav_simple(h, M_plt, R_plt):
     """
     Calculates the gravitational acceleration at altitude h on a planet.
+    Assume SI units.
 
     Parameters
     ----------
-    h : real
+    h : real/ndarray
         Altitude.
         Unit: m
     M_plt : real
@@ -27,7 +28,7 @@ def calc_grav_simple(h, M_plt, R_plt):
 
     Returns
     -------
-    g : real
+    g : real/ndarray
         Gravitational acceleration.
         Unit: ms^-2
     """
@@ -39,6 +40,7 @@ def calc_hydrostat(P, T, mmw, M_plt, R_plt, H=np.array([])):
     """
     Calculates an altitude profile from given pressure, temperature and
     mean molecular weight profiles assuming hydrostatic equilibrium.
+    Assume SI units.
 
 
     Parameters
