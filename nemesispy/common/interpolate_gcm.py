@@ -4,9 +4,30 @@ import numpy as np
 from numba import jit
 
 @jit(nopython=True)
-def VERINT(X,Y,XIN):
+def interp_1D(X,Y,XIN):
     """
-    np.interp only works with strictly increasing independent variable.
+    1D interpolation using the np.interp function.
+
+    Parameters
+    ----------
+    X : ndarray
+        Array of ordered independent variables.
+    Y : ndarray
+        Array of dependent variables.
+    XIN : ndarray
+        Array of independent variable values to interpolate at.
+
+    Returns
+    -------
+    YOUT : ndarray
+        Interpolated values.
+
+    Important:
+    np.interp needs an array of strictly increasing independent
+    variables. While the routine does not throw errors when the input array is
+    not strictly increasing, the results will be nonsensical. This routine
+    assumes that the independent variable array is ordered and reverse the
+    order if it is strictly decreasing.
     """
     if X[0]>X[-1]:
         X = X[::-1]
@@ -123,10 +144,10 @@ def interpvivien_point(lon, lat, p, gcm_lon, gcm_lat, gcm_p, gcm_t, gcm_vmr,
     for IPRO in range(NPRO):
         # convert pressure to atm then to log
         LP1 = np.log(p[IPRO])
-        tempY1 = VERINT(log_gcm_P,tempVY1,LP1)
-        tempY2 = VERINT(log_gcm_P,tempVY2,LP1)
-        tempY3 = VERINT(log_gcm_P,tempVY3,LP1)
-        tempY4 = VERINT(log_gcm_P,tempVY4,LP1)
+        tempY1 = interp_1D(log_gcm_P,tempVY1,LP1)
+        tempY2 = interp_1D(log_gcm_P,tempVY2,LP1)
+        tempY3 = interp_1D(log_gcm_P,tempVY3,LP1)
+        tempY4 = interp_1D(log_gcm_P,tempVY4,LP1)
         interped_T[IPRO] = (1.0-FLON)*(1.0-FLAT)*tempY1 + FLON*(1.0-FLAT)*tempY2 \
             + FLON*FLAT*tempY3 + (1.0-FLON)*FLAT*tempY4
         for IVMR in range(NVMR):
@@ -134,20 +155,23 @@ def interpvivien_point(lon, lat, p, gcm_lon, gcm_lat, gcm_p, gcm_t, gcm_vmr,
             gasVY2 = gcm_vmr[JLON2,JLAT,:,IVMR]
             gasVY3 = gcm_vmr[JLON2,JLAT+1,:,IVMR]
             gasVY4 = gcm_vmr[JLON1,JLAT+1,:,IVMR]
-            gasY1 = VERINT(log_gcm_P,gasVY1,LP1)
-            gasY2 = VERINT(log_gcm_P,gasVY2,LP1)
-            gasY3 = VERINT(log_gcm_P,gasVY3,LP1)
-            gasY4 = VERINT(log_gcm_P,gasVY4,LP1)
+            gasY1 = interp_1D(log_gcm_P,gasVY1,LP1)
+            gasY2 = interp_1D(log_gcm_P,gasVY2,LP1)
+            gasY3 = interp_1D(log_gcm_P,gasVY3,LP1)
+            gasY4 = interp_1D(log_gcm_P,gasVY4,LP1)
             interped_VMR[IPRO,IVMR] = (1.0-FLON)*(1.0-FLAT)*gasY1 + FLON*(1.0-FLAT)*gasY2\
                 + FLON*FLAT*gasY3 + (1.0-FLON)*FLAT*gasY4
 
     return interped_T, interped_VMR
 
+# @jit(nopython=True)
 def interp_gcm_X(lon, lat, p, gcm_lon, gcm_lat, gcm_p, X,
     substellar_point_longitude_shift=0):
     """
-    Find the X(P) profile at a location specified by (lon,lat) by interpolating
-    a GCM. X can be any scalar quantity modeled in the GCM.
+    Find the profile of X as a function of pressure at a location specified by
+    (lon,lat) by interpolating a GCM. X can be any scalar quantity modeled in
+    the GCM, for example temperature or chemical abundance.
+    Note: gcm_lon and gcm_lat must be strictly increasing.
 
     Parameters
     ----------
@@ -167,27 +191,41 @@ def interp_gcm_X(lon, lat, p, gcm_lon, gcm_lat, gcm_p, X,
         A scalar quantity defined in the GCM, e.g., temperature or VMR. (3D)
         Has dimensioin NLON x NLAT x NP
     substellar_point_longitude_shift : real
-        The longitude shift between the longitude-lattitude coordinate system
-        of the GCM model to the output coordinate system. For example, if in the
-        output coordinate system the substellar point is defined at 0 E,
+        The longitude shift from the output coordinate system to the
+        coordinate system of the GCM. For example, if in the output
+        coordinate system the substellar point is defined at 0 E,
         whereas in the GCM coordinate system the substellar point is defined
-        at 90 E, put substellar_point_longitude_shift=90.
+        at 180 E, put substellar_point_longitude_shift=180.
 
     Returns
     -------
     interped_X : ndarray
         X interpolated to (lon,lat,p).
+
+    Important:
+    Longitudinal values outside of the gcm longtidinal grid are interpolated
+    properly using the periodicity of longitude. However, latitudinal values
+    outside of the gcm latitude grid are interpolated using the boundary
+    values of the gcm grid. In practice, this reduces the accuracy of
+    interpolation in the polar regions outside of the gcm grid; in particular,
+    the interpolated value at the poles will be dependent on longitude.
+    This is a negligible source of error in disc integrated spectroscopy since
+    the contribution of radiance is weighted by cos(latitude).
     """
-    # Check input latitude make sense
-    assert lat <= 90 and lat >= -90
+    # Check input longitude and latitude make sense
+    assert lon <=180 and lon >=-180, "Input longitude out of range [-180,180]"
+    assert lat <= 90 and lat >= -90, "Input latitude out of range [-90,90]"
 
-    # Number of pressures in the interped profile
-    NPRO = len(p)
-
-    # Dimensions of GCM
+    # Check dimensions of X matches the given dimension of the GCM
     NLON = len(gcm_lon)
     NLAT = len(gcm_lat)
     NPRESS = len(gcm_p)
+    assert NLON == X.shape[0], "GCM longitude grid dimension mismatch"
+    assert NLAT == X.shape[1], "GCM latitude grid dimension mismatch"
+    assert NPRESS == X.shape[2], "GCM pressure grid dimension mismatch"
+
+    # Number of pressures in the profile to be interpolated
+    NPRO = len(p)
 
     # Work in log pressure
     log_gcm_p = np.log(gcm_p)
@@ -213,7 +251,7 @@ def interp_gcm_X(lon, lat, p, gcm_lon, gcm_lat, gcm_p, X,
             JLAT = 0
             FLAT = 0
         if lat >= gcm_lat[-1]:
-            JLAT = NLAT - 1
+            JLAT = NLAT - 2
             FLAT = 1
 
     JLON1 = -1
@@ -247,10 +285,10 @@ def interp_gcm_X(lon, lat, p, gcm_lon, gcm_lat, gcm_p, X,
     for IPRO in range(NPRO):
         # convert pressure to atm then to log
         LP1 = log_p[IPRO]
-        Y1 = VERINT(log_gcm_p,VY1,LP1)
-        Y2 = VERINT(log_gcm_p,VY2,LP1)
-        Y3 = VERINT(log_gcm_p,VY3,LP1)
-        Y4 = VERINT(log_gcm_p,VY4,LP1)
+        Y1 = interp_1D(log_gcm_p,VY1,LP1)
+        Y2 = interp_1D(log_gcm_p,VY2,LP1)
+        Y3 = interp_1D(log_gcm_p,VY3,LP1)
+        Y4 = interp_1D(log_gcm_p,VY4,LP1)
         interped_X[IPRO] = (1.0-FLON)*(1.0-FLAT)*Y1 + FLON*(1.0-FLAT)*Y2 \
             + FLON*FLAT*Y3 + (1.0-FLON)*FLAT*Y4
 

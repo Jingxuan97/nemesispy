@@ -90,7 +90,7 @@ def calc_hydrostat(P, T, mmw, M_plt, R_plt, H=np.array([])):
 
         dummy_H = adjusted_H
 
-        # Calculate the atmospheric model depth
+        # Calculate the atmospheric domain depth
         atdepth = dummy_H[-1] - dummy_H[0]
         # Calculate the gravity at each altitude level
         gravity =  calc_grav_simple(h=dummy_H, M_plt=M_plt, R_plt=R_plt)
