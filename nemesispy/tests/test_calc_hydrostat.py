@@ -1,5 +1,4 @@
 import numpy as np
-import scipy.interpolate
 from nemesispy.common.calc_hydrostat import calc_hydrostat, calc_grav_simple
 from nemesispy.common.constants import R_JUP, M_JUP, AMU, BAR, G, K_B
 
