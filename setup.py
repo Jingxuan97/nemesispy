@@ -1,6 +1,9 @@
 from setuptools import setup, find_packages
 
-VERSION = "0.0.5"
+with open('README.md') as f:
+    long_description = f.read()
+
+VERSION = "0.0.6"
 DESCRIPTION = "Tools for modelling exoplanet spectra"
 setup(name="nemesispy",
       version=VERSION,
@@ -23,5 +26,7 @@ setup(name="nemesispy",
           "numpy",
           "scipy",
           "matplotlib",
-          "numba"]
+          "numba"],
+      long_description=long_description,
+      long_description_content_type='text/markdown',
         )
