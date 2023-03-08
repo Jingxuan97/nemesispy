@@ -81,12 +81,23 @@ class ForwardModel():
 
         self.is_planet_model_set = True
 
-    def set_opacity_data(self, kta_file_paths, cia_file_path):
+    def set_opacity_data(self, kta_file_paths, cia_file_path,
+            truncate_upper=-1,truncate_lower=-1,step=-1):
         """
         Read gas ktables and cia opacity files and store as class attributes.
         """
         k_gas_id_list, k_iso_id_list, wave_grid, g_ord, del_g, k_table_P_grid,\
             k_table_T_grid, k_gas_w_g_p_t = read_kls(kta_file_paths)
+        print('gas',k_gas_id_list)
+        if truncate_upper > 0:
+            wave_grid = wave_grid[:truncate_upper]
+            k_gas_w_g_p_t = k_gas_w_g_p_t[:,:truncate_upper,:,:,:]
+        if truncate_lower > 0:
+            wave_grid = wave_grid[truncate_lower:]
+            k_gas_w_g_p_t = k_gas_w_g_p_t[:,truncate_lower:,:,:,:]
+        if step > 0:
+            wave_grid = wave_grid[::step]
+            k_gas_w_g_p_t = k_gas_w_g_p_t[:,::step,:,:,:]
         """
         Some gases (e.g. H2 and He) have no k table data so gas id lists need
         to be passed somewhere else.
