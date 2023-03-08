@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 with open('README.md') as f:
     long_description = f.read()
 
-VERSION = "0.0.6"
+VERSION = "0.0.8"
 DESCRIPTION = "Tools for modelling exoplanet spectra"
 setup(name="nemesispy",
       version=VERSION,
