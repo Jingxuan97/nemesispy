@@ -1,2 +1,3 @@
 recursive-include nemesispy/data *.txt *.tab *.dat
 recursive-include nemesispy/data h2o.kta co2.kta co.kta ch4.kta
+recursive-exclude nemesispy/data/PTprofiles_hr_all
