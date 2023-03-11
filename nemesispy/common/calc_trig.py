@@ -145,12 +145,12 @@ def generate_angles(phase,rho,alpha):
     of a chosen point on the visible disc of a planet under observation. The planet
     is assumed to be tidally locked, and is observed on an edgy-on orbit.
 
-    Refer to the begining of the trig.py file for geomety and convections.
+    Refer to the begining of the trig.py file for geomety and conventions.
 
     Parameters
     ----------
     phase : real
-        Orbital phase in degrees. 0 at  parimary transit and 180 at secondary eclipse.
+        Orbital phase in degrees. 0 at parimary transit and 180 at secondary eclipse.
         Range: [0,360)
     rho	: real
         Fractional radius of the point on disc, must be between 0 and 1 inclusive.

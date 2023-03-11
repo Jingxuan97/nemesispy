@@ -36,7 +36,7 @@ def interp_1D(X,Y,XIN):
     return YOUT
 
 @jit(nopython=True)
-def interpvivien_point(lon, lat, p, gcm_lon, gcm_lat, gcm_p, gcm_t, gcm_vmr,
+def interp_gcm(lon, lat, p, gcm_lon, gcm_lat, gcm_p, gcm_t, gcm_vmr,
     substellar_point_longitude_shift=0):
     """
     Find the T(P) profile and VMR(P) profile at a location specified by (lon,lat)
@@ -68,6 +68,8 @@ def interpvivien_point(lon, lat, p, gcm_lon, gcm_lat, gcm_p, gcm_t, gcm_vmr,
         output coordinate system the substellar point is defined at 0 E,
         whereas in the GCM coordinate system the substellar point is defined
         at 90 E, put substellar_point_longitude_shift=90.
+        It should be set to 180 if you want to simulate phase curves and set
+        set substellar point to 180, coinciding with secondary eclipse.
 
     Returns
     -------
@@ -78,7 +80,15 @@ def interpvivien_point(lon, lat, p, gcm_lon, gcm_lat, gcm_p, gcm_t, gcm_vmr,
 
     """
     # Check input latitude make sense
-    assert lat<=90 and lat>=-90
+    assert lat <= 90 and lat >= -90, "Input latitude out of range [-90,90]"
+
+    # Check dimensions of gcm_t matches the given dimension of the GCM
+    NLON = len(gcm_lon)
+    NLAT = len(gcm_lat)
+    NPRESS = len(gcm_p)
+    assert NLON == gcm_t.shape[0], "GCM longitude grid dimension mismatch"
+    assert NLAT == gcm_t.shape[1], "GCM latitude grid dimension mismatch"
+    assert NPRESS == gcm_t.shape[2], "GCM pressure grid dimension mismatch"
 
     # Number of pressures in the interped profile
     NPRO = len(p)
@@ -110,7 +120,7 @@ def interpvivien_point(lon, lat, p, gcm_lon, gcm_lat, gcm_p, gcm_t, gcm_vmr,
             JLAT = 0
             FLAT = 0
         if lat >= gcm_lat[-1]:
-            JLAT = NLAT - 1
+            JLAT = NLAT - 2
             FLAT = 1
 
     JLON1 = -1
@@ -164,7 +174,7 @@ def interpvivien_point(lon, lat, p, gcm_lon, gcm_lat, gcm_p, gcm_t, gcm_vmr,
 
     return interped_T, interped_VMR
 
-# @jit(nopython=True)
+@jit(nopython=True)
 def interp_gcm_X(lon, lat, p, gcm_lon, gcm_lat, gcm_p, X,
     substellar_point_longitude_shift=0):
     """
@@ -213,7 +223,6 @@ def interp_gcm_X(lon, lat, p, gcm_lon, gcm_lat, gcm_p, X,
     the contribution of radiance is weighted by cos(latitude).
     """
     # Check input longitude and latitude make sense
-    assert lon <=180 and lon >=-180, "Input longitude out of range [-180,180]"
     assert lat <= 90 and lat >= -90, "Input latitude out of range [-90,90]"
 
     # Check dimensions of X matches the given dimension of the GCM

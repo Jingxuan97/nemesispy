@@ -10,7 +10,7 @@ from nemesispy.radtran.calc_radiance import calc_radiance
 from nemesispy.radtran.read import read_cia
 from nemesispy.radtran.calc_layer import calc_layer
 from nemesispy.common.calc_trig import gauss_lobatto_weights
-from nemesispy.common.interpolate_gcm import interpvivien_point
+from nemesispy.common.interpolate_gcm import interp_gcm
 from nemesispy.common.calc_hydrostat import calc_hydrostat
 import time
 class ForwardModel():
@@ -61,8 +61,9 @@ class ForwardModel():
         fov_weights = None
         self.total_weight = None
 
-    def sanity_check():
+    def sanity_check(self):
         pass
+
     def set_planet_model(self, M_plt, R_plt, gas_id_list, iso_id_list, NLAYER,
         gas_name_list=None, solspec=None, R_star=None, T_star=None,
         semi_major_axis=None):
@@ -123,17 +124,37 @@ class ForwardModel():
         if len(solspec)==0:
             solspec = np.ones(len(self.wave_grid))
 
+        # point_spectrum = calc_radiance(self.wave_grid, U_layer, P_layer, T_layer,
+        #     VMR_layer, self.k_gas_w_g_p_t, self.k_table_P_grid,
+        #     self.k_table_T_grid, self.del_g, ScalingFactor=scale,
+        #     R_plt=self.R_plt, solspec=solspec, k_cia=self.k_cia_pair_t_w,
+        #     ID=self.gas_id_list,cia_nu_grid=self.cia_nu_grid,
+        #     cia_T_grid=self.cia_T_grid, dH=dH)
+
         # # s1 = time.time()
         # print("self.wave_grid",self.wave_grid)
         # # print("U_layer")
         # print("scale",scale)
-
-        point_spectrum = calc_radiance(self.wave_grid, U_layer, P_layer, T_layer,
-            VMR_layer, self.k_gas_w_g_p_t, self.k_table_P_grid,
-            self.k_table_T_grid, self.del_g, ScalingFactor=scale,
-            R_plt=self.R_plt, solspec=solspec, k_cia=self.k_cia_pair_t_w,
-            ID=self.gas_id_list,cia_nu_grid=self.cia_nu_grid,
-            cia_T_grid=self.cia_T_grid, dH=dH)
+        try:
+            point_spectrum = calc_radiance(self.wave_grid, U_layer, P_layer, T_layer,
+                VMR_layer, self.k_gas_w_g_p_t, self.k_table_P_grid,
+                self.k_table_T_grid, self.del_g, ScalingFactor=scale,
+                R_plt=self.R_plt, solspec=solspec, k_cia=self.k_cia_pair_t_w,
+                ID=self.gas_id_list,cia_nu_grid=self.cia_nu_grid,
+                cia_T_grid=self.cia_T_grid, dH=dH)
+        except ZeroDivisionError:
+            print('P_model',P_model)
+            print('H_model',H_model)
+            print('T_model',T_model)
+            print('VMR_model',VMR_model)
+            print('path_angle',path_angle)
+            print('H_layer',H_layer)
+            print('U_layer',U_layer)
+            print('P_layer',P_layer)
+            print('T_layer',T_layer)
+            print('VMR_layer',VMR_layer)
+            print('scale',scale)
+            raise(Exception('fucked'))
         # s2 = time.time()
         # print('calc_radiance',s2-s1)
         return point_spectrum
@@ -189,7 +210,8 @@ class ForwardModel():
         for iav in range(nav):
             xlon = fov_longitudes[iav]
             xlat = fov_latitudes[iav]
-            T_model, VMR_model = interpvivien_point(
+            # print(xlon,xlat)
+            T_model, VMR_model = interp_gcm(
                 lon=xlon,lat=xlat, p=P_model,
                 gcm_lon=mod_lon, gcm_lat=mod_lat,
                 gcm_p=global_model_P_grid,

@@ -49,6 +49,9 @@ def TP_Guillot(P,g_plt,T_eq,k_IR,gamma,f,T_int=100):
         * (2/3 + 1/(gamma*sqrt3) + (gamma/sqrt3 - 1/(gamma*sqrt3)) \
         * np.exp(-gamma * tau * sqrt3))
     TP = (flux1+flux2)**0.25
+    for iP in range(len(TP)):
+        if TP[iP]>9999:
+            TP[iP] = 9999
     return TP
 
 def TP_Line(P,g_plt,T_eq,k_IR,gamma1,gamma2,alpha,beta,T_int):

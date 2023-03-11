@@ -171,18 +171,22 @@ def plot_tmap_contour(P,tmap,longitude_grid,latitude_grid,pressure_grid,
 
 # plot_tmap_contour(pv[30],tmap,xlon,xlat,pv)
 
-### Grid data
-NLAYER = 20
-P_range = np.geomspace(20*1e5,1e-3*1e5,20)
-global_lon_grid = np.array(
-    [-175., -170., -165., -160., -155., -150., -145., -140., -135.,
-    -130., -125., -120., -115., -110., -105., -100.,  -95.,  -90.,
-    -85.,  -80.,  -75.,  -70.,  -65.,  -60.,  -55.,  -50.,  -45.,
-    -40.,  -35.,  -30.,  -25.,  -20.,  -15.,  -10.,   -5.,    0.,
-        5.,   10.,   15.,   20.,   25.,   30.,   35.,   40.,   45.,
-        50.,   55.,   60.,   65.,   70.,   75.,   80.,   85.,   90.,
-        95.,  100.,  105.,  110.,  115.,  120.,  125.,  130.,  135.,
-    140.,  145.,  150.,  155.,  160.,  165.,  170.,  175.]) # 71
-global_lat_grid = np.array(
-    [ 5., 10., 15., 20., 25., 30., 35., 40., 45., 50., 55., 60., 65.,
-    70., 75., 80., 85.])
+def plot_tmap1(P,title,figname,
+    P_grid, lon_grid, lat_grid,
+    g_plt,T_eq,
+    ck0,ck1,ck2,sk1,sk2,
+    cg0,cg1,cg2,sg1,sg2,
+    cf0,cf1,cf2,sf1,sf2,
+    T_int):
+
+    tp_grid = gen_tmap1(P_grid, lon_grid, lat_grid,
+    g_plt,T_eq,
+    ck0,ck1,ck2,sk1,sk2,
+    cg0,cg1,cg2,sg1,sg2,
+    cf0,cf1,cf2,sf1,sf2,
+    T_int)
+
+    plot_tmap_contour(P,tp_grid,lon_grid,lat_grid,P_grid,
+        title=title,figname=figname)
+
+    pass
