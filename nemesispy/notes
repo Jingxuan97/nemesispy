@@ -1,0 +1,4 @@
+In order to install the package but still make it editable, type the
+following in the terminal:
+
+pip install --editable .

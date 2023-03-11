@@ -10,7 +10,7 @@ from nemesispy.radtran.calc_radiance import calc_radiance
 from nemesispy.radtran.read import read_cia
 from nemesispy.radtran.calc_layer import calc_layer
 from nemesispy.common.calc_trig import gauss_lobatto_weights
-from nemesispy.common.interpolate_gcm import interpvivien_point
+from nemesispy.common.interpolate_gcm import interp_gcm
 from nemesispy.common.calc_hydrostat import calc_hydrostat
 import time
 class ForwardModel():
@@ -200,7 +200,7 @@ class ForwardModel():
         for iav in range(nav):
             xlon = fov_longitudes[iav]
             xlat = fov_latitudes[iav]
-            T_model, VMR_model = interpvivien_point(
+            T_model, VMR_model = interp_gcm(
                 lon=xlon,lat=xlat, p=P_model,
                 gcm_lon=mod_lon, gcm_lat=mod_lat,
                 gcm_p=global_model_P_grid,

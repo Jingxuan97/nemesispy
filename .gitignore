@@ -134,6 +134,9 @@ dmypy.json
 *.pdf
 *.png
 
+# GCMs
+nemesispy/data/gcm/PTprofiles_hr_all
+
 # */CO_Katy_R1000.kta
 # */CO2_Katy_R1000.kta
 # */H2O_Katy_R1000.kta
