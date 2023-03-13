@@ -1,3 +1,7 @@
+(If you want to try the interactive plots asap, go to
+https://pypi.org/project/nemesispy/ and install the
+package from there.)
+
 This library contains routines for simulating and fitting
 exoplanet emission spectra at arbitrary orbital phase,
 thereby constraining the thermal structure and chemical
