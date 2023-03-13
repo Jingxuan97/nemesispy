@@ -5,7 +5,7 @@ abundance of exoplanet atmospheres. It is also capable
 of fitting emission spectra at multiple orbital phases
 (phase curves) at the same time. This package
 comes ready with some spectral data and General Circulation
-Model (GCM) )data so you could start simulating spectra
+Model (GCM) data so you could start simulating spectra
 straight away. There are a few demonstration routines in
 the `nemesispy` folder; in particular `demo_fit_eclipse.py`
 contains an interactive plot routine which allows you
