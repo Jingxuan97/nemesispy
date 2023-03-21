@@ -168,7 +168,6 @@ def update(val):
     # print('P_model',P_model)
     VMR_model = gen_vmr(NLAYER,H2O,CO2,CO,CH4)
     # print('VMR_model',VMR_model)
-    VMR_model_init = gen_vmr(NLAYER,10**H2O_init,10**CO2_init,10**CO_init,10**CH4_init)
     T_model = TP_Guillot(P_model,g,T_eq,kappa,gamma,f,T_int)
     # print('T_model',T_model)
     spec = FM.calc_disc_spectrum_uniform(
