@@ -3,6 +3,7 @@
 import numpy as np
 from nemesispy.models.tmap_day_night import tmap_day_night
 from nemesispy.models.tmap_day_night_scaled import tmap_day_night_scaled
+from nemesispy.models.tmap_hotspot_day_night import tmap_hotspot_day_night
 from nemesispy.retrieval.plot_tmap import plot_tmap_contour
 from nemesispy.common.interpolate_gcm import interp_gcm_X
 from nemesispy.common.utils import mkdir
@@ -19,21 +20,29 @@ from nemesispy.data.gcm.wasp43b_vivien.process_wasp43b_gcm_vivien import (
 
 folder = 'visualise_tmap'
 mkdir(folder)
-offset = 12.5
-scale = 0.8
+
 ### Grid data
 NLAYER = 20
 # 20 pressures
 P_range = np.geomspace(20*1e5,1e-3*1e5,20)
-# 71 longitudes
-global_lon_grid = np.linspace(-175,175,71)
-# 36 latitudes
-global_lat_grid = np.linspace(0,87.5,36)
+# 359 longitudes
+global_lon_grid = np.linspace(-179,179,359)
+# 90 latitudes
+global_lat_grid = np.linspace(0,89,90)
+
+hot_spot_radius = 30
+hot_spot_offset = 45
+
+log_kappa_hot = -2.0
+log_gamma_hot = -0.5
+log_f_hot = - 1
+T_int_hot = 200
 
 log_kappa_day = -2.2
 log_gamma_day = -1
 log_f_day = - 1
 T_int_day = 200
+
 log_kappa_night = -4
 log_gamma_night = 0
 log_f_night = -2
@@ -49,16 +58,11 @@ T_irr = T_star * (R_star/SMA)**0.5
 T_eq = T_irr/2**0.5
 g = G*M_plt/R_plt**2
 
-# retrieved posterior means tmap
-# tp_grid = tmap_day_night(P_range,global_lon_grid,global_lat_grid,
-#     g,T_eq,
-#     offset,
-#     log_kappa_day, log_gamma_day, log_f_day, T_int_day,
-#     log_kappa_night, log_gamma_night, log_f_night, T_int_night)
 
-tp_grid = tmap_day_night_scaled(P_range,global_lon_grid,global_lat_grid,
+tp_grid = tmap_hotspot_day_night(P_range,global_lon_grid,global_lat_grid,
     g,T_eq,
-    scale, offset,
+    hot_spot_radius, hot_spot_offset,
+    log_kappa_hot, log_gamma_hot, log_f_hot, T_int_hot,
     log_kappa_day, log_gamma_day, log_f_day, T_int_day,
     log_kappa_night, log_gamma_night, log_f_night, T_int_night)
 
@@ -73,18 +77,18 @@ for ilon,mlon in enumerate(global_lon_grid):
 # plot mean contours
 for iP,P in enumerate(P_range):
     plot_tmap_contour(P,tp_grid,global_lon_grid,global_lat_grid,
-        P_range,grid_points=False,
+        P_range,foreshorten=False, grid_points=False,
         title='{:.3e} bar'.format(P/1e5),
         figname='{}/contour_{}.png'.format(folder,iP),
         ylims=(0,90))
-    # print(tp_grid[52,:,iP])
+    # print(tp_grid[:,:,iP])
 
-# plot MAP difference with gcm
-diff =  tp_grid - gcm_truth
-for iP,P in enumerate(P_range):
-    plot_tmap_contour(P,diff,global_lon_grid,global_lat_grid,P_range,grid_points=False,
-        title='{:.3e} bar'.format(P/1e5),
-        figname='{}/diff_{}.png'.format(folder,iP),
-        T_range=(-500,500),
-        cmap='bwr',
-        ylims=(0,90))
+# # plot MAP difference with gcm
+# diff =  tp_grid - gcm_truth
+# for iP,P in enumerate(P_range):
+#     plot_tmap_contour(P,diff,global_lon_grid,global_lat_grid,P_range,grid_points=False,
+#         title='{:.3e} bar'.format(P/1e5),
+#         figname='{}/diff_{}.png'.format(folder,iP),
+#         T_range=(-500,500),
+#         cmap='bwr',
+#         ylims=(0,90))

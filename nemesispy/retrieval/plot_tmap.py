@@ -19,30 +19,12 @@ from nemesispy.data.gcm.wasp43b_vivien.process_wasp43b_gcm_vivien import (
     kevin_phase_by_wave,kevin_wave_by_phase,\
     pat_phase_by_wave,pat_wave_by_phase)
 
-### Grid data
-NLAYER = 20
-P_range = np.geomspace(20*1e5,1e-3*1e5,20)
-global_lon_grid = np.array(
-    [-175., -170., -165., -160., -155., -150., -145., -140., -135.,
-    -130., -125., -120., -115., -110., -105., -100.,  -95.,  -90.,
-    -85.,  -80.,  -75.,  -70.,  -65.,  -60.,  -55.,  -50.,  -45.,
-    -40.,  -35.,  -30.,  -25.,  -20.,  -15.,  -10.,   -5.,    0.,
-        5.,   10.,   15.,   20.,   25.,   30.,   35.,   40.,   45.,
-        50.,   55.,   60.,   65.,   70.,   75.,   80.,   85.,   90.,
-        95.,  100.,  105.,  110.,  115.,  120.,  125.,  130.,  135.,
-    140.,  145.,  150.,  155.,  160.,  165.,  170.,  175.]) # 71
-global_lat_grid = np.array(
-    [ 5., 10., 15., 20., 25., 30., 35., 40., 45., 50., 55., 60., 65.,
-    70., 75., 80., 85.]) # 17
-
-# def plot_contour(pressure)
-
 def plot_gcm_tmap_contour_ip(ip,tmap,longitude_grid,latitude_grid,pressure_grid,
         foreshorten=True,T_range=(400,2600),nlevels=20,cmap='magma',
         figsize=(11,5),fontsize=28,grid_points=True,title=None,
         figname='gcm_fig.pdf',dpi=400):
     """
-    Plot temperature contours given a GCM.
+    Plot temperature contour at the ip th pressure layer given a GCM.
 
     Parameters
     ----------
@@ -101,14 +83,25 @@ def plot_gcm_tmap_contour_ip(ip,tmap,longitude_grid,latitude_grid,pressure_grid,
     plt.savefig(figname,dpi=dpi)
     plt.close()
 
-# plot_gcm_tmap_contour_ip(30,tmap,xlon,xlat,pv)
-
 def plot_tmap_contour(P,tmap,longitude_grid,latitude_grid,pressure_grid,
         foreshorten=True,T_range=(400,2600),nlevels=20,cmap='magma',
         xlims=None,ylims=None,
         figsize=(11,5),fontsize=28,grid_points=True,title=None,
         figname='gcm_fig_P.pdf',dpi=400):
+    """
+    Plot temperature contour at any pressure given a GCM.
 
+    Parameters
+    ----------
+    ip : int
+        Index of the level for plotting.
+    longitude_grid : ndarray
+        Unit : degree
+    latitude_grid : ndarray
+        Unit : degree
+    pressure_grid : ndarray
+        Unit : Pa
+    """
     nlon = len(longitude_grid)
     nlat = len(latitude_grid)
 
@@ -168,8 +161,6 @@ def plot_tmap_contour(P,tmap,longitude_grid,latitude_grid,pressure_grid,
     plt.tight_layout()
     plt.savefig(figname,dpi=dpi)
     plt.close()
-
-# plot_tmap_contour(pv[30],tmap,xlon,xlat,pv)
 
 def plot_tmap1(P,title,figname,
     P_grid, lon_grid, lat_grid,
