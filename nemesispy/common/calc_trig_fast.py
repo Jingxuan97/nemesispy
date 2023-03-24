@@ -242,208 +242,6 @@ def generate_angles(phase,rho,alpha):
     return zen, azi, lat, lon
 
 @jit(nopython=True)
-def gauss_lobatto_weights(phase, nmu):
-    """
-    Given the orbital phase, calculates the coordinates and weights of the points
-    on a disc needed to compute the disc integrated radiance.
-
-    The points are chosen on a number of rings according to Gauss-Lobatto quadrature
-    scheme, and spaced on the rings according to trapezium rule.
-
-    Refer to the begining of the trig.py file for geomety and convections.
-
-    Parameters
-    ----------
-    phase : real
-        Stellar phase/orbital phase in degrees.
-        0=parimary transit and increase to 180 at secondary eclipse.
-    nmu	: integer
-        Number of zenith angle ordinates
-
-    Output variables
-    nav	: integer
-        Number of FOV points
-    wav	: ndarray
-        FOV-averaging table:
-        0th row is lattitude, 1st row is longitude, 2nd row is stellar zenith
-        angle, 3rd row is emission zenith angle, 4th row is stellar azimuth angle,
-        5th row is weight.
-    """
-    assert nmu <=9, "Limited to 9 quadrature points in emission angle"
-    assert nmu >=2, "Need at least 2 quadrature points"
-    phase = phase%360
-    dtr = np.pi/180 # degree to radiance conversion factor
-    delR = 1./nmu #
-
-    # set up the output arrays
-    nsample = 1000 # large array size to hold calculations
-    tablat = np.zeros(nsample) # latitudes
-    tablon = np.zeros(nsample) # longitudeds
-    tabzen = np.zeros(nsample) # zenith angle in quadrature scheme
-    tabsol = np.zeros(nsample) # solar zenith angle
-    tabazi = np.zeros(nsample) # solar azimuth angle (scattering phase angle?)
-    tabwt = np.zeros(nsample)  # weight of each sample
-
-    # list the gauss labatto quadrature points and weights
-    if nmu == 2:
-        mu = [0.447213595499958,1.000000]                   # cos zenith angle
-        wtmu = [0.8333333333333333,0.166666666666666666]    # corresponding weights
-    if nmu == 3:
-        mu = [0.28523151648064509,0.7650553239294646,1.0000]
-        wtmu = [0.5548583770354863,0.3784749562978469,0.06666666666666666]
-    if nmu == 4:
-        mu = [0.2092992179024788,0.5917001814331423,0.8717401485096066,
-            1.00000]
-        wtmu = [0.4124587946587038,0.3411226924835043,0.2107042271435060,
-            0.035714285714285]
-    if nmu == 5:
-        mu = [0.165278957666387,0.477924949810444,0.738773865105505,
-            0.919533908166459,1.00000000000000]
-        wtmu = [0.327539761183898,0.292042683679684,0.224889342063117,
-            0.133305990851069,2.222222222222220E-002]
-    if nmu == 6:
-        mu = [0.13655293285493, 0.39953094096535, 0.63287615303186,
-            0.81927932164401, 0.94489927222288, 1.0]
-        wtmu = [0.27140524091069596, 0.2512756031992008, 0.21250841776102114,
-            0.15797470556437015, 0.09168451741319596, 0.015151515151515152]
-    if nmu == 7:
-        mu = [0.1163318688837, 0.34272401334271, 0.55063940292865,
-            0.72886859909133, 0.86780105383035,
-            0.95993504526726, 1.0]
-        wtmu = [0.2316127944684567, 0.21912625300977043, 0.1948261493734163,
-            0.16002185176295194, 0.11658665589871156,
-            0.06683728449768114, 0.01098901098901099]
-    if nmu ==8:
-        mu = [0.10132627352195, 0.29983046890076, 0.48605942188714,
-            0.65238870288249, 0.79200829186182, 0.89920053309347,
-            0.96956804627022, 1.0]
-        wtmu = [0.20195830817822982, 0.19369002382520328, 0.17749191339170406,
-            0.15402698080716404, 0.12425538213251425, 0.08939369732593098,
-            0.0508503610059198, 0.008333333333333333]
-    if nmu == 9:
-        mu = [0.08974909348465, 0.26636265287828, 0.43441503691212,
-            0.58850483431866, 0.72367932928324, 0.83559353521809,
-            0.92064918534753, 0.9761055574122, 1.0]
-        wtmu == [0.17901586343970305, 0.1732621094894562, 0.16193951723760244,
-            0.14541196157380204, 0.12421053313296725, 0.09901627171750278,
-            0.07063716688563368, 0.03997062881091395, 0.006535947712418301]
-
-    # trace out the day/night terminator
-    z_term = np.linspace(-1,1,201) # pick out some z coordinates for the terminator
-    if 0<= phase <= 180:
-        # terminator is to the left of z axis
-        theta_term = 2*np.pi - np.arccos(z_term)
-    else:
-        # terminator in the right side of the disc
-        theta_term = np.arccos(z_term)
-    x_term = np.sin(theta_term) * np.around(np.cos(phase*dtr),14) # x coords of terminator
-    r_term = np.sqrt(x_term**2+z_term**2) # radial coords of terminator
-    rmin = min(r_term) # least radius (is on x axis)
-
-    # define FOV averaging points
-    isample = 0
-    for imu in range(0, nmu): # quadrature rings
-        r_quad = np.sqrt(1.-mu[imu]**2) # quadrature radius (from small to large)
-        half_circum = np.pi*r_quad # half the circumference
-
-        # see if the quadrature ring intersects the terminator
-        # if so, find the intersection point and place a sample point there
-        if r_quad > rmin: # quadrature ring intersects the terminator
-            ikeep = np.where(r_term<=r_quad)
-            ikeep = ikeep[0] # index of the points on the terminator with radius > r_quad
-            i_intersect = np.array([ikeep[0], ikeep[-1]]) # index of two intersectionns
-            x_intersect = x_term[i_intersect] # x coordinates of intersection
-            z_intersect = z_term[i_intersect] # z coordinates of intersection
-
-            # take the intersection in the upper hemisphere
-            if z_intersect[1] > 0:
-                alpha_intersect = arctan(x_intersect[1],z_intersect[1])/dtr
-            else:
-                alpha_intersect = arctan(x_intersect[0],z_intersect[0])/dtr
-
-            # place the sample points on the quadrature rings on either side of the intersection
-            nalpha1 = int(0.5+half_circum*(alpha_intersect/180.0)/delR) # round up; separation ~ R/nmu
-            nalpha2 = int(0.5+half_circum*((180.-alpha_intersect)/180.0)/delR)
-
-            # at least 1 point either side of the intersection
-            if(nalpha1 < 2):
-                nalpha1=2
-            if(nalpha2 < 2):
-                nalpha2=2
-
-            # set the alphas of the sample points on current quadrature ring
-            nalpha = nalpha1+nalpha2-1 # intersection point double counted
-            alpha1 = alpha_intersect/(nalpha1-1) * np.arange(nalpha1)
-            alpha2 = alpha_intersect+(180.-alpha_intersect)/(nalpha2-1) * np.arange(nalpha2)
-            alpha2 = alpha2[1:(nalpha2)] # intersect was counted twice
-            alpha_sample_list = np.concatenate((alpha1,alpha2))
-
-        else: # quadrature ring does not intersect terminator
-            if(half_circum > 0.0):
-                nalpha = int(0.5+half_circum/delR)
-                alpha_sample_list = 180*np.arange(nalpha)/(nalpha-1)
-            else:
-                nalpha=1
-
-        if(nalpha > 1): # more than one sample on the quadrature ring
-
-            for ialpha in np.arange(0,nalpha):
-
-                alpha_sample = alpha_sample_list[ialpha]
-
-                thetasol_sample, azi_sample, lat_sample, lon_sample \
-                    = generate_angles(phase,r_quad,alpha_sample)
-
-                # trapezium rule weights
-                if (ialpha == 0):
-                    wt_trap = (alpha_sample_list[ialpha+1]-alpha_sample_list[ialpha])/2.0
-                elif (ialpha == nalpha-1):
-                    wt_trap = (alpha_sample_list[ialpha]-alpha_sample_list[ialpha-1])/2.0
-                else:
-                    wt_trap = (alpha_sample_list[ialpha+1]-alpha_sample_list[ialpha-1])/2.0
-
-                wt_azi= wt_trap/180. # sample azimuthal weight
-
-
-                tablat[isample] = lat_sample # sample lattitude
-                tablon[isample] = lon_sample # sample longitude
-                tabzen[isample] = np.arccos(mu[imu])/dtr # sample emission zenith angle
-                tabsol[isample] = thetasol_sample/dtr # sample stellar zenith angle
-                tabazi[isample] = azi_sample/dtr # sample stellar azimuth angle
-                tabwt[isample] = 2*mu[imu]*wtmu[imu]*wt_azi # sample weight
-                isample = isample+1
-
-        else:
-            alpha_sample = 0.
-            thetasol_sample,azi_sample, lat_sample,lon_sample \
-                = generate_angles(phase,r_quad,alpha_sample)
-            if(tabzen[isample] == 0.0):
-                azi_sample = 180.
-            tablat[isample] = lat_sample
-            tablon[isample] = lon_sample
-            tabzen[isample] = np.arccos(mu[imu])/dtr
-            tabsol[isample] = thetasol_sample/dtr
-            tabazi[isample] = azi_sample
-            tabwt[isample] = 2*mu[imu]*wtmu[imu]
-            isample = isample+1
-
-    nav = isample
-    wav = np.zeros((6,isample))
-    sum=0.
-    for i in np.arange(0,isample):
-        wav[0,i]=tablat[i]              # 0th array is lattitude
-        wav[1,i]=tablon[i]%360          # 1st array is longitude
-        wav[2,i]=tabsol[i]              # 2nd array is stellar zenith angle
-        wav[3,i]=tabzen[i]              # 3rd array is emission zenith angle
-        wav[4,i]=tabazi[i]              # 4th array is stellar azimuth angle
-        wav[5,i]=tabwt[i]               # 5th array is weight
-        sum = sum+tabwt[i]
-
-    for i in range(isample):            # normalise weights so they add up to 1
-        wav[5,i]=wav[5,i]/sum
-
-    return nav, wav
-
 def disc_weights(phase, nmu):
     """
     Given the orbital phase, calculates the coordinates and weights of the points
@@ -471,19 +269,17 @@ def disc_weights(phase, nmu):
         angle, 3rd row is emission zenith angle, 4th row is stellar azimuth angle,
         5th row is weight.
     """
-    assert nmu <=9, "Limited to 9 quadrature points in emission angle"
+    assert nmu <=6, "Limited to 6 quadrature points in emission angle"
     assert nmu >=2, "Need at least 2 quadrature points"
     phase = phase%360
     dtr = np.pi/180 # degree to radiance conversion factor
     delR = 1./nmu #
 
     # set up the output arrays
-    nsample = 1000 # large array size to hold calculations
+    nsample = 10000 # large array size to hold calculations
     tablat = np.zeros(nsample) # latitudes
     tablon = np.zeros(nsample) # longitudeds
     tabzen = np.zeros(nsample) # zenith angle in quadrature scheme
-    tabsol = np.zeros(nsample) # solar zenith angle
-    tabazi = np.zeros(nsample) # solar azimuth angle (scattering phase angle?)
     tabwt = np.zeros(nsample)  # weight of each sample
 
     # list the gauss labatto quadrature points and weights
@@ -508,72 +304,40 @@ def disc_weights(phase, nmu):
             0.81927932164401, 0.94489927222288, 1.0]
         wtmu = [0.27140524091069596, 0.2512756031992008, 0.21250841776102114,
             0.15797470556437015, 0.09168451741319596, 0.015151515151515152]
-    if nmu == 7:
-        mu = [0.1163318688837, 0.34272401334271, 0.55063940292865,
-            0.72886859909133, 0.86780105383035,
-            0.95993504526726, 1.0]
-        wtmu = [0.2316127944684567, 0.21912625300977043, 0.1948261493734163,
-            0.16002185176295194, 0.11658665589871156,
-            0.06683728449768114, 0.01098901098901099]
-    if nmu ==8:
-        mu = [0.10132627352195, 0.29983046890076, 0.48605942188714,
-            0.65238870288249, 0.79200829186182, 0.89920053309347,
-            0.96956804627022, 1.0]
-        wtmu = [0.20195830817822982, 0.19369002382520328, 0.17749191339170406,
-            0.15402698080716404, 0.12425538213251425, 0.08939369732593098,
-            0.0508503610059198, 0.008333333333333333]
-    if nmu == 9:
-        mu = [0.08974909348465, 0.26636265287828, 0.43441503691212,
-            0.58850483431866, 0.72367932928324, 0.83559353521809,
-            0.92064918534753, 0.9761055574122, 1.0]
-        wtmu == [0.17901586343970305, 0.1732621094894562, 0.16193951723760244,
-            0.14541196157380204, 0.12421053313296725, 0.09901627171750278,
-            0.07063716688563368, 0.03997062881091395, 0.006535947712418301]
 
     # define FOV averaging points
     isample = 0
     for imu in range(0, nmu): # quadrature rings
-
-        r_quad = np.sqrt(1.-mu[imu]**2) # quadrature radius (big to small)
+        r_quad = np.sqrt(1.-mu[imu]**2) # quadrature radius (from small to large)
         half_circum = np.pi*r_quad # half the circumference
 
         if(half_circum > 0.0):
-            # nalpha = int(0.5+half_circum/delR)
-            nalpha = int(0.5+half_circum/delR) * 5 # more
+            nalpha = int(0.5+half_circum/delR)*10
             alpha_sample_list = 180*np.arange(nalpha)/(nalpha-1)
         else:
-            # centre
             nalpha=1
 
         if(nalpha > 1): # more than one sample on the quadrature ring
+
             for ialpha in np.arange(0,nalpha):
 
                 alpha_sample = alpha_sample_list[ialpha]
-
                 thetasol_sample, azi_sample, lat_sample, lon_sample \
                     = generate_angles(phase,r_quad,alpha_sample)
 
                 # trapezium rule weights
                 if (ialpha == 0):
-                    wt_trap = \
-                        0.5*(alpha_sample_list[ialpha+1]
-                        -alpha_sample_list[ialpha])
+                    wt_trap = (alpha_sample_list[ialpha+1]-alpha_sample_list[ialpha])/2.0
                 elif (ialpha == nalpha-1):
-                    wt_trap = \
-                        0.5*(alpha_sample_list[ialpha]
-                        -alpha_sample_list[ialpha-1])
+                    wt_trap = (alpha_sample_list[ialpha]-alpha_sample_list[ialpha-1])/2.0
                 else:
-                    wt_trap = \
-                        0.5*(alpha_sample_list[ialpha+1]
-                        -alpha_sample_list[ialpha-1])
+                    wt_trap = (alpha_sample_list[ialpha+1]-alpha_sample_list[ialpha-1])/2.0
 
                 wt_azi= wt_trap/180. # sample azimuthal weight
 
                 tablat[isample] = lat_sample # sample lattitude
                 tablon[isample] = lon_sample # sample longitude
                 tabzen[isample] = np.arccos(mu[imu])/dtr # sample emission zenith angle
-                tabsol[isample] = thetasol_sample/dtr # sample stellar zenith angle
-                tabazi[isample] = azi_sample/dtr # sample stellar azimuth angle
                 tabwt[isample] = 2*mu[imu]*wtmu[imu]*wt_azi # sample weight
                 isample = isample+1
 
@@ -586,24 +350,237 @@ def disc_weights(phase, nmu):
             tablat[isample] = lat_sample
             tablon[isample] = lon_sample
             tabzen[isample] = np.arccos(mu[imu])/dtr
-            tabsol[isample] = thetasol_sample/dtr
-            tabazi[isample] = azi_sample
             tabwt[isample] = 2*mu[imu]*wtmu[imu]
             isample = isample+1
 
     nav = isample
-    wav = np.zeros((6,isample))
+    wav = np.zeros((4,isample))
     sum=0.
     for i in np.arange(0,isample):
         wav[0,i]=tablat[i]              # 0th array is lattitude
         wav[1,i]=tablon[i]%360          # 1st array is longitude
-        wav[2,i]=tabsol[i]              # 2nd array is stellar zenith angle
-        wav[3,i]=tabzen[i]              # 3rd array is emission zenith angle
-        wav[4,i]=tabazi[i]              # 4th array is stellar azimuth angle
-        wav[5,i]=tabwt[i]               # 5th array is weight
+        wav[2,i]=tabzen[i]              # 3rd array is emission zenith angle
+        wav[3,i]=tabwt[i]               # 5th array is weight
         sum = sum+tabwt[i]
 
     for i in range(isample):            # normalise weights so they add up to 1
-        wav[5,i]=wav[5,i]/sum
+        wav[3,i]=wav[3,i]/sum
 
     return nav, wav
+
+def disc_weights_2tp(phase, nmu, daybound1, daybound2):
+    """
+    Parameters
+    ----------
+    phase : real
+        Stellar phase/orbital phase in degrees.
+        0=parimary transit and increase to 180 at secondary eclipse.
+    nmu	: integer
+        Number of zenith angle ordinates
+    daybound1 : real
+        Longitude of the west boundary of dayside. Assume [-180,180] grid.
+    daybound2
+        Longitude of the east boundary of dayside. Assume [-180,180] grid.
+    Returns
+    -------
+    new_nav : int
+        Reduced number of FOV points
+    new_wav :
+        Reduced FOV-averaging table.
+    """
+    daybound1 = daybound1 + 180
+    daybound2 = daybound2 + 180
+    nav, wav = disc_weights(phase, nmu)
+    lat_list = wav[0,:]
+    lon_list = wav[1,:]
+    zen_list = wav[2,:]
+    wt_list = wav[3,:]
+
+    day_lat = []
+    day_lon = []
+    day_zen = []
+    day_wt = []
+
+    night_lat = []
+    night_lon = []
+    night_zen = []
+    night_wt = []
+
+    for ilon,lon in enumerate(lon_list):
+        if lon >= daybound1 and lon <= daybound2:
+            day_lat.append(lat_list[ilon])
+            day_lon.append(lon_list[ilon])
+            day_zen.append(zen_list[ilon])
+            day_wt.append(wt_list[ilon])
+        else:
+            night_lat.append(lat_list[ilon])
+            night_lon.append(lon_list[ilon])
+            night_zen.append(zen_list[ilon])
+            night_wt.append(wt_list[ilon])
+
+    new_day_lat = []
+    new_day_lon = []
+    new_day_zen = []
+    new_day_wt = []
+
+    new_night_lat = []
+    new_night_lon = []
+    new_night_zen = []
+    new_night_wt = []
+
+    imu = 0
+    ilat = 0
+    while ilat < len(day_lat):
+        if ilat == 0:
+            new_day_lat.append(day_lat[0])
+            new_day_lon.append(day_lon[0])
+            new_day_zen.append(day_zen[0])
+            new_day_wt.append(day_wt[0])
+            ilat += 1
+        else:
+            if day_zen[ilat] == day_zen[ilat-1]:
+                new_day_wt[imu] += day_wt[ilat]
+                ilat += 1
+            else:
+                new_day_lat.append(day_lat[ilat])
+                new_day_lon.append(day_lon[ilat])
+                new_day_zen.append(day_zen[ilat])
+                new_day_wt.append(day_wt[ilat])
+                imu += 1
+                ilat += 1
+
+    imu = 0
+    ilat = 0
+    while ilat < len(night_lat):
+        if ilat == 0:
+            new_night_lat.append(night_lat[0])
+            new_night_lon.append(night_lon[0])
+            new_night_zen.append(night_zen[0])
+            new_night_wt.append(night_wt[0])
+            ilat += 1
+        else:
+            if night_zen[ilat] == night_zen[ilat-1]:
+                new_night_wt[imu] += night_wt[ilat]
+                ilat += 1
+            else:
+                new_night_lat.append(night_lat[ilat])
+                new_night_lon.append(night_lon[ilat])
+                new_night_zen.append(night_zen[ilat])
+                new_night_wt.append(night_wt[ilat])
+                imu += 1
+                ilat += 1
+
+    return new_day_lat, new_day_lon, new_day_zen, new_day_wt,\
+        new_night_lat, new_night_lon, new_night_zen, new_night_wt
+
+def add_azimuthal_weights_2tp(phase, nmu, daybound1, daybound2):
+    """
+    Parameters
+    ----------
+    phase : real
+        Stellar phase/orbital phase in degrees.
+        0=parimary transit and increase to 180 at secondary eclipse.
+    nmu	: integer
+        Number of zenith angle ordinates
+    daybound1 : real
+        Longitude of the west boundary of dayside. Assume [-180,180] grid.
+    daybound2
+        Longitude of the east boundary of dayside. Assume [-180,180] grid.
+    Returns
+    -------
+    new_nav : int
+        Reduced number of FOV points
+    new_wav :
+        Reduced FOV-averaging table.
+    """
+    daybound1 = daybound1 + 180
+    daybound2 = daybound2 + 180
+    nav, wav = disc_weights(phase, nmu)
+    lat_list = wav[0,:]
+    lon_list = wav[1,:]
+    zen_list = wav[2,:]
+    wt_list = wav[3,:]
+
+    day_lat = []
+    day_lon = []
+    day_zen = []
+    day_wt = []
+
+    night_lat = []
+    night_lon = []
+    night_zen = []
+    night_wt = []
+
+    for ilon,lon in enumerate(lon_list):
+        if lon >= daybound1 and lon <= daybound2:
+            day_lat.append(lat_list[ilon])
+            day_lon.append(lon_list[ilon])
+            day_zen.append(zen_list[ilon])
+            day_wt.append(wt_list[ilon])
+        else:
+            night_lat.append(lat_list[ilon])
+            night_lon.append(lon_list[ilon])
+            night_zen.append(zen_list[ilon])
+            night_wt.append(wt_list[ilon])
+
+    new_day_lat = []
+    new_day_lon = []
+    new_day_zen = []
+    new_day_wt = []
+
+    new_night_lat = []
+    new_night_lon = []
+    new_night_zen = []
+    new_night_wt = []
+
+    imu = 0
+    ilat = 0
+    while ilat < len(day_lat):
+        if ilat == 0:
+            new_day_lat.append(day_lat[0])
+            new_day_lon.append(day_lon[0])
+            new_day_zen.append(day_zen[0])
+            new_day_wt.append(day_wt[0])
+            ilat += 1
+        else:
+            if day_zen[ilat] == day_zen[ilat-1]:
+                new_day_wt[imu] += day_wt[ilat]
+                ilat += 1
+            else:
+                new_day_lat.append(day_lat[ilat])
+                new_day_lon.append(day_lon[ilat])
+                new_day_zen.append(day_zen[ilat])
+                new_day_wt.append(day_wt[ilat])
+                imu += 1
+                ilat += 1
+
+    imu = 0
+    ilat = 0
+    while ilat < len(night_lat):
+        if ilat == 0:
+            new_night_lat.append(night_lat[0])
+            new_night_lon.append(night_lon[0])
+            new_night_zen.append(night_zen[0])
+            new_night_wt.append(night_wt[0])
+            ilat += 1
+        else:
+            if night_zen[ilat] == night_zen[ilat-1]:
+                new_night_wt[imu] += night_wt[ilat]
+                ilat += 1
+            else:
+                new_night_lat.append(night_lat[ilat])
+                new_night_lon.append(night_lon[ilat])
+                new_night_zen.append(night_zen[ilat])
+                new_night_wt.append(night_wt[ilat])
+                imu += 1
+                ilat += 1
+
+    print(new_day_wt,sum(new_day_wt))
+    print(new_night_wt, sum(new_night_wt))
+    print('sum')
+    print(sum(new_day_wt)+sum(new_night_wt))
+
+
+    return day_lat, day_lon, night_lat, night_lon,\
+        new_day_lat, new_day_lon, \
+        new_night_lat, new_night_lon

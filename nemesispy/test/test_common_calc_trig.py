@@ -3,6 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from nemesispy.common.calc_trig import arctan, rotatey, rotatez, \
     generate_angles, gauss_lobatto_weights
+from nemesispy.common.calc_trig_new import disc_weights, \
+    add_azimuthal_weights_2tp
 
 class TestTrigonometry(unittest.TestCase):
 
@@ -37,5 +39,31 @@ class TestTrigonometry(unittest.TestCase):
 # plt.savefig('test')
 # plt.close()
 
+# nav, wav = disc_weights(phase=180, nmu=6)
+# lat = wav[0,:]
+# lon = wav[1,:]
+# plt.scatter(lon,lat)
+# plt.savefig('test_disc')
+# plt.close()
+
+
+nmu = 6
+daybound1 = -90
+daybound2 = 90
+for phase in [0,30,60,90,120,150,180,210,240,270,300,330,360]:
+
+    day_lat, day_lon, night_lat, night_lon, \
+        new_day_lat, new_day_lon, new_night_lat, new_night_lon \
+        = add_azimuthal_weights_2tp(phase, nmu, daybound1, daybound2)
+    plt.xlim(0,360)
+    plt.ylim(0,90)
+    plt.scatter(day_lon,day_lat,color='red')
+    plt.scatter(night_lon,night_lat,color='blue')
+    plt.scatter(new_night_lon, new_night_lat,color='green')
+    plt.scatter(new_day_lon, new_day_lat,color='yellow')
+    plt.axvline(90)
+    plt.axvline(270)
+    plt.savefig('split{}'.format(phase))
+    plt.close()
 if __name__ == "__main__":
     unittest.main()

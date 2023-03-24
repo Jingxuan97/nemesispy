@@ -262,7 +262,7 @@ def gauss_lobatto_weights(phase, nmu):
         Number of zenith angle ordinates
 
     Output variables
-    nav	: integer
+    nav	: int
         Number of FOV points
     wav	: ndarray
         FOV-averaging table:

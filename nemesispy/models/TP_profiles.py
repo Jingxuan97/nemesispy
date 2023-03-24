@@ -21,12 +21,12 @@ def TP_Guillot(P,g_plt,T_eq,k_IR,gamma,f,T_int=100):
     T_eq : real
         Temperature corresponding to the stellar flux.
         T_eq = T_star * (R_star/(2*semi_major_axis))**0.5
-    gamma : real
-        Range ~ [1e-3,1e2]
-        gamma = k_V/k_IR, ratio of visible to thermal opacities
     k_IR : real
         Range [1e-5,1e3]
         Mean absorption coefficient in the thermal wavelengths.
+    gamma : real
+        Range ~ [1e-3,1e2]
+        gamma = k_V/k_IR, ratio of visible to thermal opacities
     f : real
         f parameter (positive), See eqn. (29) in Guillot 2010.
         With f = 1 at the substellar point, f = 1/2 for a

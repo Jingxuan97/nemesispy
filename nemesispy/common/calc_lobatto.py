@@ -122,20 +122,21 @@ def disc_weights(n):
     wtmu = wtmu[::-1]
     return mu,wtmu
 
-# print('lobatto weights')
-# for i in range(2,16):
-#     mu, wtmu = lobatto(i)
-#     print('order ', i)
-#     print(list(mu))
-#     print(list(wtmu))
+"""
+print('lobatto weights')
+for i in range(2,16):
+    mu, wtmu = lobatto(i)
+    print('order ', i)
+    print(list(mu))
+    print(list(wtmu))
 
-# print('disc average')
-# for i in range(2,16):
-#     mu, wtmu = disc_weights(i)
-#     print('order ', i)
-#     print(list(mu))
-#     print(list(wtmu))
-
+print('disc average')
+for i in range(2,16):
+    mu, wtmu = disc_weights(i)
+    print('order ', i)
+    print(list(mu))
+    print(list(wtmu))
+"""
 """
 disc average
 order  2
