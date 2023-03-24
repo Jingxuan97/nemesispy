@@ -52,14 +52,15 @@ def arctan(x,y):
 
     Parameters
     ----------
-        x : real
-            x-coordinate of the point (length of the adjacent side)
-        y : real
-            y-coordinate of the point (length of the opposite side)
+    x : real
+        x-coordinate of the point (length of the adjacent side)
+    y : real
+        y-coordinate of the point (length of the opposite side)
+
     Returns
     -------
-        ang : real
-            Argument of (x,y) in radians
+    ang : real
+        Argument of (x,y) in radians
     """
     if(x == 0.0):
         if (y == 0.0) : ang = 0.0 # (x,y) is the origin, ill-defined
@@ -85,10 +86,10 @@ def rotatey(v, phi):
 
     Parameters
     ----------
-        v : ndarray
-            A real 3D vector to rotate
-        phi : real
-            Angle to rotate the vector v by (radians)
+    v : ndarray
+        A real 3D vector to rotate
+    phi : real
+        Angle to rotate the vector v by (radians)
 
     Returns
     -------
@@ -115,15 +116,15 @@ def rotatez(v, phi):
 
     Parameters
     ----------
-        v : ndarray
-            A real 3D vector to rotate
-        phi : real
-            Angle to rotate the vector by (radians)
+    v : ndarray
+        A real 3D vector to rotate
+    phi : real
+        Angle to rotate the vector by (radians)
 
     Returns
     -------
-        v_new : ndarray
-            Rotated 3D vector
+    v_new : ndarray
+        Rotated 3D vector
     """
     a = np.zeros((3,3))
     a[0,0] = np.cos(phi)
