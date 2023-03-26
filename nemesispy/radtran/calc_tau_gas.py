@@ -207,11 +207,6 @@ def interp_k(P_grid, T_grid, P_layer, T_layer, k_w_g_p_t):
         igood = np.where( (f11>0.0) & (f12>0.0) & (f22>0.0) & (f21>0.0) )
         ibad = np.where( (f11<=0.0) & (f12<=0.0) & (f22<=0.0) & (f21<=0.0) )
 
-        # # print(f11)
-        # print('ibad',ibad)
-        # print('f11',f11[ibad])
-        # print('f11[ibad[0]]',f11[ibad[0]])
-        # print('ibad[0]',ibad[0])
         for i in range(len(igood[0])):
             k_w_g_l[igood[0][i],igood[1][i],ilayer] \
                 = (1.0-v)*(1.0-u)*np.log(f11[igood[0][i],igood[1][i]]) \
