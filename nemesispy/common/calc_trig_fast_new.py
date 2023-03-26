@@ -143,7 +143,7 @@ def generate_angles(phase,rho,alpha):
     """
     Finds the stellar zenith angle, stellar azimuth angle, lattitude and longitude
     of a chosen point on the visible disc of a planet under observation. The planet
-    is assumed to be tidally locked, and is observed on an edgy-on orbit.
+    is assumed to be tidally locked, and is observed on an edge-on orbit.
 
     Refer to the begining of the trig.py file for geomety and conventions.
 

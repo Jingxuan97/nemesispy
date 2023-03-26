@@ -10,14 +10,16 @@ from nemesispy.radtran.calc_radiance import calc_radiance
 from nemesispy.radtran.read import read_cia
 from nemesispy.radtran.calc_layer import calc_layer
 from nemesispy.common.calc_trig import gauss_lobatto_weights
+from nemesispy.common.calc_trig_fast import disc_weights_2tp
 from nemesispy.common.interpolate_gcm import interp_gcm
 from nemesispy.common.calc_hydrostat import calc_hydrostat
-import time
+
 class ForwardModel():
 
     def __init__(self):
         """
-        Attributes to store data that doesn't change during a retrieval
+        Attributes to store planet and opacity data.
+        These attributes shouldn't change during a retrieval.
         """
         # planet and planetary system data
         self.M_plt = None
@@ -42,24 +44,6 @@ class ForwardModel():
         self.cia_T_grid = None
         self.k_cia_pair_t_w = None
         self.is_opacity_data_set = False
-
-        ### debug data
-        # # layering debug data
-        # self.U_layer = None
-        # self.del_S = None
-        # self.dH = None
-        # self.P_layer = None
-        # self.T_layer = None
-        # self.scale = None
-
-        # phase curve debug data
-        self.fov_H_model = None
-        self.fake_fov_H_model = None
-        fov_latitudes = None
-        fov_longitudes = None
-        fov_emission_angles = None
-        fov_weights = None
-        self.total_weight = None
 
     def sanity_check(self):
         pass
@@ -99,7 +83,7 @@ class ForwardModel():
         self.del_g = del_g
         self.k_table_P_grid = k_table_P_grid
         self.k_table_T_grid = k_table_T_grid
-        self.k_gas_w_g_p_t = k_gas_w_g_p_t # key
+        self.k_gas_w_g_p_t = k_gas_w_g_p_t
 
         cia_nu_grid, cia_T_grid, k_cia_pair_t_w = read_cia(cia_file_path)
         self.cia_nu_grid = cia_nu_grid
@@ -124,17 +108,6 @@ class ForwardModel():
         if len(solspec)==0:
             solspec = np.ones(len(self.wave_grid))
 
-        # point_spectrum = calc_radiance(self.wave_grid, U_layer, P_layer, T_layer,
-        #     VMR_layer, self.k_gas_w_g_p_t, self.k_table_P_grid,
-        #     self.k_table_T_grid, self.del_g, ScalingFactor=scale,
-        #     R_plt=self.R_plt, solspec=solspec, k_cia=self.k_cia_pair_t_w,
-        #     ID=self.gas_id_list,cia_nu_grid=self.cia_nu_grid,
-        #     cia_T_grid=self.cia_T_grid, dH=dH)
-
-        # # s1 = time.time()
-        # print("self.wave_grid",self.wave_grid)
-        # # print("U_layer")
-        # print("scale",scale)
         try:
             point_spectrum = calc_radiance(self.wave_grid, U_layer, P_layer, T_layer,
                 VMR_layer, self.k_gas_w_g_p_t, self.k_table_P_grid,
@@ -154,9 +127,7 @@ class ForwardModel():
             print('T_layer',T_layer)
             print('VMR_layer',VMR_layer)
             print('scale',scale)
-            raise(Exception('fucked'))
-        # s2 = time.time()
-        # print('calc_radiance',s2-s1)
+            raise(Exception('Division by zero'))
         return point_spectrum
 
     def calc_point_spectrum_hydro(self, P_model, T_model, VMR_model,
@@ -261,4 +232,74 @@ class ForwardModel():
                     H_model, P_model, T_model, VMR_model, path_angle,
                     solspec=solspec)
                 disc_spectrum += point_spectrum * weight
+        return disc_spectrum
+
+    def calc_disc_spectrum_2tp(self,phase,nmu,daybound1,daybound2,
+        P_model,global_model_P_grid,global_T_model,global_VMR_model,
+        mod_lon,mod_lat,solspec):
+        """
+        Parameters
+        ----------
+        phase : real
+            Orbital phase, increase from 0 at primary transit to 180 and secondary
+            eclipse.
+        daybound1 : real
+            Longitude of the west boundary of dayside. Assume [-180,180] grid.
+        daybound2 : real
+            Longitude of the east boundary of dayside. Assume [-180,180] grid.
+        """
+        # initialise output array
+        disc_spectrum = np.zeros(len(self.wave_grid))
+
+        # get locations and angles for disc averaging
+        day_lat, day_lon, day_zen, day_wt,\
+            night_lat, night_lon, night_zen, night_wt \
+            = disc_weights_2tp(phase, nmu, daybound1, daybound2)
+
+        for iav in range(len(day_lat)):
+            xlon = day_lon[iav]
+            xlat = day_lat[iav]
+            # print(xlon,xlat)
+            T_model, VMR_model = interp_gcm(
+                lon=xlon,lat=xlat, p=P_model,
+                gcm_lon=mod_lon, gcm_lat=mod_lat,
+                gcm_p=global_model_P_grid,
+                gcm_t=global_T_model, gcm_vmr=global_VMR_model,
+                substellar_point_longitude_shift=180)
+            path_angle = day_zen,[iav]
+            weight = day_wt[iav]
+            NPRO = len(P_model)
+            mmw = np.zeros(NPRO)
+            for ipro in range(NPRO):
+                mmw[ipro] = calc_mmw(self.gas_id_list,VMR_model[ipro,:])
+            H_model = calc_hydrostat(P=P_model, T=T_model, mmw=mmw,
+                M_plt=self.M_plt, R_plt=self.R_plt)
+            point_spectrum = self.calc_point_spectrum(
+                H_model, P_model, T_model, VMR_model, path_angle,
+                solspec=solspec)
+            disc_spectrum += point_spectrum * weight
+
+        for iav in range(len(night_lat)):
+            xlon = night_lon[iav]
+            xlat = night_lat[iav]
+            # print(xlon,xlat)
+            T_model, VMR_model = interp_gcm(
+                lon=xlon,lat=xlat, p=P_model,
+                gcm_lon=mod_lon, gcm_lat=mod_lat,
+                gcm_p=global_model_P_grid,
+                gcm_t=global_T_model, gcm_vmr=global_VMR_model,
+                substellar_point_longitude_shift=180)
+            path_angle = night_zen,[iav]
+            weight = night_wt[iav]
+            NPRO = len(P_model)
+            mmw = np.zeros(NPRO)
+            for ipro in range(NPRO):
+                mmw[ipro] = calc_mmw(self.gas_id_list,VMR_model[ipro,:])
+            H_model = calc_hydrostat(P=P_model, T=T_model, mmw=mmw,
+                M_plt=self.M_plt, R_plt=self.R_plt)
+            point_spectrum = self.calc_point_spectrum(
+                H_model, P_model, T_model, VMR_model, path_angle,
+                solspec=solspec)
+            disc_spectrum += point_spectrum * weight
+
         return disc_spectrum

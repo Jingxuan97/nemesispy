@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from nemesispy.common.calc_trig import arctan, rotatey, rotatez, \
     generate_angles, gauss_lobatto_weights
-from nemesispy.common.calc_trig_new import disc_weights, \
+from nemesispy.common.calc_trig_fast import disc_weights, \
     add_azimuthal_weights_2tp
 
 class TestTrigonometry(unittest.TestCase):
