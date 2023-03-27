@@ -13,7 +13,7 @@ from nemesispy.common.calc_trig import gauss_lobatto_weights
 from nemesispy.common.calc_trig_fast import disc_weights_2tp
 from nemesispy.common.interpolate_gcm import interp_gcm
 from nemesispy.common.calc_hydrostat import calc_hydrostat
-
+from nemesispy.common.get_gas_info import get_gas_id, get_gas_name
 class ForwardModel():
 
     def __init__(self):
@@ -33,6 +33,7 @@ class ForwardModel():
 
         # opacity data
         self.gas_id_list = None
+        self.gas_name_list = None
         self.iso_id_list = None
         self.wave_grid = None
         self.g_ord = None
@@ -49,17 +50,16 @@ class ForwardModel():
         pass
 
     def set_planet_model(self, M_plt, R_plt, gas_id_list, iso_id_list, NLAYER,
-        gas_name_list=None, solspec=None, R_star=None, T_star=None,
         semi_major_axis=None):
         """
         Store the planetary system parameters
         """
         self.M_plt = M_plt
         self.R_plt = R_plt
-        # self.R_star = R_star
-        # self.T_star = T_star
-        # self.semi_major_axis = semi_major_axis
-        self.gas_name_list = gas_name_list
+        gas_name_list = []
+        for index, id in enumerate(gas_id_list):
+            gas_name_list.append(get_gas_name(id))
+        self.gas_name_list = np.array(gas_name_list)
         self.gas_id_list = gas_id_list
         self.iso_id_list = iso_id_list
         self.NLAYER = NLAYER
@@ -96,7 +96,7 @@ class ForwardModel():
         path_angle, solspec=[]):
         """
         Calculate average layer properties from model inputs,
-        then compute the spectrum at a single point on the disc.
+        then compute the spectrum of a plane parallel atmosphere.
         """
         H_layer,P_layer,T_layer,VMR_layer,U_layer,dH,scale \
             = calc_layer(
@@ -160,16 +160,14 @@ class ForwardModel():
         phase : real
             Orbital phase, increase from 0 at primary transit to 180 and secondary
             eclipse.
-
+        nmu : int
+            Number of zenith angle quadratures.
         """
         # initialise output array
         disc_spectrum = np.zeros(len(self.wave_grid))
 
         # get locations and angles for disc averaging
-        # s1 = time.time()
         nav, wav = gauss_lobatto_weights(phase, nmu)
-        # s2 = time.time()
-        # print('gauss_lobatto_weights',s2-s1)
         wav = np.around(wav,decimals=8)
         fov_latitudes = wav[0,:]
         fov_longitudes = wav[1,:]
@@ -181,7 +179,6 @@ class ForwardModel():
         for iav in range(nav):
             xlon = fov_longitudes[iav]
             xlat = fov_latitudes[iav]
-            # print(xlon,xlat)
             T_model, VMR_model = interp_gcm(
                 lon=xlon,lat=xlat, p=P_model,
                 gcm_lon=mod_lon, gcm_lat=mod_lat,
@@ -234,39 +231,36 @@ class ForwardModel():
                 disc_spectrum += point_spectrum * weight
         return disc_spectrum
 
-    def calc_disc_spectrum_2tp(self,phase,nmu,daybound1,daybound2,
-        P_model,global_model_P_grid,global_T_model,global_VMR_model,
-        mod_lon,mod_lat,solspec):
+    def calc_disc_spectrum_2tp(self, phase, nmu, daymin, daymax,
+        P_model, T_day, T_night, VMR_model, solspec=[]):
         """
         Parameters
         ----------
         phase : real
             Orbital phase, increase from 0 at primary transit to 180 and secondary
             eclipse.
-        daybound1 : real
+        daymin : real
             Longitude of the west boundary of dayside. Assume [-180,180] grid.
-        daybound2 : real
+        daymax : real
             Longitude of the east boundary of dayside. Assume [-180,180] grid.
         """
         # initialise output array
         disc_spectrum = np.zeros(len(self.wave_grid))
 
         # get locations and angles for disc averaging
-        day_lat, day_lon, day_zen, day_wt,\
-            night_lat, night_lon, night_zen, night_wt \
-            = disc_weights_2tp(phase, nmu, daybound1, daybound2)
+        day_zen, day_wt,\
+        night_zen, night_wt, \
+        day_lat, day_lon, \
+        night_lat, night_lon, \
+            = disc_weights_2tp(phase, nmu, daymin, daymax)
 
-        for iav in range(len(day_lat)):
-            xlon = day_lon[iav]
-            xlat = day_lat[iav]
-            # print(xlon,xlat)
-            T_model, VMR_model = interp_gcm(
-                lon=xlon,lat=xlat, p=P_model,
-                gcm_lon=mod_lon, gcm_lat=mod_lat,
-                gcm_p=global_model_P_grid,
-                gcm_t=global_T_model, gcm_vmr=global_VMR_model,
-                substellar_point_longitude_shift=180)
-            path_angle = day_zen,[iav]
+        # print('day_lat',day_lat)
+        print('day_zen',day_zen)
+        # print('night_lat',night_lat)
+        print('night_zen',night_zen)
+        for iav in range(len(day_zen)):
+            T_model = T_day
+            path_angle = day_zen[iav]
             weight = day_wt[iav]
             NPRO = len(P_model)
             mmw = np.zeros(NPRO)
@@ -279,17 +273,9 @@ class ForwardModel():
                 solspec=solspec)
             disc_spectrum += point_spectrum * weight
 
-        for iav in range(len(night_lat)):
-            xlon = night_lon[iav]
-            xlat = night_lat[iav]
-            # print(xlon,xlat)
-            T_model, VMR_model = interp_gcm(
-                lon=xlon,lat=xlat, p=P_model,
-                gcm_lon=mod_lon, gcm_lat=mod_lat,
-                gcm_p=global_model_P_grid,
-                gcm_t=global_T_model, gcm_vmr=global_VMR_model,
-                substellar_point_longitude_shift=180)
-            path_angle = night_zen,[iav]
+        for iav in range(len(night_zen)):
+            T_model = T_night
+            path_angle = night_zen[iav]
             weight = night_wt[iav]
             NPRO = len(P_model)
             mmw = np.zeros(NPRO)
@@ -303,3 +289,7 @@ class ForwardModel():
             disc_spectrum += point_spectrum * weight
 
         return disc_spectrum
+
+    def calc_disc_spectrum_3tp(self, phase, nmu, hotmin, hotmax,
+        daymin, daymax, P_model, T_hot, T_day, T_night, VMR_model, solspec=[]):
+        pass

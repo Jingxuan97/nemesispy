@@ -162,30 +162,6 @@ def interp_k(P_grid, T_grid, P_layer, T_layer, k_w_g_p_t):
             else:
                 it_high = it + 1
 
-        # # Set up arrays for interpolation
-        # lnp = np.log(p)
-        # lnp_low = np.log(P_grid[ip_low])
-        # lnp_high = np.log(P_grid[ip_high])
-        # t_low = T_grid[it_low]
-        # t_high = T_grid[it_high]
-
-        # # Bilinear interpolation
-        # f11 = k_w_g_p_t[:,:,ip_low,it_low]
-        # f12 = k_w_g_p_t[:,:,ip_low,it_high]
-        # f21 = k_w_g_p_t[:,:,ip_high,it_high]
-        # f22 = k_w_g_p_t[:,:,ip_high,it_low]
-        # v = (lnp-lnp_low)/(lnp_high-lnp_low)
-        # u = (t-t_low)/(t_high-t_low)
-
-        # for iwave in range(NWAVE):
-        #     for ig in range(NG):
-        #         k_w_g_l[iwave,ig,ilayer] \
-        #             = (1.0-v)*(1.0-u)*f11[iwave,ig] \
-        #             + v*(1.0-u)*f22[iwave,ig] \
-        #             + v*u*f21[iwave,ig] \
-        #             + (1.0-v)*u*f12[iwave,ig]
-
-
         ### test
         # Set up arrays for interpolation
         lnp = np.log(p)
@@ -228,8 +204,8 @@ def interp_k(P_grid, T_grid, P_layer, T_layer, k_w_g_p_t):
 @jit(nopython=True)
 def rank(weight, cont, del_g):
     """
-    Combine the randomly overlapped k distributions of two gases into a single
-    k distribution.
+    Combine the randomly overlapped k distributions of two gases
+    into a single k distribution.
 
     Parameters
     ----------

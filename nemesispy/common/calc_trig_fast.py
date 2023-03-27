@@ -143,7 +143,7 @@ def generate_angles(phase,rho,alpha):
     """
     Finds the stellar zenith angle, stellar azimuth angle, lattitude and longitude
     of a chosen point on the visible disc of a planet under observation. The planet
-    is assumed to be tidally locked, and is observed on an edgy-on orbit.
+    is assumed to be tidally locked, and is observed on an edge-on orbit.
 
     Refer to the begining of the trig.py file for geomety and conventions.
 
@@ -275,6 +275,7 @@ def disc_weights(phase, nmu):
     dtr = np.pi/180 # degree to radiance conversion factor
     delR = 1./nmu #
 
+    oversample_factor = 10
     # set up the output arrays
     nsample = 10000 # large array size to hold calculations
     tablat = np.zeros(nsample) # latitudes
@@ -312,7 +313,7 @@ def disc_weights(phase, nmu):
         half_circum = np.pi*r_quad # half the circumference
 
         if(half_circum > 0.0):
-            nalpha = int(0.5+half_circum/delR)*10
+            nalpha = int(0.5+half_circum/delR)*oversample_factor
             alpha_sample_list = 180*np.arange(nalpha)/(nalpha-1)
         else:
             nalpha=1
@@ -368,7 +369,10 @@ def disc_weights(phase, nmu):
 
     return nav, wav
 
-def disc_weights_2tp(phase, nmu, daybound1, daybound2):
+def disc_weights_uniform(phase, nmu):
+    pass
+
+def disc_weights_2tp(phase, nmu, daymin, daymax):
     """
     Parameters
     ----------
@@ -377,75 +381,76 @@ def disc_weights_2tp(phase, nmu, daybound1, daybound2):
         0=parimary transit and increase to 180 at secondary eclipse.
     nmu	: integer
         Number of zenith angle ordinates
-    daybound1 : real
+    daymin : real
         Longitude of the west boundary of dayside. Assume [-180,180] grid.
-    daybound2 : real
+    daymax : real
         Longitude of the east boundary of dayside. Assume [-180,180] grid.
+
     Returns
     -------
-    new_nav : int
+    new_nav : ndarray
         Reduced number of FOV points
     new_wav :
         Reduced FOV-averaging table.
     """
-    daybound1 = daybound1 + 180
-    daybound2 = daybound2 + 180
+    # Tmaps has sub stellar point at 0 and is [-180,180]
+    # orbital phase is [0,360]
+    daymin = daymin + 180
+    daymax = daymax + 180
     nav, wav = disc_weights(phase, nmu)
     lat_list = wav[0,:]
     lon_list = wav[1,:]
     zen_list = wav[2,:]
     wt_list = wav[3,:]
 
-    day_lat = []
-    day_lon = []
-    day_zen = []
-    day_wt = []
+    # split FOV points to dayside and nightside
+    daymask = np.logical_and(lon_list>daymin,lon_list<=daymax)
+    nightmask = ~daymask
 
-    night_lat = []
-    night_lon = []
-    night_zen = []
-    night_wt = []
+    # dayside points
+    day_lat = lat_list[daymask]
+    day_lon = lon_list[daymask]
+    day_zen = zen_list[daymask]
+    day_wt = wt_list[daymask]
 
-    for ilon,lon in enumerate(lon_list):
-        if lon >= daybound1 and lon <= daybound2:
-            day_lat.append(lat_list[ilon])
-            day_lon.append(lon_list[ilon])
-            day_zen.append(zen_list[ilon])
-            day_wt.append(wt_list[ilon])
-        else:
-            night_lat.append(lat_list[ilon])
-            night_lon.append(lon_list[ilon])
-            night_zen.append(zen_list[ilon])
-            night_wt.append(wt_list[ilon])
+    # nightside points
+    night_lat = lat_list[nightmask]
+    night_lon = lon_list[nightmask]
+    night_zen = zen_list[nightmask]
+    night_wt = wt_list[nightmask]
 
-    new_day_lat = []
-    new_day_lon = []
-    new_day_zen = []
-    new_day_wt = []
+    output_day_lat = []
+    output_day_lon = []
+    output_day_zen = []
+    output_day_wt = []
 
-    new_night_lat = []
-    new_night_lon = []
-    new_night_zen = []
-    new_night_wt = []
+    output_night_lat = []
+    output_night_lon = []
+    output_night_zen = []
+    output_night_wt = []
 
     imu = 0
     ilat = 0
     while ilat < len(day_lat):
         if ilat == 0:
-            new_day_lat.append(day_lat[0])
-            new_day_lon.append(day_lon[0])
-            new_day_zen.append(day_zen[0])
-            new_day_wt.append(day_wt[0])
+            output_day_lat.append(day_lat[0])
+            output_day_lon.append(day_lon[0])
+            output_day_zen.append(day_zen[0])
+            output_day_wt.append(day_wt[0])
             ilat += 1
         else:
+            # sum weight
             if day_zen[ilat] == day_zen[ilat-1]:
-                new_day_wt[imu] += day_wt[ilat]
+                output_day_lat.append(day_lat[ilat])
+                output_day_lon.append(day_lon[ilat])
+                output_day_wt[imu] += day_wt[ilat]
                 ilat += 1
+            # add new point
             else:
-                new_day_lat.append(day_lat[ilat])
-                new_day_lon.append(day_lon[ilat])
-                new_day_zen.append(day_zen[ilat])
-                new_day_wt.append(day_wt[ilat])
+                output_day_lat.append(day_lat[ilat])
+                output_day_lon.append(day_lon[ilat])
+                output_day_zen.append(day_zen[ilat])
+                output_day_wt.append(day_wt[ilat])
                 imu += 1
                 ilat += 1
 
@@ -453,142 +458,134 @@ def disc_weights_2tp(phase, nmu, daybound1, daybound2):
     ilat = 0
     while ilat < len(night_lat):
         if ilat == 0:
-            new_night_lat.append(night_lat[0])
-            new_night_lon.append(night_lon[0])
-            new_night_zen.append(night_zen[0])
-            new_night_wt.append(night_wt[0])
+            output_night_lat.append(night_lat[0])
+            output_night_lon.append(night_lon[0])
+            output_night_zen.append(night_zen[0])
+            output_night_wt.append(night_wt[0])
             ilat += 1
         else:
             if night_zen[ilat] == night_zen[ilat-1]:
-                new_night_wt[imu] += night_wt[ilat]
+                output_night_lat.append(night_lat[ilat])
+                output_night_lon.append(night_lon[ilat])
+                output_night_wt[imu] += night_wt[ilat]
                 ilat += 1
             else:
-                new_night_lat.append(night_lat[ilat])
-                new_night_lon.append(night_lon[ilat])
-                new_night_zen.append(night_zen[ilat])
-                new_night_wt.append(night_wt[ilat])
+                output_night_lat.append(night_lat[ilat])
+                output_night_lon.append(night_lon[ilat])
+                output_night_zen.append(night_zen[ilat])
+                output_night_wt.append(night_wt[ilat])
                 imu += 1
                 ilat += 1
 
-    return new_day_lat, new_day_lon, new_day_zen, new_day_wt,\
-        new_night_lat, new_night_lon, new_night_zen, new_night_wt
+    output_day_wt = output_day_wt/(sum(output_day_wt)+sum(output_night_wt))
+    output_night_wt = output_night_wt/(sum(output_day_wt)+sum(output_night_wt))
 
-def add_azimuthal_weights_2tp(phase, nmu, daybound1, daybound2):
-    """
-    Parameters
-    ----------
-    phase : real
-        Stellar phase/orbital phase in degrees.
-        0=parimary transit and increase to 180 at secondary eclipse.
-    nmu	: integer
-        Number of zenith angle ordinates
-    daybound1 : real
-        Longitude of the west boundary of dayside. Assume [-180,180] grid.
-    daybound2
-        Longitude of the east boundary of dayside. Assume [-180,180] grid.
-    Returns
-    -------
-    new_nav : int
-        Reduced number of FOV points
-    new_wav :
-        Reduced FOV-averaging table.
-    """
-    daybound1 = daybound1 + 180
-    daybound2 = daybound2 + 180
-    nav, wav = disc_weights(phase, nmu)
-    lat_list = wav[0,:]
-    lon_list = wav[1,:]
-    zen_list = wav[2,:]
-    wt_list = wav[3,:]
+    return output_day_zen,output_day_wt,\
+        output_night_zen,output_night_wt,\
+        output_day_lat,output_day_lon,\
+        output_night_lat,output_night_lon
 
-    day_lat = []
-    day_lon = []
-    day_zen = []
-    day_wt = []
+# def disc_weights_2tp_old(phase, nmu, daymin, daymax):
+#     """
+#     Parameters
+#     ----------
+#     phase : real
+#         Stellar phase/orbital phase in degrees.
+#         0=parimary transit and increase to 180 at secondary eclipse.
+#     nmu	: integer
+#         Number of zenith angle ordinates
+#     daymin : real
+#         Longitude of the west boundary of dayside. Assume [-180,180] grid.
+#     daymax : real
+#         Longitude of the east boundary of dayside. Assume [-180,180] grid.
+#     Returns
+#     -------
+#     new_nav : int
+#         Reduced number of FOV points
+#     new_wav :
+#         Reduced FOV-averaging table.
+#     """
+#     daymin = daymin + 180
+#     daymax = daymax + 180
+#     nav, wav = disc_weights(phase, nmu)
+#     lat_list = wav[0,:]
+#     lon_list = wav[1,:]
+#     zen_list = wav[2,:]
+#     wt_list = wav[3,:]
 
-    night_lat = []
-    night_lon = []
-    night_zen = []
-    night_wt = []
+#     day_lat = []
+#     day_lon = []
+#     day_zen = []
+#     day_wt = []
 
-    for ilon,lon in enumerate(lon_list):
-        if lon >= daybound1 and lon <= daybound2:
-            day_lat.append(lat_list[ilon])
-            day_lon.append(lon_list[ilon])
-            day_zen.append(zen_list[ilon])
-            day_wt.append(wt_list[ilon])
-        else:
-            night_lat.append(lat_list[ilon])
-            night_lon.append(lon_list[ilon])
-            night_zen.append(zen_list[ilon])
-            night_wt.append(wt_list[ilon])
+#     night_lat = []
+#     night_lon = []
+#     night_zen = []
+#     night_wt = []
 
-    new_day_lat = []
-    new_day_lon = []
-    new_day_zen = []
-    new_day_wt = []
+#     for ilon,lon in enumerate(lon_list):
+#         if lon >= daymin and lon <= daymax:
+#             day_lat.append(lat_list[ilon])
+#             day_lon.append(lon_list[ilon])
+#             day_zen.append(zen_list[ilon])
+#             day_wt.append(wt_list[ilon])
+#         else:
+#             night_lat.append(lat_list[ilon])
+#             night_lon.append(lon_list[ilon])
+#             night_zen.append(zen_list[ilon])
+#             night_wt.append(wt_list[ilon])
 
-    new_night_lat = []
-    new_night_lon = []
-    new_night_zen = []
-    new_night_wt = []
+#     new_day_lat = []
+#     new_day_lon = []
+#     new_day_zen = []
+#     new_day_wt = []
 
-    imu = 0
-    ilat = 0
-    while ilat < len(day_lat):
-        if ilat == 0:
-            new_day_lat.append(day_lat[0])
-            new_day_lon.append(day_lon[0])
-            new_day_zen.append(day_zen[0])
-            new_day_wt.append(day_wt[0])
-            ilat += 1
-        else:
-            if day_zen[ilat] == day_zen[ilat-1]:
-                if abs(day_lon[ilat] - daybound1)<10 or \
-                    abs(day_lon[ilat] - daybound2)<10:
-                    new_day_lat[imu] = day_lat[ilat]
-                    new_day_lon[imu] = day_lon[ilat]
-                new_day_wt[imu] += day_wt[ilat]
-                ilat += 1
-            else:
-                new_day_lat.append(day_lat[ilat])
-                new_day_lon.append(day_lon[ilat])
-                new_day_zen.append(day_zen[ilat])
-                new_day_wt.append(day_wt[ilat])
-                imu += 1
-                ilat += 1
+#     new_night_lat = []
+#     new_night_lon = []
+#     new_night_zen = []
+#     new_night_wt = []
 
-    imu = 0
-    ilat = 0
-    while ilat < len(night_lat):
-        if ilat == 0:
-            new_night_lat.append(night_lat[0])
-            new_night_lon.append(night_lon[0])
-            new_night_zen.append(night_zen[0])
-            new_night_wt.append(night_wt[0])
-            ilat += 1
-        else:
-            if night_zen[ilat] == night_zen[ilat-1]:
-                # if abs(night_lon[ilat] - daybound1)<10 or \
-                #     abs(night_lon[ilat] - daybound2)<10:
-                #     new_day_lat[imu] = day_lat[ilat]
-                #     new_day_lon[imu] = day_lon[ilat]
-                new_night_wt[imu] += night_wt[ilat]
-                ilat += 1
-            else:
-                new_night_lat.append(night_lat[ilat])
-                new_night_lon.append(night_lon[ilat])
-                new_night_zen.append(night_zen[ilat])
-                new_night_wt.append(night_wt[ilat])
-                imu += 1
-                ilat += 1
+#     imu = 0
+#     ilat = 0
+#     while ilat < len(day_lat):
+#         if ilat == 0:
+#             new_day_lat.append(day_lat[0])
+#             new_day_lon.append(day_lon[0])
+#             new_day_zen.append(day_zen[0])
+#             new_day_wt.append(day_wt[0])
+#             ilat += 1
+#         else:
+#             if day_zen[ilat] == day_zen[ilat-1]:
+#                 new_day_wt[imu] += day_wt[ilat]
+#                 ilat += 1
+#             else:
+#                 new_day_lat.append(day_lat[ilat])
+#                 new_day_lon.append(day_lon[ilat])
+#                 new_day_zen.append(day_zen[ilat])
+#                 new_day_wt.append(day_wt[ilat])
+#                 imu += 1
+#                 ilat += 1
 
-    print(new_day_wt,sum(new_day_wt))
-    print(new_night_wt, sum(new_night_wt))
-    print('sum')
-    print(sum(new_day_wt)+sum(new_night_wt))
+#     imu = 0
+#     ilat = 0
+#     while ilat < len(night_lat):
+#         if ilat == 0:
+#             new_night_lat.append(night_lat[0])
+#             new_night_lon.append(night_lon[0])
+#             new_night_zen.append(night_zen[0])
+#             new_night_wt.append(night_wt[0])
+#             ilat += 1
+#         else:
+#             if night_zen[ilat] == night_zen[ilat-1]:
+#                 new_night_wt[imu] += night_wt[ilat]
+#                 ilat += 1
+#             else:
+#                 new_night_lat.append(night_lat[ilat])
+#                 new_night_lon.append(night_lon[ilat])
+#                 new_night_zen.append(night_zen[ilat])
+#                 new_night_wt.append(night_wt[ilat])
+#                 imu += 1
+#                 ilat += 1
 
-
-    return day_lat, day_lon, night_lat, night_lon,\
-        new_day_lat, new_day_lon, \
-        new_night_lat, new_night_lon
+#     return new_day_lat, new_day_lon, new_day_zen, new_day_wt,\
+#         new_night_lat, new_night_lon, new_night_zen, new_night_wt
