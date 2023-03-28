@@ -8,29 +8,57 @@ def tmap_2tp_free(P_grid, lon_grid, lat_grid, g_plt, T_eq,
     log_kappa_day, log_gamma_day, log_f_day, T_int_day,
     log_kappa_night, log_gamma_night, log_f_night, T_int_night,
     ):
-    """A dayside plus a nightside with a parameter for the phase offset
-    and a parameter for the dayside longitudinal span.
+    """
+    Temperature model for phase curve fiting consising of two TP profiles.
+    The atmosphere is partitioned (in longitude) into two regions: a dayside
+    and a nightside. The dayside longitudinal span is allowed to vary.
 
     Parameters
     ----------
-        P_grid (_type_): _description_
-        lon_grid (_type_): _description_
-        lat_grid (_type_): _description_
-        g_plt (_type_): _description_
-        T_eq (_type_): _description_
-        scale (_type_): _description_
-        phase_offset (_type_): _description_
-        log_kappa_day (_type_): _description_
-        log_gamma_day (_type_): _description_
-        log_f_day (_type_): _description_
-        T_int_day (_type_): _description_
-        log_kappa_night (_type_): _description_
-        log_gamma_night (_type_): _description_
-        log_f_night (_type_): _description_
-        T_int_night (_type_): _description_
+    P_grid : ndarray
+        Pressure grid (in Pa) on which the model is to be constructed.
+    lon_grid : ndarray
+        Longitude grid (in degree) on which the model is to be constructed.
+        Substellar point is at 0. Range is [-180,180].
+    lat_grid : ndarray
+        Latitdue grid (in degree) on which the model is to be constructed.
+        Range is [-90,90].s
+    g_plt : real
+        Gravitational acceleration at the highest pressure in the pressure
+        grid.
+    T_eq : real
+        Temperature corresponding to the stellar flux.
+        T_eq = T_star * (R_star/(2*semi_major_axis))**0.5
+    scale : real
+        Scaling parameter for the longitudinal span of the dayside.
+    phase_offset : real
+        Central longitude of the dayside
+    log_kappa_day : real
+        Range [1e-5,1e3]
+        Mean absorption coefficient in the thermal wavelengths. (dayside)
+    log_gamma_day : real
+        Range ~ [1e-3,1e2]
+        gamma = k_V/k_IR, ratio of visible to thermal opacities (dayside)
+    log_f_day : real
+        f parameter (positive), See eqn. (29) in Guillot 2010.
+        With f = 1 at the substellar point, f = 1/2 for a
+        day-side average and f = 1/4 for whole planet surface average. (dayside)
+    T_int_day : real
+        Temperature corresponding to the intrinsic heat flux of the planet.
+        (dayside)
+    log_kappa_night : real
+        Same as above definitions but for nightside.
+    log_gamma_night : real
+        Same as above definitions but for nightside.
+    log_f_night : real
+        Same as above definitions but for nightside.
+    T_int_night : real
+        Same as above definitions but for nightside.
 
-    Returns:
-        _type_: _description_
+    Returns
+    -------
+    tp_out : ndarray
+        Temperature model defined on a (longitude, laitude, pressure) grid.
     """
     # scale hard coded to be between 0.1 and 0.5
     assert scale <= 1.2 and scale >=0.5

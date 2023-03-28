@@ -10,8 +10,9 @@ def tmap_3tp(P_grid, lon_grid, lat_grid, g_plt, T_eq,
     log_kappa_hot, log_gamma_hot, log_f_hot, T_int_hot,
     ):
     """
-    Simplest temperature model for phase curve fiting:
-    a dayside and a nightside with a parameter for the phase offset.
+    Temperature model for phase curve fiting consisting of three TP profiles.
+    The atmosphere is partitioned (in longitude) into three regions:
+    a hotspot, a dayside and a nightside.
 
     Parameters
     ----------
@@ -34,11 +35,13 @@ def tmap_3tp(P_grid, lon_grid, lat_grid, g_plt, T_eq,
     scale : real
         Scaling parameter for the longitudinal span of the dayside.
     west_fraction : real
-        [0,1]
+        Fraction of the western half of dayside spaned by the hotspot.
+        Range : [0,1]
     east_fraction : real
-        [0,1]
+        Fraction of the eastern half of dayside spaned by the hotspot.
+        Range : [0,1]
     log_kappa_day : real
-        Range [1e-5,1e3]
+        Range ~ [1e-5,1e3]
         Mean absorption coefficient in the thermal wavelengths. (dayside)
     log_gamma_day : real
         Range ~ [1e-3,1e2]
