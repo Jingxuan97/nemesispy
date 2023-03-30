@@ -291,22 +291,91 @@ def average(planet_radius, H_model, P_model, T_model, VMR_model, ID, H_base,
 
     return H_layer,P_layer,T_layer,VMR_layer,U_layer,dH,scale
 
-# @jit(nopython=True)
 def calc_layer(planet_radius, H_model, P_model, T_model, VMR_model, ID, NLAYER,
     path_angle, H_0=0.0, layer_type=1, custom_path_angle=0.0,
     custom_H_base=None, custom_P_base=None):
     """
-    Top level routine that calculates the layer properties from an atmospehric
-    model.
+    Top level routine that calculates absorber-amount-weighted average
+    layer properties from an atmospehric model.
 
     Parameters
     ----------
-    cf split, average.
+    planet_radius : real
+        Reference planetary planet_radius where H_model is set to be 0.  Usually
+        set at surface for terrestrial planets, or at 1 bar pressure level for
+        gas giants.
+    H_model(NMODEL) : ndarray
+        Altitudes of the atmospheric model points.
+        Assumed to be increasing.
+        Unit: m
+    P_model(NMODEL) : ndarray
+        Pressures of the atmospheric model points.
+        Unit: Pa
+    T_mode(NMODEL) : ndarray
+        Temperature of the atmospheric model points.
+        Unit: K
+    VMR_model(NMODEL,NGAS) : ndarray
+        Volume mixing ratios of gases defined in the atmospheric model.
+        VMR_model[i,j] is Volume Mixing Ratio of jth gas at ith profile point.
+        The jth column corresponds to the gas with RADTRANS ID ID[j].
+    ID : ndarray
+        Gas identifiers.
+    NLAYER : int
+        Number of layers to split the atmospheric model into.
+    path_angle : real
+        Zenith angle in degrees defined at H_0.
+    H_0 : real, optional
+        Altitude of the lowest point in the atmospheric model.
+        This is defined with respect to the reference planetary radius, i.e.
+        the altitude at planet_radius is 0.
+        The default is 0.0.
+    layer_type : int, optional
+        Integer specifying how to split up the layers.
+        0 = split by equal changes in pressure
+        1 = split by equal changes in log pressure
+        2 = split by equal changes in height
+        3 = split by equal changes in path length
+        4 = split by given layer base pressures P_base
+        5 = split by given layer base heights H_base
+        Note 4 and 5 force NLAYER = len(P_base) or len(H_base).
+        The default is 1.
+    custom_path_angle : real, optional
+        Required only for layer type 3.
+        Zenith angle in degrees defined at the base of the lowest layer.
+        The default is 0.0.
+    custom_H_base(NLAYER) : ndarray, optional
+        Required only for layer type 5.
+        Altitudes of the layer bases defined by user.
+        The default is None.
+    custom_P_base(NLAYER) : ndarray, optional
+        Required only for layer type 4.
+        Pressures of the layer bases defined by user.
+        The default is None.
 
     Returns
     -------
-    cf average.
-
+    H_layer(NLAYER) : ndarray
+        Averaged layer altitudes.
+        Unit: m
+    P_layer(NLAYER) : ndarray
+        Averaged layer pressures.
+        Unit: Pa
+    T_layer(NLAYER) : ndarray
+        Averaged layer temperatures.
+        Unit: K
+    U_layer(NLAYER) : ndarray
+        Total gaseous absorber amounts along the line-of-sight path, i.e.
+        total number of gas molecules per unit area.
+        Unit: no of absorber per m^2
+    VMR_layer(NLAYER, NGAS) : ndarray
+        Averaged layer volume mixing ratios.
+        VMR_layer[i,j] is averaged VMR of gas j in layer i.
+    scale(NLAYER) : ndarray
+        Layer scaling factor, i.e. ratio of path length through each layer
+        to the layer thickness.
+    dS(NLAYER) : ndarray
+        Path lengths.
+        Unit: m
     """
     H_base, P_base = split(H_model, P_model, NLAYER, layer_type=layer_type,
         H_0=H_0, planet_radius=planet_radius,
