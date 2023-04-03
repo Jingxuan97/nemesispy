@@ -25,23 +25,22 @@ def read_kls(filepaths):
 
     Returns
     -------
-    gas_id_list(NGAS) : ndarray
-        Gas identifier list.
-    iso_id_list(NGAS) : ndarray
-        Isotopologue identifier list.
+    gas_id : int
+        Gas identifier.
+    iso_id : int
+        Isotopologue identifier.
     wave_grid(NWAVEKTA) : ndarray
-        Wavenumbers/wavelengths grid of the k-table.
+        Wavenumber/wavelength grid of the k-table.
     g_ord(NG) : ndarray
-        Quadrature points on the g-ordinates
+        Quadrature points in g-ordinates.
     del_g(NG) : ndarray
-        Gauss quadrature weights for the g-ordinates.
-        These are the widths of the bins in g-space.
+        Gaussian quadrature weights for the quadrature points.
     P_grid(NPRESSKTA) : ndarray
-        Pressure grid on which the k-coefficients are pre-computed.
+        Pressure grid of the k-table.
         Unit: Pa
     T_grid(NTEMPKTA) : ndarray
-        Temperature grid on which the k-coefficients are pre-computed.
-        Unit: Kelvin
+        Temperature grid of the k-table.
+        Unit: K
     k_gas_w_g_p_t(NGAS,NWAVEKTA,NG,NPRESSKTA,NTEMPKTA) : ndarray
         Array storing the k-coefficients.
 
@@ -74,7 +73,7 @@ def read_kta(filepath):
     Parameters
     ----------
     filepath : str
-        The filepath to the .kta file to be read.
+        The filepath to the .kta file.
 
     Returns
     -------
@@ -85,24 +84,26 @@ def read_kta(filepath):
     wave_grid(NWAVEKTA) : ndarray
         Wavenumber/wavelength grid of the k-table.
     g_ord(NG) : ndarray
-        Quadrature points on the g-ordinates
+        Quadrature points in g-ordinates.
     del_g(NG) : ndarray
-        Gaussian quadrature weights for the g-ordinates.
-        These are the widths of the bins in g-space.
+        Gaussian quadrature weights for the quadrature points.
     P_grid(NPRESSKTA) : ndarray
-        Pressure grid on which the k-coefficients are pre-computed.
+        Pressure grid of the k-table.
         Unit: Pa
     T_grid(NTEMPKTA) : ndarray
-        Temperature grid on which the k-coefficients are pre-computed.
-        Unit: Kelvin
+        Temperature grid of the k-table.
+        Unit: K
     k_w_g_p_t(NWAVEKTA,NG,NPRESSKTA,NTEMPKTA) : ndarray
         Array storing the k-coefficients.
     """
     # Open file
-    if filepath[-3:] == 'kta':
-        f = open(filepath,'r')
-    else:
-        f = open(filepath+'.kta','r')
+    try:
+        if filepath[-3:] == 'kta':
+            f = open(filepath,'r')
+        else:
+            f = open(filepath+'.kta','r')
+    except FileNotFoundError:
+        raise(Exception('No k-table at location `{}`.'.format(filepath)))
 
     # Define bytes consumed by elements of table
     nbytes_int32 = 4
@@ -166,7 +167,8 @@ def read_kta(filepath):
 
     # close file
     f.close()
-    return gas_id, iso_id, np.float64(wave_grid), g_ord, del_g, P_grid,\
+    wave_grid = np.float64(wave_grid)
+    return gas_id, iso_id, wave_grid, g_ord, del_g, P_grid,\
         T_grid, k_w_g_p_t
 
 def read_cia(filepath,dnu=10,npara=0):

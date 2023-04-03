@@ -11,7 +11,8 @@ class TestInterpolateStellarSpectrum(unittest.TestCase):
         4.5   ])
 
     wave_data,spec_data \
-        = np.loadtxt('wasp43_stellar_newgrav.txt',skiprows=3,unpack=True)
+        = np.loadtxt('test_data/wasp43_stellar_newgrav.txt',
+            skiprows=3,unpack=True)
 
     wasp43_spec = np.array(
         [3.341320e+25, 3.215455e+25, 3.101460e+25, 2.987110e+25,

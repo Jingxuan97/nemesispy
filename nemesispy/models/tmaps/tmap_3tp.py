@@ -5,9 +5,9 @@ from nemesispy.models.TP_profiles import TP_Guillot
 
 def tmap_3tp(P_grid, lon_grid, lat_grid, g_plt, T_eq,
     scale, phase_offset, west_fraction, east_fraction,
+    log_kappa_hot, log_gamma_hot, log_f_hot, T_int_hot,
     log_kappa_day, log_gamma_day, log_f_day, T_int_day,
     log_kappa_night, log_gamma_night, log_f_night, T_int_night,
-    log_kappa_hot, log_gamma_hot, log_f_hot, T_int_hot,
     ):
     """
     Temperature model for phase curve fiting consisting of three TP profiles.
@@ -108,15 +108,15 @@ def tmap_3tp(P_grid, lon_grid, lat_grid, g_plt, T_eq,
     f_hot = 10**log_f_hot
 
     # construct 1D tp profile
+    tp_hot = TP_Guillot(P=P_grid,g_plt=g_plt,T_eq=T_eq,
+            k_IR=kappa_hot,gamma=gamma_hot,f=f_hot,
+            T_int=T_int_hot)
     tp_day = TP_Guillot(P=P_grid,g_plt=g_plt,T_eq=T_eq,
             k_IR=kappa_day,gamma=gamma_day,f=f_day,
             T_int=T_int_day)
     tp_night = TP_Guillot(P=P_grid,g_plt=g_plt,T_eq=T_eq,
             k_IR=kappa_night,gamma=gamma_night,f=f_night,
             T_int=T_int_night)
-    tp_hot = TP_Guillot(P=P_grid,g_plt=g_plt,T_eq=T_eq,
-            k_IR=kappa_hot,gamma=gamma_hot,f=f_hot,
-            T_int=T_int_hot)
 
     # construct the temperature map
     for ilon,lon in enumerate(lon_grid):
@@ -130,7 +130,7 @@ def tmap_3tp(P_grid, lon_grid, lat_grid, g_plt, T_eq,
             else:
                 for ilat, lat in enumerate(lat_grid):
                     tp_out[ilon,ilat,:] = tp_day
-            print('dayside')
+            # print('dayside')
 
 
         # nightside

@@ -27,7 +27,7 @@ def gen_vmrmap_1d(h2o,co2,co,ch4,npress,h2_frac = 0.84):
 def gen_vmrmap1(h2o,co2,co,ch4,nlon,nlat,npress,
         h2_frac = 0.84):
     """
-    Generate a 3D gas abundance map.
+    Generate a 3D uniform gas abundance map.
     The abundance map is defined on a (longitude,latitude,pressure) grid.
 
     Parameters

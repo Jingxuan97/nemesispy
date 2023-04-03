@@ -9,7 +9,7 @@ def tmap_2tp(P_grid, lon_grid, lat_grid, g_plt, T_eq,
     log_kappa_night, log_gamma_night, log_f_night, T_int_night,
     ):
     """
-    Temperature model for phase curve fiting consising of two TP profiles.
+    Temperature model consisting of two TP profiles.
     The atmosphere is partitioned (in longitude) into two regions: a dayside
     and a nightside. The dayside is assumed to span 180 degree in longitude.
 

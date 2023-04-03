@@ -3,26 +3,27 @@
 import numpy as np
 from nemesispy.models.TP_profiles import TP_Guillot
 
-def tmap_2tp_free(P_grid, lon_grid, lat_grid, g_plt, T_eq,
+def tmap_2tp(P_grid, lon_grid, lat_grid, g_plt, T_eq,
     scale, phase_offset,
     log_kappa_day, log_gamma_day, log_f_day, T_int_day,
     log_kappa_night, log_gamma_night, log_f_night, T_int_night,
     ):
     """
-    Temperature model for phase curve fiting consising of two TP profiles.
+    Temperature model consisting of two TP profiles.
     The atmosphere is partitioned (in longitude) into two regions: a dayside
     and a nightside. The dayside longitudinal span is allowed to vary.
 
     Parameters
     ----------
     P_grid : ndarray
-        Pressure grid (in Pa) on which the model is to be constructed.
+        Pressure grid (in Pa) of the model.
     lon_grid : ndarray
-        Longitude grid (in degree) on which the model is to be constructed.
-        Substellar point is at 0. Range is [-180,180].
+        Longitude grid (in degree) of the model.
+        Substellar point is assumed to be at 0.
+        Range is [-180,180].
     lat_grid : ndarray
-        Latitdue grid (in degree) on which the model is to be constructed.
-        Range is [-90,90].s
+        Latitude grid (in degree) of the model.
+        Range is [-90,90].
     g_plt : real
         Gravitational acceleration at the highest pressure in the pressure
         grid.
@@ -55,7 +56,7 @@ def tmap_2tp_free(P_grid, lon_grid, lat_grid, g_plt, T_eq,
     T_int_night : real
         Same as above definitions but for nightside.
 
-    Returns
+    Return s
     -------
     tp_out : ndarray
         Temperature model defined on a (longitude, laitude, pressure) grid.

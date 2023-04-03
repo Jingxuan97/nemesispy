@@ -1,5 +1,5 @@
-Routines to calculate the emission spectrum of an atmosphere at
-an arbitrary viewing angle.
+Routines to calculate the emission spectra of an atmosphere at
+arbitrary viewing angles.
 
 Opacity sources considered:
 molecular and atomic transition lines (modelled using k-tables)，

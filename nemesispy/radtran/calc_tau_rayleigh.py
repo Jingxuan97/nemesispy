@@ -69,9 +69,9 @@ def calc_tau_rayleigh(wave_grid,U_layer,ISPACE=1):
     k_rayleighj = temp*faniso/(3.*(x**2)) #(NWAVE)
 
     # Calculate the Rayleigh opacities in each layer
-    tau_rayleigh = np.zeros((len(wave_grid),NLAYER))
+    tau_rayleigh = np.zeros((NWAVE,NLAYER))
 
-    for ilay in range(NLAYER):
-        tau_rayleigh[:,ilay] = k_rayleighj[:] * U_layer[ilay] #(NWAVE,NLAYER)
-
+    for ilayer in range(NLAYER):
+        for iwave in range(NWAVE):
+            tau_rayleigh[iwave,ilayer] = k_rayleighj[iwave] * U_layer[ilayer]
     return tau_rayleigh

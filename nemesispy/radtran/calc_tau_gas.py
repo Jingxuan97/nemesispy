@@ -164,9 +164,18 @@ def interp_k(P_grid, T_grid, P_layer, T_layer, k_w_g_p_t):
 
         ### test
         # Set up arrays for interpolation
+        """
+        # this worked
         lnp = np.log(p)
         lnp_low = np.log(P_grid[ip_low])
         lnp_high = np.log(P_grid[ip_high])
+        """
+        # testing
+        lnp = (p)
+        lnp_low = P_grid[ip_low]
+        lnp_high = P_grid[ip_high]
+        #
+
         t_low = T_grid[it_low]
         t_high = T_grid[it_high]
 
@@ -184,6 +193,8 @@ def interp_k(P_grid, T_grid, P_layer, T_layer, k_w_g_p_t):
         ibad = np.where( (f11<=0.0) & (f12<=0.0) & (f22<=0.0) & (f21<=0.0) )
 
         for i in range(len(igood[0])):
+            """
+            # this worked
             k_w_g_l[igood[0][i],igood[1][i],ilayer] \
                 = (1.0-v)*(1.0-u)*np.log(f11[igood[0][i],igood[1][i]]) \
                 + v*(1.0-u)*np.log(f22[igood[0][i],igood[1][i]]) \
@@ -191,6 +202,14 @@ def interp_k(P_grid, T_grid, P_layer, T_layer, k_w_g_p_t):
                 + (1.0-v)*u*np.log(f12[igood[0][i],igood[1][i]])
             k_w_g_l[igood[0][i],igood[1][i],ilayer] \
                 = np.exp(k_w_g_l[igood[0][i],igood[1][i],ilayer])
+            """
+            # testing
+            k_w_g_l[igood[0][i],igood[1][i],ilayer] \
+                = (1.0-v)*(1.0-u)*(f11[igood[0][i],igood[1][i]]) \
+                + v*(1.0-u)*(f22[igood[0][i],igood[1][i]]) \
+                + v*u*(f21[igood[0][i],igood[1][i]]) \
+                + (1.0-v)*u*(f12[igood[0][i],igood[1][i]])
+            #
 
         for i in range(len(ibad[0])):
             k_w_g_l[ibad[0][i],ibad[1][i],ilayer] \

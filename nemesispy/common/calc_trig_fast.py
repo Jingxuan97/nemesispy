@@ -485,6 +485,175 @@ def disc_weights_2tp(phase, nmu, daymin, daymax):
         output_day_lat,output_day_lon,\
         output_night_lat,output_night_lon
 
+
+def disc_weights_3tp(phase, nmu, hotmin, hotmax, daymin, daymax):
+    """
+    Parameters
+    ----------
+    phase : real
+        Stellar phase/orbital phase in degrees.
+        0=parimary transit and increase to 180 at secondary eclipse.
+    nmu	: integer
+        Number of zenith angle ordinates
+    daymin : real
+        Longitude of the west boundary of dayside. Assume [-180,180] grid.
+    daymax : real
+        Longitude of the east boundary of dayside. Assume [-180,180] grid.
+
+    Returns
+    -------
+    new_nav : ndarray
+        Reduced number of FOV points
+    new_wav :
+        Reduced FOV-averaging table.
+    """
+    # Tmaps has sub stellar point at 0 and is [-180,180]
+    # orbital phase is [0,360]
+    hotmin = hotmin + 180
+    hotmax = hotmax + 180
+    daymin = daymin + 180
+    daymax = daymax + 180
+    nav, wav = disc_weights(phase, nmu)
+    lat_list = wav[0,:]
+    lon_list = wav[1,:]
+    zen_list = wav[2,:]
+    wt_list = wav[3,:]
+
+    # split FOV points to dayside and nightside
+    hotmask = np.logical_and(lon_list>hotmin,lon_list<hotmax)
+    daymask = np.logical_and(lon_list>daymin,lon_list<=daymax)
+    nightmask = ~daymask
+
+    daymask1 = np.logical_and(lon_list>=daymin,lon_list<=hotmin)
+    daymask2 = np.logical_and(lon_list>=hotmax,lon_list<=daymax)
+    daymask = daymask1 + daymask2
+
+    # hotspot points
+    hot_lat = lat_list[hotmask]
+    hot_lon = lon_list[hotmask]
+    hot_zen = zen_list[hotmask]
+    hot_wt = wt_list[hotmask]
+
+    # dayside points
+    day_lat = lat_list[daymask]
+    day_lon = lon_list[daymask]
+    day_zen = zen_list[daymask]
+    day_wt = wt_list[daymask]
+
+    # nightside points
+    night_lat = lat_list[nightmask]
+    night_lon = lon_list[nightmask]
+    night_zen = zen_list[nightmask]
+    night_wt = wt_list[nightmask]
+
+    # outputs
+    output_hot_lat = []
+    output_hot_lon = []
+    output_hot_zen = []
+    output_hot_wt = []
+
+    output_day_lat = []
+    output_day_lon = []
+    output_day_zen = []
+    output_day_wt = []
+
+    output_night_lat = []
+    output_night_lon = []
+    output_night_zen = []
+    output_night_wt = []
+
+    imu = 0
+    ilat = 0
+    while ilat < len(hot_lat):
+        if ilat == 0:
+            output_hot_lat.append(hot_lat[0])
+            output_hot_lon.append(hot_lon[0])
+            output_hot_zen.append(hot_zen[0])
+            output_hot_wt.append(hot_wt[0])
+            ilat += 1
+        else:
+            # sum weight
+            if hot_zen[ilat] == hot_zen[ilat-1]:
+                output_hot_lat.append(hot_lat[ilat])
+                output_hot_lon.append(hot_lon[ilat])
+                output_hot_wt[imu] += hot_wt[ilat]
+                ilat += 1
+            # add new point
+            else:
+                output_hot_lat.append(hot_lat[ilat])
+                output_hot_lon.append(hot_lon[ilat])
+                output_hot_zen.append(hot_zen[ilat])
+                output_hot_wt.append(hot_wt[ilat])
+                imu += 1
+                ilat += 1
+
+    imu = 0
+    ilat = 0
+    while ilat < len(day_lat):
+        if ilat == 0:
+            output_day_lat.append(day_lat[0])
+            output_day_lon.append(day_lon[0])
+            output_day_zen.append(day_zen[0])
+            output_day_wt.append(day_wt[0])
+            ilat += 1
+        else:
+            # sum weight
+            if day_zen[ilat] == day_zen[ilat-1]:
+                output_day_lat.append(day_lat[ilat])
+                output_day_lon.append(day_lon[ilat])
+                output_day_wt[imu] += day_wt[ilat]
+                ilat += 1
+            # add new point
+            else:
+                output_day_lat.append(day_lat[ilat])
+                output_day_lon.append(day_lon[ilat])
+                output_day_zen.append(day_zen[ilat])
+                output_day_wt.append(day_wt[ilat])
+                imu += 1
+                ilat += 1
+
+    imu = 0
+    ilat = 0
+    while ilat < len(night_lat):
+        if ilat == 0:
+            output_night_lat.append(night_lat[0])
+            output_night_lon.append(night_lon[0])
+            output_night_zen.append(night_zen[0])
+            output_night_wt.append(night_wt[0])
+            ilat += 1
+        else:
+            if night_zen[ilat] == night_zen[ilat-1]:
+                output_night_lat.append(night_lat[ilat])
+                output_night_lon.append(night_lon[ilat])
+                output_night_wt[imu] += night_wt[ilat]
+                ilat += 1
+            else:
+                output_night_lat.append(night_lat[ilat])
+                output_night_lon.append(night_lon[ilat])
+                output_night_zen.append(night_zen[ilat])
+                output_night_wt.append(night_wt[ilat])
+                imu += 1
+                ilat += 1
+
+    sum_weight = sum(output_hot_wt) + sum(output_day_wt) + sum(output_night_wt)
+    # print('sum_weight',sum_weight)
+    output_hot_wt = output_hot_wt/sum_weight
+    # print('output_hot_wt',output_hot_wt)
+    output_day_wt = output_day_wt/sum_weight
+    # print('output_day_wt',output_day_wt)
+    output_night_wt = output_night_wt/sum_weight
+    # print('output_night_wt',output_night_wt)
+
+    return output_hot_zen,output_hot_wt,\
+        output_day_zen,output_day_wt,\
+        output_night_zen,output_night_wt,\
+        output_hot_lat,output_hot_lon,\
+        output_day_lat,output_day_lon,\
+        output_night_lat,output_night_lon
+
+
+
+
 # def disc_weights_2tp_old(phase, nmu, daymin, daymax):
 #     """
 #     Parameters

@@ -11,9 +11,12 @@ from nemesispy.radtran.read import read_cia
 from nemesispy.radtran.calc_layer import calc_layer
 from nemesispy.common.calc_trig import gauss_lobatto_weights
 from nemesispy.common.calc_trig_fast import disc_weights_2tp
+from nemesispy.common.calc_trig_fast import disc_weights_3tp
 from nemesispy.common.interpolate_gcm import interp_gcm
 from nemesispy.common.calc_hydrostat import calc_hydrostat
 from nemesispy.common.get_gas_info import get_gas_id, get_gas_name
+from nemesispy.radtran.calc_radiance import calc_weighting
+
 class ForwardModel():
 
     def __init__(self):
@@ -47,7 +50,10 @@ class ForwardModel():
         self.is_opacity_data_set = False
 
     def sanity_check(self):
-        pass
+        assert self.M_plt > 0
+        assert self.R_plt > 0
+        assert self.NLAYER > 0
+
 
     def set_planet_model(self, M_plt, R_plt, gas_id_list, iso_id_list, NLAYER,
         semi_major_axis=None):
@@ -91,6 +97,34 @@ class ForwardModel():
         self.k_cia_pair_t_w = k_cia_pair_t_w
 
         self.is_opacity_data_set = True
+
+    def calc_weighting_function(self, P_model, T_model, VMR_model,
+        path_angle=0, solspec=[]):
+
+        NPRO = len(P_model)
+        mmw = np.zeros(P_model.shape)
+        for ipro in range(NPRO):
+            mmw[ipro] = calc_mmw(self.gas_id_list,VMR_model[ipro,:])
+        H_model = calc_hydrostat(P=P_model, T=T_model, mmw=mmw,
+            M_plt=self.M_plt, R_plt=self.R_plt)
+        H_layer,P_layer,T_layer,VMR_layer,U_layer,dH,scale \
+            = calc_layer(
+            self.R_plt, H_model, P_model, T_model, VMR_model,
+            self.gas_id_list, self.NLAYER, path_angle, layer_type=1,
+            H_0=0.0
+            )
+
+        if len(solspec)==0:
+            solspec = np.ones(len(self.wave_grid))
+
+        weighting_function = calc_weighting(self.wave_grid, U_layer, P_layer, T_layer,
+            VMR_layer, self.k_gas_w_g_p_t, self.k_table_P_grid,
+            self.k_table_T_grid, self.del_g, ScalingFactor=scale,
+            k_cia=self.k_cia_pair_t_w,
+            ID=self.gas_id_list,cia_nu_grid=self.cia_nu_grid,
+            cia_T_grid=self.cia_T_grid, dH=dH)
+
+        return weighting_function
 
     def calc_point_spectrum(self, H_model, P_model, T_model, VMR_model,
         path_angle, solspec=[]):
@@ -234,6 +268,9 @@ class ForwardModel():
     def calc_disc_spectrum_2tp(self, phase, nmu, daymin, daymax,
         P_model, T_day, T_night, VMR_model, solspec=[]):
         """
+        Fast calculation of disc averaged spectrum of an atmosphere made
+        up of 2 TP profiles (i.e. a dayside and a nightside).
+
         Parameters
         ----------
         phase : real
@@ -243,6 +280,11 @@ class ForwardModel():
             Longitude of the west boundary of dayside. Assume [-180,180] grid.
         daymax : real
             Longitude of the east boundary of dayside. Assume [-180,180] grid.
+
+        Returns
+        -------
+        disc_spectrum : ndarray
+            Disc averaged spectrum.
         """
         # initialise output array
         disc_spectrum = np.zeros(len(self.wave_grid))
@@ -254,10 +296,10 @@ class ForwardModel():
         night_lat, night_lon, \
             = disc_weights_2tp(phase, nmu, daymin, daymax)
 
-        # print('day_lat',day_lat)
-        print('day_zen',day_zen)
-        # print('night_lat',night_lat)
-        print('night_zen',night_zen)
+        # # print('day_lat',day_lat)
+        # print('day_zen',day_zen)
+        # # print('night_lat',night_lat)
+        # print('night_zen',night_zen)
         for iav in range(len(day_zen)):
             T_model = T_day
             path_angle = day_zen[iav]
@@ -291,5 +333,63 @@ class ForwardModel():
         return disc_spectrum
 
     def calc_disc_spectrum_3tp(self, phase, nmu, hotmin, hotmax,
-        daymin, daymax, P_model, T_hot, T_day, T_night, VMR_model, solspec=[]):
-        pass
+        daymin, daymax, P_model, T_hot, T_day, T_night,
+        VMR_model, solspec=[]):
+        """
+        Calculation of disc averaged spectrum of a atmosphere made up of 3
+        TP profiles (hot region, dayside, nightside)
+        """
+        # initialise output array
+        disc_spectrum = np.zeros(len(self.wave_grid))
+
+        # get locations and angles for disc averaging
+        hot_zen, hot_wt, day_zen, day_wt, night_zen, night_wt,\
+        hot_lat, hot_lon, day_lat, day_lon, night_lat, night_lon \
+            =  disc_weights_3tp(phase, nmu, hotmin, hotmax, daymin, daymax)
+
+        for iav in range(len(hot_zen)):
+            T_model = T_hot
+            path_angle = hot_zen[iav]
+            weight = hot_wt[iav]
+            NPRO = len(P_model)
+            mmw = np.zeros(NPRO)
+            for ipro in range(NPRO):
+                mmw[ipro] = calc_mmw(self.gas_id_list,VMR_model[ipro,:])
+            H_model = calc_hydrostat(P=P_model, T=T_model, mmw=mmw,
+                M_plt=self.M_plt, R_plt=self.R_plt)
+            point_spectrum = self.calc_point_spectrum(
+                H_model, P_model, T_model, VMR_model, path_angle,
+                solspec=solspec)
+            disc_spectrum += point_spectrum * weight
+
+        for iav in range(len(day_zen)):
+            T_model = T_day
+            path_angle = day_zen[iav]
+            weight = day_wt[iav]
+            NPRO = len(P_model)
+            mmw = np.zeros(NPRO)
+            for ipro in range(NPRO):
+                mmw[ipro] = calc_mmw(self.gas_id_list,VMR_model[ipro,:])
+            H_model = calc_hydrostat(P=P_model, T=T_model, mmw=mmw,
+                M_plt=self.M_plt, R_plt=self.R_plt)
+            point_spectrum = self.calc_point_spectrum(
+                H_model, P_model, T_model, VMR_model, path_angle,
+                solspec=solspec)
+            disc_spectrum += point_spectrum * weight
+
+        for iav in range(len(night_zen)):
+            T_model = T_night
+            path_angle = night_zen[iav]
+            weight = night_wt[iav]
+            NPRO = len(P_model)
+            mmw = np.zeros(NPRO)
+            for ipro in range(NPRO):
+                mmw[ipro] = calc_mmw(self.gas_id_list,VMR_model[ipro,:])
+            H_model = calc_hydrostat(P=P_model, T=T_model, mmw=mmw,
+                M_plt=self.M_plt, R_plt=self.R_plt)
+            point_spectrum = self.calc_point_spectrum(
+                H_model, P_model, T_model, VMR_model, path_angle,
+                solspec=solspec)
+            disc_spectrum += point_spectrum * weight
+
+        return disc_spectrum
