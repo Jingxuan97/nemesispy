@@ -56,7 +56,7 @@ def tmap_2tp(P_grid, lon_grid, lat_grid, g_plt, T_eq,
     T_int_night : real
         Same as above definitions but for nightside.
 
-    Return s
+    Returns
     -------
     tp_out : ndarray
         Temperature model defined on a (longitude, laitude, pressure) grid.
