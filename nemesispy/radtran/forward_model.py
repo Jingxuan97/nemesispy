@@ -6,7 +6,8 @@ Interface class for running forward models.
 import numpy as np
 from nemesispy.radtran.calc_mmw import calc_mmw
 from nemesispy.radtran.read import read_kls
-from nemesispy.radtran.calc_radiance import calc_radiance
+from nemesispy.radtran.calc_radiance \
+    import calc_radiance,calc_weighting,calc_contribution
 from nemesispy.radtran.read import read_cia
 from nemesispy.radtran.calc_layer import calc_layer
 from nemesispy.common.calc_trig import gauss_lobatto_weights
@@ -15,7 +16,7 @@ from nemesispy.common.calc_trig_fast import disc_weights_3tp
 from nemesispy.common.interpolate_gcm import interp_gcm
 from nemesispy.common.calc_hydrostat import calc_hydrostat
 from nemesispy.common.get_gas_info import get_gas_id, get_gas_name
-from nemesispy.radtran.calc_radiance import calc_weighting
+
 
 class ForwardModel():
 
@@ -125,6 +126,34 @@ class ForwardModel():
             cia_T_grid=self.cia_T_grid, dH=dH)
 
         return weighting_function
+
+    def calc_contribution_function(self, P_model, T_model, VMR_model,
+        path_angle=0, solspec=[]):
+
+        NPRO = len(P_model)
+        mmw = np.zeros(P_model.shape)
+        for ipro in range(NPRO):
+            mmw[ipro] = calc_mmw(self.gas_id_list,VMR_model[ipro,:])
+        H_model = calc_hydrostat(P=P_model, T=T_model, mmw=mmw,
+            M_plt=self.M_plt, R_plt=self.R_plt)
+        H_layer,P_layer,T_layer,VMR_layer,U_layer,dH,scale \
+            = calc_layer(
+            self.R_plt, H_model, P_model, T_model, VMR_model,
+            self.gas_id_list, self.NLAYER, path_angle, layer_type=1,
+            H_0=0.0
+            )
+
+        if len(solspec)==0:
+            solspec = np.ones(len(self.wave_grid))
+
+        contribution_function = calc_contribution(self.wave_grid, U_layer, P_layer, T_layer,
+            VMR_layer, self.k_gas_w_g_p_t, self.k_table_P_grid,
+            self.k_table_T_grid, self.del_g, ScalingFactor=scale,
+            k_cia=self.k_cia_pair_t_w,
+            ID=self.gas_id_list,cia_nu_grid=self.cia_nu_grid,
+            cia_T_grid=self.cia_T_grid, dH=dH)
+
+        return contribution_function
 
     def calc_point_spectrum(self, H_model, P_model, T_model, VMR_model,
         path_angle, solspec=[]):
