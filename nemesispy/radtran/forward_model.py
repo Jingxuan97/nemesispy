@@ -16,6 +16,7 @@ from nemesispy.common.calc_trig_fast import disc_weights_3tp
 from nemesispy.common.interpolate_gcm import interp_gcm
 from nemesispy.common.calc_hydrostat import calc_hydrostat
 from nemesispy.common.get_gas_info import get_gas_id, get_gas_name
+from nemesispy.common.calc_trig_new import disc_weights_new
 
 
 class ForwardModel():
@@ -54,7 +55,8 @@ class ForwardModel():
         assert self.M_plt > 0
         assert self.R_plt > 0
         assert self.NLAYER > 0
-
+        assert self.is_planet_model_set
+        assert self.is_opacity_data_set
 
     def set_planet_model(self, M_plt, R_plt, gas_id_list, iso_id_list, NLAYER,
         semi_major_axis=None):
@@ -98,6 +100,32 @@ class ForwardModel():
         self.k_cia_pair_t_w = k_cia_pair_t_w
 
         self.is_opacity_data_set = True
+
+    def read_input_dict(self,input_dict):
+        NLAYER = input_dict['NLAYER']
+        # P_range = input_dict['P_range']
+        # T_star = input_dict['T_star']
+        # R_star = input_dict['R_star']
+        # SMA = input_dict['SMA']
+        M_plt = input_dict['M_plt']
+        R_plt = input_dict['R_plt']
+        # T_irr = input_dict['T_irr']
+        # T_eq = input_dict['T_eq']
+        gas_id_list = input_dict['gas_id']
+        iso_id_list = input_dict['iso_id']
+        # wave_grid = input_dict['wave_grid']
+        # phase_grid = input_dict['phase_grid']
+        # stellar_spec = input_dict['stellar_spec']
+        # nwave = input_dict['nwave']
+        # nphase = input_dict['nphase']
+        kta_file_paths = input_dict['kta_file_paths']
+        cia_file_path = input_dict['cia_file_path']
+        self.set_planet_model(
+            M_plt, R_plt, gas_id_list, iso_id_list, NLAYER
+        )
+        self.set_opacity_data(
+            kta_file_paths, cia_file_path
+        )
 
     def calc_weighting_function(self, P_model, T_model, VMR_model,
         path_angle=0, solspec=[]):
@@ -419,6 +447,56 @@ class ForwardModel():
             point_spectrum = self.calc_point_spectrum(
                 H_model, P_model, T_model, VMR_model, path_angle,
                 solspec=solspec)
+            disc_spectrum += point_spectrum * weight
+
+        return disc_spectrum
+
+    def calc_disc_spectrum_new(self,phase,nmu,P_model,
+        global_model_P_grid,global_T_model,global_VMR_model,
+        mod_lon,mod_lat,solspec):
+        """
+        Parameters
+        ----------
+        phase : real
+            Orbital phase, increase from 0 at primary transit to 180 and secondary
+            eclipse.
+        nmu : int
+            Number of zenith angle quadratures.
+        """
+        # initialise output array
+        disc_spectrum = np.zeros(len(self.wave_grid))
+
+        # get locations and angles for disc averaging
+        nav, wav = disc_weights_new(phase, nmu)
+        wav = np.around(wav,decimals=8)
+        fov_latitudes = wav[0,:]
+        fov_longitudes = wav[1,:]
+        fov_emission_angles = wav[2,:]
+        fov_weights = wav[3,:]
+
+        for iav in range(nav):
+            xlon = fov_longitudes[iav]
+            xlat = fov_latitudes[iav]
+            T_model, VMR_model = interp_gcm(
+                lon=xlon,lat=xlat, p=P_model,
+                gcm_lon=mod_lon, gcm_lat=mod_lat,
+                gcm_p=global_model_P_grid,
+                gcm_t=global_T_model, gcm_vmr=global_VMR_model,
+                substellar_point_longitude_shift=180)
+
+            path_angle = fov_emission_angles[iav]
+            weight = fov_weights[iav]
+            NPRO = len(P_model)
+            mmw = np.zeros(NPRO)
+            for ipro in range(NPRO):
+                mmw[ipro] = calc_mmw(self.gas_id_list,VMR_model[ipro,:])
+            H_model = calc_hydrostat(P=P_model, T=T_model, mmw=mmw,
+                M_plt=self.M_plt, R_plt=self.R_plt)
+
+            point_spectrum = self.calc_point_spectrum(
+                H_model, P_model, T_model, VMR_model, path_angle,
+                solspec=solspec)
+
             disc_spectrum += point_spectrum * weight
 
         return disc_spectrum
