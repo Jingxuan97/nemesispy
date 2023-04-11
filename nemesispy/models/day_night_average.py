@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from nemesispy.models.TP_profiles import TP_Guillot
-from nemesispy.models.master import plot_TP_equator
+from nemesispy.models.plot_master import plot_TP_equator
 from nemesispy.common.constants import G
 
 def grid(P_max=20*1e5,P_min=1e-3*1e5,nP=20,nlon=359,nlat=89):
@@ -34,7 +34,7 @@ log_f_night = -0.141794421727358344E+01
 T_int_night = 0.498458581709161649E+03
 
 T_day = TP_Guillot(P_range,g,T_eq,10**log_kappa_day,10**log_gamma_day,
-    10**log_f_day,T_int_day) * 1.05
+    10**log_f_day,T_int_day)
 
 T_night = TP_Guillot(P_range,g,T_eq,10**log_kappa_night,10**log_gamma_night,
     10**log_f_night,T_int_night)
@@ -99,122 +99,122 @@ def T_smooth_cos(T_hot, T_cold, offset, scale, p_grid, lon_grid, lat_grid,
 
 TP_grid = T_smooth_cos(T_day,T_night,29,0.8,p_grid,lon_grid,lat_grid)
 plot_TP_equator(TP_grid,lon_grid,P_range,lon_grid,lat_grid,P_range,
-    figname='smooth_map.png')
+    figname='smooth_map_pt25.png')
 
-from nemesispy.data.helper import lowres_file_paths, cia_file_path
-from nemesispy.radtran.forward_model import ForwardModel
+# from nemesispy.data.helper import lowres_file_paths, cia_file_path
+# from nemesispy.radtran.forward_model import ForwardModel
 
-from nemesispy.common.constants import G
-from nemesispy.data.gcm.process_gcm import (nlon,nlat,xlon,xlat,npv,pv,\
-    tmap,h2omap,comap,co2map,ch4map,hemap,h2map,vmrmap,\
-    tmap_mod,h2omap_mod,comap_mod,co2map_mod,ch4map_mod,\
-    hemap_mod,h2map_mod,vmrmap_mod,phase_grid,\
-    kevin_phase_by_wave,kevin_wave_by_phase,\
-    pat_phase_by_wave,pat_wave_by_phase,\
-    vmrmap_mod_new,tmap_hot)
-from nemesispy.models.gas_profiles import gen_vmrmap1
+# from nemesispy.common.constants import G
+# from nemesispy.data.gcm.process_gcm import (nlon,nlat,xlon,xlat,npv,pv,\
+#     tmap,h2omap,comap,co2map,ch4map,hemap,h2map,vmrmap,\
+#     tmap_mod,h2omap_mod,comap_mod,co2map_mod,ch4map_mod,\
+#     hemap_mod,h2map_mod,vmrmap_mod,phase_grid,\
+#     kevin_phase_by_wave,kevin_wave_by_phase,\
+#     pat_phase_by_wave,pat_wave_by_phase,\
+#     vmrmap_mod_new,tmap_hot)
+# from nemesispy.models.gas_profiles import gen_vmrmap1
 
-wasp43_spec = np.array([3.341320e+25, 3.215455e+25, 3.101460e+25, 2.987110e+25,
-       2.843440e+25, 2.738320e+25, 2.679875e+25, 2.598525e+25,
-       2.505735e+25, 2.452230e+25, 2.391140e+25, 2.345905e+25,
-       2.283720e+25, 2.203690e+25, 2.136015e+25, 1.234010e+24,
-       4.422200e+23])
-wave_grid = np.array([1.1425, 1.1775, 1.2125, 1.2475, 1.2825, 1.3175, 1.3525, 1.3875,
-       1.4225, 1.4575, 1.4925, 1.5275, 1.5625, 1.5975, 1.6325, 3.6   ,
-       4.5   ])
-phase_grid = np.array([ 22.5,  45. ,  67.5,  90. , 112.5, 135. , 157.5, 180. , 202.5,
-       225. , 247.5, 270. , 292.5, 315. , 337.5])
-
-
-nwave = len(wave_grid)
-nphase = len(phase_grid)
-gas_id = np.array([  1, 2,  5,  6, 40, 39])
-iso_id = np.array([0, 0, 0, 0, 0, 0])
-NLAYER = 20
-P_range = np.geomspace(20*1e5,1e-3*1e5,NLAYER)
+# wasp43_spec = np.array([3.341320e+25, 3.215455e+25, 3.101460e+25, 2.987110e+25,
+#        2.843440e+25, 2.738320e+25, 2.679875e+25, 2.598525e+25,
+#        2.505735e+25, 2.452230e+25, 2.391140e+25, 2.345905e+25,
+#        2.283720e+25, 2.203690e+25, 2.136015e+25, 1.234010e+24,
+#        4.422200e+23])
+# wave_grid = np.array([1.1425, 1.1775, 1.2125, 1.2475, 1.2825, 1.3175, 1.3525, 1.3875,
+#        1.4225, 1.4575, 1.4925, 1.5275, 1.5625, 1.5975, 1.6325, 3.6   ,
+#        4.5   ])
+# phase_grid = np.array([ 22.5,  45. ,  67.5,  90. , 112.5, 135. , 157.5, 180. , 202.5,
+#        225. , 247.5, 270. , 292.5, 315. , 337.5])
 
 
-# ### Set up forward model
-# FM = ForwardModel()
-# FM.set_planet_model(M_plt=M_plt,R_plt=R_plt,gas_id_list=gas_id,iso_id_list=iso_id,
-#     NLAYER=NLAYER)
-# FM.set_opacity_data(kta_file_paths=lowres_file_paths, cia_file_path=cia_file_path)
+# nwave = len(wave_grid)
+# nphase = len(phase_grid)
+# gas_id = np.array([  1, 2,  5,  6, 40, 39])
+# iso_id = np.array([0, 0, 0, 0, 0, 0])
+# NLAYER = 20
+# P_range = np.geomspace(20*1e5,1e-3*1e5,NLAYER)
 
-# retrieved_TP_phase_by_wave_20par = np.zeros((nphase,nwave))
-# retrieved_TP_wave_by_phase_20par = np.zeros((nwave,nphase))
-# print('P_range')
-# # 20 par fit spec
 
-# # generate uniform abundance map
-# vmr_grid = gen_vmrmap1(
-#     -0.326856261789093328E+01,
-#     -0.567806248364052024E+01,
-#     -0.507547232597232689E+01,
-#     -0.699057998842726924E+01,
-#     nlon=len(lon_grid), nlat=len(lat_grid),
-#     npress=len(P_range))
+# # ### Set up forward model
+# # FM = ForwardModel()
+# # FM.set_planet_model(M_plt=M_plt,R_plt=R_plt,gas_id_list=gas_id,iso_id_list=iso_id,
+# #     NLAYER=NLAYER)
+# # FM.set_opacity_data(kta_file_paths=lowres_file_paths, cia_file_path=cia_file_path)
 
-# for iphase, phase in enumerate(phase_grid):
-#     one_phase =  FM.calc_disc_spectrum(phase=phase, nmu=5, P_model=P_range,
-#         global_model_P_grid=P_range, global_T_model=TP_grid,
-#         global_VMR_model=vmr_grid,
-#         mod_lon=lon_grid,
-#         mod_lat=lat_grid,
-#         solspec=wasp43_spec)
-#     retrieved_TP_phase_by_wave_20par[iphase,:] = one_phase
-# for iwave in range(len(wave_grid)):
-#     for iphase in range(len(phase_grid)):
-#         retrieved_TP_wave_by_phase_20par[iwave,iphase] \
-#             = retrieved_TP_phase_by_wave_20par[iphase,iwave]
+# # retrieved_TP_phase_by_wave_20par = np.zeros((nphase,nwave))
+# # retrieved_TP_wave_by_phase_20par = np.zeros((nwave,nphase))
+# # print('P_range')
+# # # 20 par fit spec
 
-# # Plot phase curve at each wavelength
-# fig, axs = plt.subplots(nrows=9,ncols=2,sharex=True,sharey=False,
-#                         figsize=[8.25,11.75],dpi=600)
+# # # generate uniform abundance map
+# # vmr_grid = gen_vmrmap1(
+# #     -0.326856261789093328E+01,
+# #     -0.567806248364052024E+01,
+# #     -0.507547232597232689E+01,
+# #     -0.699057998842726924E+01,
+# #     nlon=len(lon_grid), nlat=len(lat_grid),
+# #     npress=len(P_range))
 
-# xticks = np.array(
-#     [0, 90, 180, 270, 360]
-#     )
-# # fig.supxlabel('phase')
-# # fig.supylabel(r'Wavelength [$\mu$m]')
+# # for iphase, phase in enumerate(phase_grid):
+# #     one_phase =  FM.calc_disc_spectrum(phase=phase, nmu=5, P_model=P_range,
+# #         global_model_P_grid=P_range, global_T_model=TP_grid,
+# #         global_VMR_model=vmr_grid,
+# #         mod_lon=lon_grid,
+# #         mod_lat=lat_grid,
+# #         solspec=wasp43_spec)
+# #     retrieved_TP_phase_by_wave_20par[iphase,:] = one_phase
+# # for iwave in range(len(wave_grid)):
+# #     for iphase in range(len(phase_grid)):
+# #         retrieved_TP_wave_by_phase_20par[iwave,iphase] \
+# #             = retrieved_TP_phase_by_wave_20par[iphase,iwave]
 
-# ix = 0
-# iy = 0
-# for iwave,wave in enumerate(wave_grid[::-1]):
+# # # Plot phase curve at each wavelength
+# # fig, axs = plt.subplots(nrows=9,ncols=2,sharex=True,sharey=False,
+# #                         figsize=[8.25,11.75],dpi=600)
 
-#     # axs[ix,iy].plot(phase_grid, retrieved_TP_wave_by_phase_Guillot[16-iwave,:]*1e3,
-#     #     marker='s',ms=0.1,mfc='b',color='b',linewidth=0.5,linestyle='-.',
-#     #     label='2-stream')
+# # xticks = np.array(
+# #     [0, 90, 180, 270, 360]
+# #     )
+# # # fig.supxlabel('phase')
+# # # fig.supylabel(r'Wavelength [$\mu$m]')
 
-#     axs[ix,iy].plot(phase_grid, retrieved_TP_wave_by_phase_20par[16-iwave,:]*1e3,
-#         marker='s',ms=0.1,mfc='r',color='r',linewidth=0.5,linestyle='-.',
-#         label='Retrieval')
+# # ix = 0
+# # iy = 0
+# # for iwave,wave in enumerate(wave_grid[::-1]):
 
-#     axs[ix,iy].errorbar(phase_grid, pat_wave_by_phase[16-iwave,:]*1e3,
-#         yerr = kevin_wave_by_phase[16-iwave,:,1]/2*1e3,
-#         marker='s',ms=0.1,mfc='k',color='k',
-#         linewidth=0.5,label='shitfted GCM')
+# #     # axs[ix,iy].plot(phase_grid, retrieved_TP_wave_by_phase_Guillot[16-iwave,:]*1e3,
+# #     #     marker='s',ms=0.1,mfc='b',color='b',linewidth=0.5,linestyle='-.',
+# #     #     label='2-stream')
 
-#     axs[ix,iy].set_yticklabels([])
-#     # wave = np.around(wave,decimals=2)
-#     # axs[ix,iy].set_ylabel(wave,rotation=0,fontsize=8)
-#     handles, labels = axs[ix,iy].get_legend_handles_labels()
+# #     axs[ix,iy].plot(phase_grid, retrieved_TP_wave_by_phase_20par[16-iwave,:]*1e3,
+# #         marker='s',ms=0.1,mfc='r',color='r',linewidth=0.5,linestyle='-.',
+# #         label='Retrieval')
 
-#     wave = np.around(wave,decimals=2)
-#     axs[ix,iy].set_ylabel('{} $\mu$m '.format(wave),rotation=90,fontsize=16)
+# #     axs[ix,iy].errorbar(phase_grid, pat_wave_by_phase[16-iwave,:]*1e3,
+# #         yerr = kevin_wave_by_phase[16-iwave,:,1]/2*1e3,
+# #         marker='s',ms=0.1,mfc='k',color='k',
+# #         linewidth=0.5,label='shitfted GCM')
 
-#     axs[ix,iy].grid()
-#     ix += 1
-#     if ix == 9:
-#         ix = 0
-#         iy += 1
+# #     axs[ix,iy].set_yticklabels([])
+# #     # wave = np.around(wave,decimals=2)
+# #     # axs[ix,iy].set_ylabel(wave,rotation=0,fontsize=8)
+# #     handles, labels = axs[ix,iy].get_legend_handles_labels()
 
-# axs[8,1].set_visible(False)
-# axs[8,0].set_xticks(xticks)
-# axs[8,0].tick_params(labelsize=16)
+# #     wave = np.around(wave,decimals=2)
+# #     axs[ix,iy].set_ylabel('{} $\mu$m '.format(wave),rotation=90,fontsize=16)
 
-# fig.legend(handles, labels, ncol=1, loc='lower right',
-#     fontsize=16)
-# fig.tight_layout()
+# #     axs[ix,iy].grid()
+# #     ix += 1
+# #     if ix == 9:
+# #         ix = 0
+# #         iy += 1
 
-# plt.savefig('compare_phase_curves.png',dpi=400)
-# plt.close()
+# # axs[8,1].set_visible(False)
+# # axs[8,0].set_xticks(xticks)
+# # axs[8,0].tick_params(labelsize=16)
+
+# # fig.legend(handles, labels, ncol=1, loc='lower right',
+# #     fontsize=16)
+# # fig.tight_layout()
+
+# # plt.savefig('compare_phase_curves.png',dpi=400)
+# # plt.close()

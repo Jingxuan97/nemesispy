@@ -32,7 +32,7 @@ def plot_TP_equator(tmap, output_longitudes, output_pressures,
             X=tmap, substellar_point_longitude_shift=0)
         TPs[:,ilon] = iT
 
-    x,y = np.meshgrid(longitude_grid,pressure_grid/1e5,indexing='ij')
+    x,y = np.meshgrid(longitude_grid,output_pressures/1e5,indexing='ij')
 
     z = TPs.T
     plt.contourf(x,y,z,levels=nlevels,

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
+import unittest
 import numpy as np
-import os
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -15,7 +15,9 @@ from nemesispy.data.gcm.process_gcm import (nlon,nlat,xlon,xlat,npv,pv,\
     kevin_phase_by_wave,kevin_wave_by_phase,\
     pat_phase_by_wave,pat_wave_by_phase,\
     vmrmap_mod_new,tmap_hot)
-from nemesispy.retrieval.planet_wasp_43b import planet
+from test_data.planet_wasp_43b import planet
 
-FM = ForwardModel()
-FM.read_input_dict(planet)
+
+class TestDiscspectrumAccuracy():
+    FM = ForwardModel()
+    FM.read_input_dict(planet)
