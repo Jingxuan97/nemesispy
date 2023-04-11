@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 import numpy as np
-from nemesispy.models.tmaps.tmap_3tp import tmap_3tp
+from nemesispy.models.backup_tmaps.tmap_3tp import tmap_3tp
 from nemesispy.retrieval.plot_tmap import plot_tmap_contour
 from nemesispy.common.interpolate_gcm import interp_gcm_X
 from nemesispy.common.utils import mkdir

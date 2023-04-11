@@ -12,7 +12,7 @@ from nemesispy.radtran.forward_model import ForwardModel
 from nemesispy.common.interpolate_gcm import interp_gcm_X
 from nemesispy.retrieval.plot_slice import plot_TP_equator,\
     plot_TP_equator_weighted, plot_TP_equator_weighted_diff
-from nemesispy.models.gas_profiles import gen_vmrmap1
+from nemesispy.models.VMR_profiles import gen_vmrmap1
 
 nmu = 5
 

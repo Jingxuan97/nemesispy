@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 import numpy as np
-from nemesispy.models.tmap_day_night import tmap_day_night
+from nemesispy.models.backup_tmaps.tmap_day_night import tmap_day_night
 from nemesispy.models.backup.tmap_day_night_scaled import tmap_day_night_scaled
 from nemesispy.models.backup.tmap_hotspot_day_night import tmap_hotspot_day_night
 from nemesispy.retrieval.plot_tmap import plot_tmap_contour
