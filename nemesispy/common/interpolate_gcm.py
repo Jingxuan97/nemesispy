@@ -302,3 +302,87 @@ def interp_gcm_X(lon, lat, p, gcm_lon, gcm_lat, gcm_p, X,
             + FLON*FLAT*Y3 + (1.0-FLON)*FLAT*Y4
 
     return interped_X
+
+def lat_average_gcm_X(output_lon_grid, output_lat_grid, output_p_grid,
+    cutoff, gcm_lon, gcm_lat, gcm_p, X,
+    substellar_point_longitude_shift=0):
+    """
+    Set a a gcm quantity everywhere to the latitudinal average
+    using cos(latitude as a weight).
+    """
+    # average weights
+    dtr = np.pi/180
+    qudrature = np.linspace(0,cutoff,100)
+    weight = np.cos(qudrature*dtr) * (qudrature[1]-qudrature[0]) * dtr
+    sum_weight = np.sum(weight)
+
+    # output array
+    Xout = np.zeros((len(output_lon_grid),
+        len(output_lat_grid),
+        len(output_p_grid)))
+
+    Xequator = np.zeros((len(output_p_grid), len(output_lon_grid)))
+
+    for ilon, lon in enumerate(output_lon_grid):
+        for ilat, lat in enumerate(qudrature):
+            iX = interp_gcm_X(lon,lat,output_p_grid,
+                gcm_p=gcm_p,gcm_lon=gcm_lon,gcm_lat=gcm_lat,X=X,
+                substellar_point_longitude_shift=substellar_point_longitude_shift)
+            Xequator[:,ilon] += iX * weight[ilat]
+
+    Xequator = Xequator/sum_weight
+    for ilon, lon in enumerate(output_lon_grid):
+        for ilat, lat in enumerate(output_lat_grid):
+            Xout[ilon,ilat,:] = Xequator[:,ilon]
+
+    return Xout
+
+def lat_average_gcm_VMR(output_lon_grid, output_lat_grid, output_p_grid,
+    cutoff, gcm_lon, gcm_lat, gcm_p, gcm_VMR,
+    substellar_point_longitude_shift=0):
+    nlon,nlat,nP,nvmr = gcm_VMR.shape
+
+    VMR_out = np.zeros(
+        (len(output_lon_grid),len(output_lat_grid),len(output_p_grid),nvmr))
+
+    for ivmr in range(nvmr):
+        VMR_out[:,:,:,ivmr] = lat_average_gcm_X(
+            output_lon_grid, output_lat_grid, output_p_grid,
+            cutoff, gcm_lon, gcm_lat, gcm_p, gcm_VMR[:,:,:,ivmr],
+            substellar_point_longitude_shift=substellar_point_longitude_shift)
+
+    return VMR_out
+
+def lat_average_gcm_X_2(output_lon_grid, output_lat_grid, output_p_grid,
+    cutoff, gcm_lon, gcm_lat, gcm_p, X,
+    substellar_point_longitude_shift=0):
+    """
+    Set a a gcm quantity everywhere to the latitudinal average
+    using cos(latitude as a weight).
+    """
+    # average weights
+    dtr = np.pi/180
+    qudrature = np.linspace(0,cutoff,100)
+    weight = np.cos(qudrature*dtr)**3 * (qudrature[1]-qudrature[0]) * dtr
+    sum_weight = np.sum(weight)
+
+    # output array
+    Xout = np.zeros((len(output_lon_grid),
+        len(output_lat_grid),
+        len(output_p_grid)))
+
+    Xequator = np.zeros((len(output_p_grid), len(output_lon_grid)))
+
+    for ilon, lon in enumerate(output_lon_grid):
+        for ilat, lat in enumerate(qudrature):
+            iX = interp_gcm_X(lon,lat,output_p_grid,
+                gcm_p=gcm_p,gcm_lon=gcm_lon,gcm_lat=gcm_lat,X=X,
+                substellar_point_longitude_shift=substellar_point_longitude_shift)
+            Xequator[:,ilon] += iX * weight[ilat]
+
+    Xequator = Xequator/sum_weight
+    for ilon, lon in enumerate(output_lon_grid):
+        for ilat, lat in enumerate(output_lat_grid):
+            Xout[ilon,ilat,:] = Xequator[:,ilon]
+
+    return Xout

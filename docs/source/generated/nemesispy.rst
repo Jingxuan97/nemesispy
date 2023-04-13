@@ -1,0 +1,23 @@
+﻿nemesispy
+=========
+
+.. automodule:: nemesispy
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

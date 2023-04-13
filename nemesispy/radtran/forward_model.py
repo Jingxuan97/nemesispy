@@ -136,7 +136,6 @@ class ForwardModel():
 
         return weighting_function
 
-
     def calc_point_spectrum(self, H_model, P_model, T_model, VMR_model,
         path_angle, solspec=[]):
         """
@@ -232,7 +231,6 @@ class ForwardModel():
 
             disc_spectrum += point_spectrum * weight
         return disc_spectrum
-
     def calc_disc_spectrum_uniform(self, nmu, P_model, T_model, VMR_model,
         H_model=[],solspec=[]):
         """Caculate the disc integrated spectrum of a homogeneous atmosphere
