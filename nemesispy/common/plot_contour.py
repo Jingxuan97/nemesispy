@@ -50,7 +50,7 @@ def plot_TP_equator(tmap, output_longitudes, output_pressures,
     plt.close()
 
 def plot_TP_equator_weighted(tmap, output_longitudes, output_pressures,
-        longitude_grid, latitude_grid, pressure_grid,
+        longitude_grid, latitude_grid, pressure_grid, cutoff,
         T_range=(400,2600),nlevels=20,cmap='magma',
         figsize=(11,5),fontsize=28, title=None,
         figname='gcm_fig.pdf',dpi=400):
@@ -64,10 +64,9 @@ def plot_TP_equator_weighted(tmap, output_longitudes, output_pressures,
     TPs = np.zeros((Npress,Nlon))
 
     dtr = np.pi/180
-    qudrature = np.array(
-        [ 2.5,  7.5, 12.5, 17.5, 22.5, 27.5, 32.5, 37.5, 42.5, 47.5, 52.5,
-        57.5, 62.5, 67.5, 72.5, 77.5, 82.5, 87.5, ])
-    weight = np.cos(qudrature*dtr) * 5 * dtr
+    qudrature = np.linspace(0,cutoff,100)
+    weight = np.cos(qudrature*dtr) * (qudrature[1]-qudrature[0]) * dtr
+
     sum_weight = np.sum(weight)
     for ilon, lon in enumerate(output_longitudes):
         for ilat, lat in enumerate(qudrature):
@@ -109,10 +108,8 @@ def plot_TP_equator_weighted_diff(tmap1, tmap2, output_longitudes, output_pressu
     TPs2 = np.zeros((Npress,Nlon))
 
     dtr = np.pi/180
-    qudrature = np.array(
-        [ 2.5,  7.5, 12.5, 17.5, 22.5, 27.5, 32.5, 37.5, 42.5, 47.5, 52.5,
-        57.5, 62.5, 67.5, 72.5, 77.5, 82.5, 87.5, ])
-    weight = np.cos(qudrature*dtr) * 5 * dtr
+    qudrature = np.linspace(0,50,60)
+    weight = np.cos(qudrature*dtr) * (qudrature[1]-qudrature[0]) * dtr
     sum_weight = np.sum(weight)
 
     ### tmap1

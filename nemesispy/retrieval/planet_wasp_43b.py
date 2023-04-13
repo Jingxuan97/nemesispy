@@ -12,6 +12,7 @@ planet = {
     'R_plt' : None,
     'T_irr' : None,
     'T_eq' : None,
+    'g_plt' : None,
     'gas_id' : None,
     'iso_id' : None,
     'wave_grid' : None,

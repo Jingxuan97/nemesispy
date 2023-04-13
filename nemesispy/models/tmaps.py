@@ -2,11 +2,14 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 from nemesispy.models.TP_profiles import TP_Guillot
+
 def tmap_cos_guillot(P_grid, lon_grid, lat_grid, g_plt, T_eq,
     phase_offset,
     log_kappa_day, log_gamma_day, log_f_day, T_int_day,
     log_kappa_night, log_gamma_night, log_f_night, T_int_night):
-
+    """
+    9 parameters
+    """
     # phase_offset hard coded to be between -45 and 45
     assert phase_offset <=45 and phase_offset >= -45
 
