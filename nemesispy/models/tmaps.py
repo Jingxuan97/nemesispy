@@ -46,6 +46,105 @@ def tmap_cos_guillot(P_grid, lon_grid, lat_grid, g_plt, T_eq,
 
     return tp_out
 
+def tmap_cos_flat_guillot(P_grid, lon_grid, lat_grid, g_plt, T_eq,
+    scale, phase_offset,
+    log_kappa_day, log_gamma_day, log_f_day, T_int_day,
+    log_kappa_night, log_gamma_night, log_f_night, T_int_night):
+    """
+    10 parameters
+    """
+    # phase_offset hard coded to be between -45 and 45
+    assert phase_offset <=45 and phase_offset >= -45
+    assert scale <=1.2 and scale >=0.5
+    dtr = np.pi/180
+    # boundaries
+    bound_east = phase_offset + 90 * scale
+    bound_west = phase_offset - 90 * scale
+
+    # set up output array
+    nlon = len(lon_grid)
+    nlat = len(lat_grid)
+    nP = len(P_grid)
+    tp_out = np.zeros((nlon,nlat,nP))
+
+    # convert log parameters to parameters
+    kappa_day = 10**log_kappa_day
+    gamma_day = 10**log_gamma_day
+    f_day = 10**log_f_day
+    kappa_night = 10**log_kappa_night
+    gamma_night = 10**log_gamma_night
+    f_night = 10**log_f_night
+
+    # construct 1D tp profile
+    tp_day = TP_Guillot(P=P_grid,g_plt=g_plt,T_eq=T_eq,
+            k_IR=kappa_day,gamma=gamma_day,f=f_day,
+            T_int=T_int_day)
+    tp_night = TP_Guillot(P=P_grid,g_plt=g_plt,T_eq=T_eq,
+            k_IR=kappa_night,gamma=gamma_night,f=f_night,
+            T_int=T_int_night)
+
+    for ilon,lon in enumerate(lon_grid):
+        if lon < bound_west or lon > bound_east:
+            for ilat,lat in enumerate(lat_grid):
+                tp_out[ilon,ilat,:] = tp_night
+        else:
+            arg = (lon-phase_offset)/scale*dtr
+            tp = tp_night + (tp_day-tp_night) * np.cos(arg)
+            for ilat,lat in enumerate(lat_grid):
+                tp_out[ilon,ilat,:] = tp
+
+    return tp_out
+
+def tmap_cos_n_flat_guillot(P_grid, lon_grid, lat_grid, g_plt, T_eq,
+    scale, phase_offset,
+    log_kappa_day, log_gamma_day, log_f_day, T_int_day,
+    log_kappa_night, log_gamma_night, log_f_night, T_int_night,
+    n):
+    """
+    10 parameters
+    """
+    # phase_offset hard coded to be between -45 and 45
+    assert phase_offset <=45 and phase_offset >= -45
+    assert scale <=1.2 and scale >=0.5
+    dtr = np.pi/180
+    # boundaries
+    bound_east = phase_offset + 90 * scale
+    bound_west = phase_offset - 90 * scale
+
+    # set up output array
+    nlon = len(lon_grid)
+    nlat = len(lat_grid)
+    nP = len(P_grid)
+    tp_out = np.zeros((nlon,nlat,nP))
+
+    # convert log parameters to parameters
+    kappa_day = 10**log_kappa_day
+    gamma_day = 10**log_gamma_day
+    f_day = 10**log_f_day
+    kappa_night = 10**log_kappa_night
+    gamma_night = 10**log_gamma_night
+    f_night = 10**log_f_night
+
+    # construct 1D tp profile
+    tp_day = TP_Guillot(P=P_grid,g_plt=g_plt,T_eq=T_eq,
+            k_IR=kappa_day,gamma=gamma_day,f=f_day,
+            T_int=T_int_day)
+    tp_night = TP_Guillot(P=P_grid,g_plt=g_plt,T_eq=T_eq,
+            k_IR=kappa_night,gamma=gamma_night,f=f_night,
+            T_int=T_int_night)
+
+    for ilon,lon in enumerate(lon_grid):
+        if lon < bound_west or lon > bound_east:
+            for ilat,lat in enumerate(lat_grid):
+                tp_out[ilon,ilat,:] = tp_night
+        else:
+            arg = (lon-phase_offset)/scale*dtr
+            tp = tp_night + (tp_day-tp_night) * np.cos(arg) ** n
+            for ilat,lat in enumerate(lat_grid):
+                tp_out[ilon,ilat,:] = tp
+
+    return tp_out
+
 def tmap_2_guillot(P_grid, lon_grid, lat_grid, g_plt, T_eq,
     scale, phase_offset,
     log_kappa_day, log_gamma_day, log_f_day, T_int_day,

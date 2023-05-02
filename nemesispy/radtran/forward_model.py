@@ -299,23 +299,40 @@ class ForwardModel():
         """
         # initialise output array
         disc_spectrum = np.zeros(len(self.wave_grid))
-        nav, wav = gauss_lobatto_weights(0, nmu)
-        fov_emission_angles = wav[3,:]
-        fov_weights = wav[5,:]
+        # nav, wav = gauss_lobatto_weights(0, nmu)
+        # fov_emission_angles = wav[3,:]
+        # fov_weights = wav[5,:]
+
+        if nmu == 2:
+            mu = [0.447213595499958,1.000000]                   # cos zenith angle
+            wtmu = [0.8333333333333333,0.166666666666666666]    # corresponding weights
+        if nmu == 3:
+            mu = [0.28523151648064509,0.7650553239294646,1.0000]
+            wtmu = [0.5548583770354863,0.3784749562978469,0.06666666666666666]
+        if nmu == 4:
+            mu = [0.2092992179024788,0.5917001814331423,0.8717401485096066,
+                1.00000]
+            wtmu = [0.4124587946587038,0.3411226924835043,0.2107042271435060,
+                    0.035714285714285]
+        if nmu == 5:
+            mu = [0.165278957666387,0.477924949810444,0.738773865105505,
+                0.919533908166459,1.00000000000000]
+            wtmu = [0.327539761183898,0.292042683679684,0.224889342063117,
+                    0.133305990851069,2.222222222222220E-002]
 
         # Hydrostatic case
         if len(H_model) == 0:
-            for iav in range(nav):
-                path_angle = fov_emission_angles[iav]
-                weight = fov_weights[iav]
+            for iav,cos in enumerate(mu):
+                path_angle = np.arccos(cos)
+                weight = wtmu[iav]
                 point_spectrum = self.calc_point_spectrum_hydro(
                     P_model, T_model, VMR_model, path_angle,
                     solspec=solspec)
                 disc_spectrum += point_spectrum * weight
         else:
-            for iav in range(nav):
-                path_angle = fov_emission_angles[iav]
-                weight = fov_weights[iav]
+            for iav,cos in enumerate(mu):
+                path_angle = np.arccos(cos)
+                weight = wtmu[iav]
                 point_spectrum = self.calc_point_spectrum(
                     H_model, P_model, T_model, VMR_model, path_angle,
                     solspec=solspec)

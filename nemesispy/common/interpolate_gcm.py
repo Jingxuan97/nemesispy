@@ -307,8 +307,8 @@ def lat_average_gcm_X(output_lon_grid, output_lat_grid, output_p_grid,
     cutoff, gcm_lon, gcm_lat, gcm_p, X,
     substellar_point_longitude_shift=0):
     """
-    Set a a gcm quantity everywhere to the latitudinal average
-    using cos(latitude as a weight).
+    Replace a gcm quantity everywhere to the latitudinal average from 0 degree
+    to the cutoff, using cos(latitude as a weight).
     """
     # average weights
     dtr = np.pi/180
@@ -358,7 +358,7 @@ def lat_average_gcm_X_2(output_lon_grid, output_lat_grid, output_p_grid,
     substellar_point_longitude_shift=0):
     """
     Set a a gcm quantity everywhere to the latitudinal average
-    using cos(latitude as a weight).
+    using cos(latitude as a weight)^2.
     """
     # average weights
     dtr = np.pi/180
