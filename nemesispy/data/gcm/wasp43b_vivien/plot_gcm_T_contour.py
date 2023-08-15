@@ -54,5 +54,5 @@ for ip in range(npv):
     # plt.ylabel('Latitude [$^\circ$]',fontsize=14)
     plt.tight_layout()
     plt.savefig('figures/gcm_contour_pressure_{}.pdf'.format(ip),
-        dpi=800)
+        dpi=400)
     plt.close()
