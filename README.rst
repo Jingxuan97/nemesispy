@@ -1,6 +1,4 @@
-(If you want to try the interactive plots asap, go to
-https://pypi.org/project/nemesispy/ and install the
-package from there.)
+You can install this Python package with the Python Package Index at https://pypi.org/project/nemesispy/. 
 
 This library contains routines for simulating and fitting
 exoplanet emission spectra at arbitrary orbital phase,
@@ -20,9 +18,9 @@ can be easily integrated with a Bayesian sampler, in particular
 
 The radiative transfer calculations are done with the
 correlated-k approximation, and are accelerated with the
-`numba` just-in-time compiler to match the speed of
+`Numba` just-in-time compiler to match the speed of
 compiled languages such as Fortran. The radiative transfer
-routines are based on the well-tested [Nemesis](https://github.com/nemesiscode) library developed
+routines are based on the well-tested Nemesis(https://github.com/nemesiscode) library developed
 by Patrick Irwin (University of Oxford) and collaborators.
 
 This package has the following advantageous features:
@@ -34,7 +32,7 @@ This package has the following advantageous features:
   compilation, which compiles Python code to machine
   code at run time.
 * Radiative transfer routines are benchmarked against
-  the extensively used [Nemesis](https://github.com/nemesiscode) library.
+  the extensively used Nemesis (https://github.com/nemesiscode) library.
 * Contains interactive plotting routines that allows you
   to visualise the impact of gas abundance and thermal
   structure on the emission spectra.
