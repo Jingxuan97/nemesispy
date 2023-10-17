@@ -5,7 +5,7 @@ import numpy as np
 
 def mkdir(folder_name):
     """
-    Make a folder at 'folder_name' if the folder does not exist yet.
+    Make a folder at path 'folder_name' if the folder path does not exist yet.
 
     Parameters
     ----------
