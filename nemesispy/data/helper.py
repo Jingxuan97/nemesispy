@@ -109,6 +109,50 @@ hires_temperature_grid = np.array(
        1900., 2000., 2200., 2400., 2600., 2800., 3000., 3200., 3400.],
       dtype=np.float32)
 
+### JWST/MIRI k-tables
+MIRI_file_paths = [
+    'MIRI_wasp43b/H2O_wasp43b.kta',
+    'MIRI_wasp43b/CO2_wasp43b.kta',
+    'MIRI_wasp43b/CO_wasp43b.kta',
+    'MIRI_wasp43b/CH4_wasp43b.kta',
+]
+for ipath,path in enumerate(MIRI_file_paths ):
+    MIRI_file_paths[ipath] = os.path.join(ktable_path,path)
+# k table information
+MIRI_pressure_grid = np.array(
+    [1.0132504, 2.1829798, 4.7030883, 10.132499, 21.829811, 47.030907, 101.32499,
+     218.29811, 470.3089, 1013.25, 2182.9807, 4703.0903, 10132.499, 21829.81,
+     47030.9, 101325.0, 218298.1, 470308.97, 1013250.0, 2182980.8, 4703090.5,
+     10132501.0]
+)
+MIRI_temperature_grid = np.array(
+    [100.0, 200.0, 300.0, 400.0, 500.0, 600.0, 700.0, 800.0, 900.0, 1000.0,
+     1100.0, 1200.0, 1300.0, 1400.0, 1500.0, 1600.0, 1700.0, 1800.0, 1900.0,
+     2000.0, 2200.0, 2400.0, 2600.0, 2800.0, 3000.0, 3200.0, 3400.0]
+)
+
+### JWST/MIRI k-tables + NH3
+MIRI_file_paths_NH3 = [
+    'MIRI_wasp43b/H2O_wasp43b.kta',
+    'MIRI_wasp43b/CO2_wasp43b.kta',
+    'MIRI_wasp43b/CO_wasp43b.kta',
+    'MIRI_wasp43b/CH4_wasp43b.kta',
+    'MIRI_wasp43b/NH3_wasp43b.kta',
+]
+for ipath,path in enumerate(MIRI_file_paths_NH3 ):
+    MIRI_file_paths_NH3[ipath] = os.path.join(ktable_path,path)
+# k table information
+MIRI_pressure_grid = np.array(
+    [1.0132504, 2.1829798, 4.7030883, 10.132499, 21.829811, 47.030907, 101.32499,
+     218.29811, 470.3089, 1013.25, 2182.9807, 4703.0903, 10132.499, 21829.81,
+     47030.9, 101325.0, 218298.1, 470308.97, 1013250.0, 2182980.8, 4703090.5,
+     10132501.0]
+)
+MIRI_temperature_grid = np.array(
+    [100.0, 200.0, 300.0, 400.0, 500.0, 600.0, 700.0, 800.0, 900.0, 1000.0,
+     1100.0, 1200.0, 1300.0, 1400.0, 1500.0, 1600.0, 1700.0, 1800.0, 1900.0,
+     2000.0, 2200.0, 2400.0, 2600.0, 2800.0, 3000.0, 3200.0, 3400.0]
+)
 
 ### CIA tables
 cia_folder_path = os.path.join(__location__ , "cia")
