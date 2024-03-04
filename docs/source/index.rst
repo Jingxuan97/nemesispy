@@ -27,6 +27,7 @@ can be easily integrated with a Bayesian sampler, in particular
    :caption: Contents:
 
    api
+   usage
 
 
 
