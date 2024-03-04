@@ -42,6 +42,6 @@ NemesisPy contains several general-purpose routines for atmospheric modelling an
 
 # Acknowledgements
 
-The authors express gratitude to the developers of many open-source Python packages used by NemesisPy, in particular numpy [@harris_array_2020], SciPy [@virtanen_scipy_2020], Numba [@lam_numba_2015] and Matplotlib [@hunter_matplotlib_2007]. The authors also express gratidude to the many developers of the open-source Fortran NEMESIS library [@irwin_nemesis_2008].
+The authors express gratitude to the developers of many open-source Python packages used by NemesisPy, in particular, numpy [@harris_array_2020], SciPy [@virtanen_scipy_2020], Numba [@lam_numba_2015] and Matplotlib [@hunter_matplotlib_2007]. The authors also express gratitude to the many developers of the open-source Fortran NEMESIS library [@irwin_nemesis_2008].
 
 # References
