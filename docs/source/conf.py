@@ -10,17 +10,16 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-import os
-import sys
-import pathlib
-sys.path.insert(0, os.path.abspath('.'))
-sys.path.insert(0, pathlib.Path(__file__).parents[2].resolve().as_posix())
+# import os
+# import sys
+# sys.path.insert(0, os.path.abspath('.'))
+
 
 # -- Project information -----------------------------------------------------
 
-project = 'nemesispy'
-copyright = '2023, Jingxuan Yang'
-author = 'Jingxuan Yang'
+project = 'NemesisPy'
+copyright = '2024, J. Yang'
+author = 'J. Yang'
 
 # The full version, including alpha/beta/rc tags
 release = '0.1'
@@ -32,18 +31,7 @@ release = '0.1'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.duration',
-    'sphinx.ext.autodoc',
-    'sphinx.ext.autosummary',
-    'sphinx.ext.napoleon',
-    # 'sphinx.ext.doctest',
-    #'sphinx.ext.autosummary',
 ]
-napoleon_google_docstring = False
-napoleon_use_param = False
-napoleon_use_ivar = True
-
-# autosummary_generate = True
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -59,9 +47,16 @@ exclude_patterns = []
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'sphinx_rtd_theme'
+html_theme = 'alabaster'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+extensions = [
+    'sphinx.ext.duration',
+    'sphinx.ext.doctest',
+    'sphinx.ext.autodoc',
+    'sphinx.ext.autosummary',
+]
