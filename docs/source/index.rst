@@ -30,6 +30,12 @@ can be easily integrated with a Bayesian sampler, in particular
    usage
 
 
+.. autosummary::
+   :toctree: _autosummary
+   :template: custom-module-template.rst
+   :recursive:
+
+   nemesispy
 
 Indices and tables
 ==================
