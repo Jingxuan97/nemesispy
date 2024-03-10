@@ -11,23 +11,23 @@ def calc_mmw(ID, VMR, ISO=[]):
     Calculate mean molecular weight in kg given a list of molecule IDs and
     a list of their respective volume mixing ratios.
 
-    :Parameters:
-    ------------
-        ID : ndarray or list
-            A list of Radtran gas identifiers.
-        VMR : ndarray or list
-            A list of VMRs corresponding to the gases in ID.
-        ISO : ndarray or list
-            If ISO=[], assume terrestrial relative isotopic abundance for all gases.
-            Otherwise, if ISO[i]=0, then use terrestrial relative isotopic abundance
-            for the ith gas. To specify particular isotopologue, input the
-            corresponding Radtran isotopologue identifiers.
+    Parameters
+    ----------
+    ID : ndarray or list
+        A list of Radtran gas identifiers.
+    VMR : ndarray or list
+        A list of VMRs corresponding to the gases in ID.
+    ISO : ndarray or list
+        If ISO=[], assume terrestrial relative isotopic abundance for all gases.
+        Otherwise, if ISO[i]=0, then use terrestrial relative isotopic abundance
+        for the ith gas. To specify particular isotopologue, input the
+        corresponding Radtran isotopologue identifiers.
 
-    :Returns:
-    ---------
-        mmw : real
-            Mean molecular weight.
-            Unit: kg
+    Returns
+    -------
+    mmw : real
+        Mean molecular weight.
+        Unit: kg
 
     Notes
     -----

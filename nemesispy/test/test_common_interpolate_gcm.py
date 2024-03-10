@@ -10,38 +10,6 @@ from nemesispy.data.gcm.process_gcm import (nlon,nlat,xlon,xlat,npv,pv,\
     pat_phase_by_wave,pat_wave_by_phase,\
     vmrmap_mod_new,tmap_hot)
 
-
-
-# # for ilon, lon in enumerate(xlon):
-# #     for ilat, lat in enumerate(xlat):
-# #         a  = interp_gcm_X(lon,lat,pv*1.1,
-# #                 xlon,xlat,pv,tmap,0)
-# #         b = tmap[ilon,ilat]
-# #         c = (a-b)/b
-
-# a  = interp_gcm(0,90,pv,xlon,xlat,pv,tmap,vmrmap,0)
-
-# #         print('interpolated',a)
-# #         print('real profile',b)
-# #         print('difference',c)
-
-# # N_pole =  interp_gcm_X(0,91,pv*1.1,
-# #             xlon,xlat,pv,tmap,0)
-# # print('N_pole',N_pole)
-
-# # S_pole =  interp_gcm_X(0,-90,pv,
-# #             xlon,xlat,pv,tmap,0)
-# # print('S_pole',S_pole)
-
-# # N_pole =  interp_gcm_X(0,90,pv,
-# #             xlon,xlat,pv,tmap,0)
-# # print('N_pole',N_pole)
-
-# # anti =  interp_gcm_X(-180,0,pv*1.1,
-# #             xlon,xlat,pv,tmap,0)
-# # print('anti',anti)
-
-
 class TestInterpolateGCMX(unittest.TestCase):
 
     gcm_lon = xlon

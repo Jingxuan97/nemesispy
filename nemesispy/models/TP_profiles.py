@@ -21,12 +21,12 @@ def TP_Guillot(P,g_plt,T_eq,k_IR,gamma,f,T_int=100):
     T_eq : real
         Temperature corresponding to the stellar flux.
         T_eq = T_star * (R_star/(2*semi_major_axis))**0.5
-    gamma : real
-        Range ~ [1e-3,1e2]
-        gamma = k_V/k_IR, ratio of visible to thermal opacities
     k_IR : real
         Range [1e-5,1e3]
         Mean absorption coefficient in the thermal wavelengths.
+    gamma : real
+        Range ~ [1e-3,1e2]
+        gamma = k_V/k_IR, ratio of visible to thermal opacities
     f : real
         f parameter (positive), See eqn. (29) in Guillot 2010.
         With f = 1 at the substellar point, f = 1/2 for a
@@ -39,6 +39,10 @@ def TP_Guillot(P,g_plt,T_eq,k_IR,gamma,f,T_int=100):
     TP : ndarray
         Temperature as a function of pressure.
     """
+    assert k_IR >= 0, "k_IR can't be negative"
+    assert gamma >= 0, "gamma can't be negative"
+    assert f >= 0, "f can't be negative"
+    assert T_int >= 0, "T_int can't be negative"
     # Derived constants
     # gamma = k_V/k_IR # ratio of visible to thermal opacities
     tau = k_IR * P / g_plt # optical depth, assuming g_plt is constant
@@ -49,9 +53,12 @@ def TP_Guillot(P,g_plt,T_eq,k_IR,gamma,f,T_int=100):
         * (2/3 + 1/(gamma*sqrt3) + (gamma/sqrt3 - 1/(gamma*sqrt3)) \
         * np.exp(-gamma * tau * sqrt3))
     TP = (flux1+flux2)**0.25
+    for iP in range(len(TP)):
+        if TP[iP]>9999:
+            TP[iP] = 9999
     return TP
 
-def TP_Line(P,g_plt,T_eq,k_IR,gamma1,gamma2,alpha,beta,T_int):
+def TP_Guillot14(P,g_plt,T_eq,k_IR,gamma1,gamma2,alpha,beta,T_int):
     """
     TP profile from eqn. (20) in Line et al. 2012.
     doi:10.1088/0004-637X/749/1/93
@@ -93,14 +100,24 @@ def TP_Line(P,g_plt,T_eq,k_IR,gamma1,gamma2,alpha,beta,T_int):
     TP : ndarray
         Temperature as a function of pressure.
     """
+    assert k_IR >= 0, "k_IR can't be negative"
+    assert gamma1 > 0, "gamma1 should be positive"
+    assert gamma2 > 0, "gamma2 should be positive"
+    assert alpha >=0, "alpha cant' be negative"
+    assert alpha <= 1, "alpha cant' be more than 1"
+    assert beta >= 0, "beta can't be negative"
+    assert T_int >=0, "T_int can't be negative"
     T_irr = beta * T_eq
     tau = k_IR * P / g_plt # optical depth, assuming g_plt is constant
     xi1 = (2./3.) * ( 1 + (1/gamma1)*(1+(0.5*gamma1*tau-1)*np.exp(-gamma1*tau))\
-            + gamma1 * (1-0.5*tau**2) * special.expn(2, gamma1*tau) )
+        + gamma1 * (1-0.5*tau**2) * special.expn(2, gamma1*tau) )
     xi2 = (2./3.) * ( 1 + (1/gamma2)*(1+(0.5*gamma2*tau-1)*np.exp(-gamma2*tau))\
-            + gamma2 * (1-0.5*tau**2) * special.expn(2, gamma2*tau) )
+        + gamma2 * (1-0.5*tau**2) * special.expn(2, gamma2*tau) )
     flux1 = 0.75 * T_int**4 * (2./3.+tau)
     flux2 = T_irr**4 * (1-alpha) * xi1
     flux3 = T_irr**4 * alpha * xi2
     TP = (flux1+flux2+flux3)**0.25
+    for iP in range(len(TP)):
+        if TP[iP]>9999:
+            TP[iP] = 9999
     return TP

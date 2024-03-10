@@ -34,22 +34,25 @@ def calc_planck(wave_grid,T,ispace=1):
               (1) W cm-2 sr-1 um-1
     """
     wave = wave_grid.astype(np.float64)
-    if np.any(wave<=0) or T < 0:
-        raise(Exception('error in calc_planck: negative wavelengths' \
-            +' or temperature'))
-    C1 = np.array([1.1910e-12]) # W cm2 2*PLANCK*C_LIGHT**2
-    C2 = np.array([1.4388]) # cm K-1 PLANCK*C_LIGHT/K_B
-    if ispace==0:
-        y = wave
-        a = C1 * (y**3.)
-    elif ispace==1:
-        y = 1.0e4/wave
-        a = C1 * (y**5.) / 1.0e4
+    if T == 0:
+        bb =  np.zeros(wave_grid.shape)
+    elif np.any(wave<=0) or T < 0:
+            raise(Exception('error in calc_planck: negative wavelengths' \
+                +' or temperature'))
     else:
-        raise Exception('error in calc_planck: ISPACE must be either 0 or 1')
-
-    tmp = C2 * y / T
-    b = np.exp(tmp) - 1
-    bb = (a/b)
-
+        C1 = np.array([1.1910e-12]) # W cm2 2*PLANCK*C_LIGHT**2
+        C2 = np.array([1.4388]) # cm K-1 PLANCK*C_LIGHT/K_B
+        if ispace==0:
+            y = wave
+            a = C1 * (y**3.)
+        elif ispace==1:
+            y = 1.0e4/wave
+            a = C1 * (y**5.) / 1.0e4
+        else:
+            raise Exception('error in calc_planck: ISPACE must be either 0 or 1')
+        tmp = C2 * y / T
+        b = np.exp(tmp) - 1
+        bb = np.zeros(len(wave))
+        for iwave in range(len(wave)):
+            bb[iwave] = (a[iwave]/b[iwave])
     return bb

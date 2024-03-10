@@ -1,6 +1,6 @@
 import numpy as np
 from nemesispy.common.calc_hydrostat import calc_hydrostat, calc_grav_simple
-from nemesispy.common.constants import R_JUP, M_JUP, AMU, BAR, G, K_B
+from nemesispy.common.constants import R_JUP_V, M_JUP, AMU, BAR, G, K_B
 
 import unittest
 
@@ -17,7 +17,7 @@ class TestCalcHydrostat(unittest.TestCase):
     NLAYER = 20
     pressure = np.geomspace(50*BAR,1e-3*BAR,NLAYER)
     mmw = np.ones(NLAYER) * 2 * AMU
-    R_plt = 1 * R_JUP
+    R_plt = 1 * R_JUP_V
     M_plt = 1 * M_JUP
 
     def test_isothermal(self):

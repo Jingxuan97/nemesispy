@@ -101,7 +101,7 @@ def tmap_cos_n_flat_guillot(P_grid, lon_grid, lat_grid, g_plt, T_eq,
     log_kappa_night, log_gamma_night, log_f_night, T_int_night,
     n):
     """
-    10 parameters
+    11 parameters
     """
     # phase_offset hard coded to be between -45 and 45
     assert phase_offset <=45 and phase_offset >= -45

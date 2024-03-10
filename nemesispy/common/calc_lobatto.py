@@ -11,7 +11,8 @@ import numpy as np
 from functools import partial
 
 def bisect(func, lower, upper, tol=1e-15):
-    """Find root of function by bisection.
+    """
+    Find root of function by bisection.
 
     Parameters
     ----------

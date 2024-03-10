@@ -162,35 +162,20 @@ def interp_k(P_grid, T_grid, P_layer, T_layer, k_w_g_p_t):
             else:
                 it_high = it + 1
 
-        # # Set up arrays for interpolation
-        # lnp = np.log(p)
-        # lnp_low = np.log(P_grid[ip_low])
-        # lnp_high = np.log(P_grid[ip_high])
-        # t_low = T_grid[it_low]
-        # t_high = T_grid[it_high]
-
-        # # Bilinear interpolation
-        # f11 = k_w_g_p_t[:,:,ip_low,it_low]
-        # f12 = k_w_g_p_t[:,:,ip_low,it_high]
-        # f21 = k_w_g_p_t[:,:,ip_high,it_high]
-        # f22 = k_w_g_p_t[:,:,ip_high,it_low]
-        # v = (lnp-lnp_low)/(lnp_high-lnp_low)
-        # u = (t-t_low)/(t_high-t_low)
-
-        # for iwave in range(NWAVE):
-        #     for ig in range(NG):
-        #         k_w_g_l[iwave,ig,ilayer] \
-        #             = (1.0-v)*(1.0-u)*f11[iwave,ig] \
-        #             + v*(1.0-u)*f22[iwave,ig] \
-        #             + v*u*f21[iwave,ig] \
-        #             + (1.0-v)*u*f12[iwave,ig]
-
-
         ### test
         # Set up arrays for interpolation
+
+        # this worked
         lnp = np.log(p)
         lnp_low = np.log(P_grid[ip_low])
         lnp_high = np.log(P_grid[ip_high])
+
+        # # testing
+        # lnp = (p)
+        # lnp_low = P_grid[ip_low]
+        # lnp_high = P_grid[ip_high]
+        # #
+
         t_low = T_grid[it_low]
         t_high = T_grid[it_high]
 
@@ -207,12 +192,8 @@ def interp_k(P_grid, T_grid, P_layer, T_layer, k_w_g_p_t):
         igood = np.where( (f11>0.0) & (f12>0.0) & (f22>0.0) & (f21>0.0) )
         ibad = np.where( (f11<=0.0) & (f12<=0.0) & (f22<=0.0) & (f21<=0.0) )
 
-        # # print(f11)
-        # print('ibad',ibad)
-        # print('f11',f11[ibad])
-        # print('f11[ibad[0]]',f11[ibad[0]])
-        # print('ibad[0]',ibad[0])
         for i in range(len(igood[0])):
+            # this worked
             k_w_g_l[igood[0][i],igood[1][i],ilayer] \
                 = (1.0-v)*(1.0-u)*np.log(f11[igood[0][i],igood[1][i]]) \
                 + v*(1.0-u)*np.log(f22[igood[0][i],igood[1][i]]) \
@@ -220,6 +201,13 @@ def interp_k(P_grid, T_grid, P_layer, T_layer, k_w_g_p_t):
                 + (1.0-v)*u*np.log(f12[igood[0][i],igood[1][i]])
             k_w_g_l[igood[0][i],igood[1][i],ilayer] \
                 = np.exp(k_w_g_l[igood[0][i],igood[1][i],ilayer])
+            # # testing
+            # k_w_g_l[igood[0][i],igood[1][i],ilayer] \
+            #     = (1.0-v)*(1.0-u)*(f11[igood[0][i],igood[1][i]]) \
+            #     + v*(1.0-u)*(f22[igood[0][i],igood[1][i]]) \
+            #     + v*u*(f21[igood[0][i],igood[1][i]]) \
+            #     + (1.0-v)*u*(f12[igood[0][i],igood[1][i]])
+            # #
 
         for i in range(len(ibad[0])):
             k_w_g_l[ibad[0][i],ibad[1][i],ilayer] \
@@ -233,8 +221,8 @@ def interp_k(P_grid, T_grid, P_layer, T_layer, k_w_g_p_t):
 @jit(nopython=True)
 def rank(weight, cont, del_g):
     """
-    Combine the randomly overlapped k distributions of two gases into a single
-    k distribution.
+    Combine the randomly overlapped k distributions of two gases
+    into a single k distribution.
 
     Parameters
     ----------

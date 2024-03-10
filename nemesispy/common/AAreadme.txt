@@ -1,20 +1,23 @@
-General routines for atmopsheric modelling and radiative transfer.
+General routines for atmospheric modelling and radiative transfer.
 
 calc_hydrostat.py
-    Iteratively adjusts an atmosphere to hydrostatic equilibrium.
+    Routines to adjust a model atmosphere to hydrostatic equilibrium.
+calc_lobatto.py
+    Routines to generate quadrature points and weights for Gauss-Lobatto rules.
 calc_trig.py
-    Generates weights and locations for disc averaging.
+    Routines to generate quadrature points and weights for disc integration.
 constants.py
-    Defines constants used throughout this project.
+    Defines constants used in this library.
 function_fit.py
-    Standard functions used for fitting.
+    Routines to fit standard functions to data.
 info_atom.py
-    Reference atomic data containing atomic masses in amu.
+    Reference atomic data given as a dictionary.
 info_mol_id.py
-    Radtran gas molecule identifiers recognised by Nemesis.
+    Reference molecular identifiers given as a dictionary.
+    Inherits from Radtran gas molecule identifiers recognised by Nemesis.
 info_mol.py
-    Reference molecular data.
+    Reference molecular data given as a dictionary.
 interpolate_gcm.py
-    Interpolates a GCM to find atmospheric condition at given location.
-interpolate_star.py
-    Interpolates a high resolution stellar spectrum to a given resolution.
+    Routines to interpolate a GCM to a given location.
+utils.py
+    Assorted helper routines.

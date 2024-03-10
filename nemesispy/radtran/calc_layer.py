@@ -2,38 +2,68 @@
 # -*- coding: utf-8 -*-
 """
 Routines to split an atmosphere into layers and calculate the average layer
-properties along a slant path.
+properties along a path through the atmosphere.
 """
 import numpy as np
 from numba import jit
 from nemesispy.common.constants import K_B
 
-def split(H_model, P_model, NLAYER, layer_type=1, H_0=0.0,
-    planet_radius=None, custom_path_angle=0.0,
+@jit(nopython=True)
+def simps(y,x):
+    """
+    Numerical integration using the composite Simpson's rule.
+    Assume that the integration points are evenly spaced.
+
+    Parameters
+    ----------
+    y : ndarray
+        Array to be integrated.
+    x : ndarray
+        The points at which y is sampled. Assume len(x) is odd.
+
+    Returns
+    -------
+    integral : real
+        y integrated over x using the Simpson's rule.
+    """
+    dx = x[1]-x[0]
+    even = 0
+    odd = 0
+    for i in range(1,len(x)-1):
+        if i%2 != 0:
+            odd += y[i]
+        else:
+            even += y[i]
+    integral = 1/3*dx*( y[0] + 4*odd + 2*even + y[-1] )
+    return integral
+
+def split(H_model, P_model, NLAYER,
+    layer_type=1, H_0=0.0, planet_radius=None, custom_path_angle=0.0,
     custom_H_base=np.array([0,0]), custom_P_base=np.array([0,0])):
     """
-    Splits atmospheric models into layers. Returns layer base altitudes
-    and layer base pressures.
+    Given atmospheric model points defined at a list of altitudes
+    and a list of pressures, split the the model into layers and return
+    the altitudes and pressures at the base of each layer.
 
     Parameters
     ----------
     H_model(NMODEL) : ndarray
-        Altitudes at which the atmospheric models are defined.
+        Altitudes of the atmospheric model points.
+        Assumed to be increasing.
         Unit: m
     P_model(NMODEL) : ndarray
-        Pressures at which the atmospheric models arer defined.
-        (At altitude H_model[i] the pressure is  P_model[i].)
+        Pressures of the atmospheric model points.
         Unit: Pa
     NLAYER : int
-        Number of layers to split the atmospheric models into.
+        Number of layers to split the atmospheric model into.
     layer_type : int, optional
         Integer specifying how to split up the layers.
         0 = split by equal changes in pressure
         1 = split by equal changes in log pressure
         2 = split by equal changes in height
         3 = split by equal changes in path length
-        4 = split by layer base pressure levels specified in P_base
-        5 = split by layer base height levels specified in H_base
+        4 = split by given layer base pressures P_base
+        5 = split by given layer base heights H_base
         Note 4 and 5 force NLAYER = len(P_base) or len(H_base).
         The default is 1.
     H_0 : real, optional
@@ -63,32 +93,36 @@ def split(H_model, P_model, NLAYER, layer_type=1, H_0=0.0,
     Returns
     -------
     H_base(NLAYER) : ndarray
-        Heights of the layer bases.
+        Altitudes of the layer bases.
     P_base(NLAYER) : ndarray
         Pressures of the layer bases.
     """
-    assert (H_0>=H_model[0]) and (H_0<H_model[-1]) , \
+    assert (H_0>=H_model[0]) and (H_0<H_model[-1]), \
         'Lowest layer base altitude not contained in atmospheric model'
-
-    if layer_type == 1: # split by equal log pressure intervals
+    assert H_model[1]>H_model[0], \
+        'Altitudes of model points should be an increasing array'
+    assert NLAYER >= 2, \
+        'Not sensible to have fewer than 2 layers'
+    # split by equal log pressure intervals
+    if layer_type == 1:
         # interpolate for the pressure at base of lowest layer
         bottom_pressure = np.interp(H_0,H_model,P_model)
         P_base = 10**np.linspace(np.log10(bottom_pressure),np.log10(P_model[-1]),\
             NLAYER+1)[:-1]
-
-        # np.interp need ascending x-coord
+        # np.interp need incresing sample points
         P_model = P_model[::-1]
         H_model = H_model[::-1]
-        H_base = np.interp(P_base,P_model,H_model)
+        H_base = np.interp(x=P_base,xp=P_model,fp=H_model)
 
-    elif layer_type == 0: # split by equal pressure intervals
+    # split by equal pressure intervals
+    elif layer_type == 0:
         # interpolate for the pressure at base of lowest layer
         bottom_pressure = np.interp(H_0, H_model,P_model)
         P_base = np.linspace(bottom_pressure,P_model[-1],NLAYER+1)[:-1]
         # np.interp need x-coor to be increasing
         P_model = P_model[::-1]
         H_model = H_model[::-1]
-        H_base = np.interp(P_base,P_model,H_model)
+        H_base = np.interp(x=P_base,xp=P_model,fp=H_model)
 
     elif layer_type == 2: # split by equal height intervals
         H_base = np.linspace(H_model[0]+H_0, H_model[-1], NLAYER+1)[:-1]
@@ -131,57 +165,28 @@ def split(H_model, P_model, NLAYER, layer_type=1, H_0=0.0,
     return H_base, P_base
 
 @jit(nopython=True)
-def simps(y,x):
-    """
-    Numerical integration using the composite Simpson's rule.
-    Assume that the integration points are evenly spaced.
-
-    Inputs
-    ------
-    y : ndarray
-        Array to be integrated.
-    x : ndarray
-        The points at which y is sampled. Assume len(x) is odd.
-
-    Returns
-    -------
-    integral : real
-        y integrated over x using the Simpson's rule.
-    """
-    dx = x[1]-x[0]
-    even = 0
-    odd = 0
-    for i in range(1,len(x)-1):
-        if i%2 != 0:
-            odd += y[i]
-        else:
-            even += y[i]
-    integral = 1/3*dx*( y[0] + 4*odd + 2*even + y[-1] )
-    return integral
-
-@jit(nopython=True)
 def average(planet_radius, H_model, P_model, T_model, VMR_model, ID, H_base,
         path_angle, H_0=0.0):
     """
     Calculates absorber-amount-weighted average layer properties of an
     atmosphere.
 
-    Inputs
-    ------
+    Parameters
+    ----------
     planet_radius : real
         Reference planetary planet_radius where H_model is set to be 0.  Usually
         set at surface for terrestrial planets, or at 1 bar pressure level for
         gas giants.
     H_model(NMODEL) : ndarray
-        Altitudes at which the atmospheric model is defined.
-        (At altitude H_model[i] the pressure is P_model[i].)
+        Altitudes of the atmospheric model points.
+        Assumed to be increasing.
         Unit: m
     P_model(NMODEL) : ndarray
-        Pressures at which the atmospheric model is defined.
-        (At altitude P_model[i] the pressure is H_model[i].)
+        Pressures of the atmospheric model points.
         Unit: Pa
     T_mode(NMODEL) : ndarray
-        Temperature profile defined in the atmospheric model.
+        Temperature of the atmospheric model points.
+        Unit: K
     ID : ndarray
         Gas identifiers.
     VMR_model(NMODEL,NGAS) : ndarray
@@ -189,7 +194,7 @@ def average(planet_radius, H_model, P_model, T_model, VMR_model, ID, H_base,
         VMR_model[i,j] is Volume Mixing Ratio of jth gas at ith profile point.
         The jth column corresponds to the gas with RADTRANS ID ID[j].
     H_base(NLAYER) : ndarray
-        Heights of the layer bases.
+        Altitudes of the layer bases.
     path_angle : real
         Zenith angle in degrees defined at H_0.
     H_0 : real, default 0.0
@@ -203,26 +208,21 @@ def average(planet_radius, H_model, P_model, T_model, VMR_model, ID, H_base,
     Returns
     -------
     H_layer(NLAYER) : ndarray
-        Representative height for each layer
+        Averaged layer altitudes.
         Unit: m
     P_layer(NLAYER) : ndarray
-        Representative pressure for each layer
+        Averaged layer pressures.
         Unit: Pa
     T_layer(NLAYER) : ndarray
-        Representative pressure for each layer
-        Unit: Kelven
+        Averaged layer temperatures.
+        Unit: K
     U_layer(NLAYER) : ndarray
         Total gaseous absorber amounts along the line-of-sight path, i.e.
         total number of gas molecules per unit area.
         Unit: no of absorber per m^2
     VMR_layer(NLAYER, NGAS) : ndarray
-        Representative partial pressure for each gas at each layer.
-        VMR_layer[i,j] is representative partial pressure of gas j in layer i.
-    Gas_layer(NLAYER, NGAS) : ndarray
-        Representative absorber amounts of each gas at each layer.
-        Gas_layer[i,j] is the representative number of gas j molecules
-        in layer i in the form of number of molecules per unit area.
-        Unit: no of absorber per m^2
+        Averaged layer volume mixing ratios.
+        VMR_layer[i,j] is averaged VMR of gas j in layer i.
     scale(NLAYER) : ndarray
         Layer scaling factor, i.e. ratio of path length through each layer
         to the layer thickness.
@@ -291,22 +291,91 @@ def average(planet_radius, H_model, P_model, T_model, VMR_model, ID, H_base,
 
     return H_layer,P_layer,T_layer,VMR_layer,U_layer,dH,scale
 
-# @jit(nopython=True)
 def calc_layer(planet_radius, H_model, P_model, T_model, VMR_model, ID, NLAYER,
     path_angle, H_0=0.0, layer_type=1, custom_path_angle=0.0,
     custom_H_base=None, custom_P_base=None):
     """
-    Top level routine that calculates the layer properties from an atmospehric
-    model.
+    Top level routine that calculates absorber-amount-weighted average
+    layer properties from an atmospehric model.
 
     Parameters
     ----------
-    cf split, average.
+    planet_radius : real
+        Reference planetary planet_radius where H_model is set to be 0.  Usually
+        set at surface for terrestrial planets, or at 1 bar pressure level for
+        gas giants.
+    H_model(NMODEL) : ndarray
+        Altitudes of the atmospheric model points.
+        Assumed to be increasing.
+        Unit: m
+    P_model(NMODEL) : ndarray
+        Pressures of the atmospheric model points.
+        Unit: Pa
+    T_mode(NMODEL) : ndarray
+        Temperature of the atmospheric model points.
+        Unit: K
+    VMR_model(NMODEL,NGAS) : ndarray
+        Volume mixing ratios of gases defined in the atmospheric model.
+        VMR_model[i,j] is Volume Mixing Ratio of jth gas at ith profile point.
+        The jth column corresponds to the gas with RADTRANS ID ID[j].
+    ID : ndarray
+        Gas identifiers.
+    NLAYER : int
+        Number of layers to split the atmospheric model into.
+    path_angle : real
+        Zenith angle in degrees defined at H_0.
+    H_0 : real, optional
+        Altitude of the lowest point in the atmospheric model.
+        This is defined with respect to the reference planetary radius, i.e.
+        the altitude at planet_radius is 0.
+        The default is 0.0.
+    layer_type : int, optional
+        Integer specifying how to split up the layers.
+        0 = split by equal changes in pressure
+        1 = split by equal changes in log pressure
+        2 = split by equal changes in height
+        3 = split by equal changes in path length
+        4 = split by given layer base pressures P_base
+        5 = split by given layer base heights H_base
+        Note 4 and 5 force NLAYER = len(P_base) or len(H_base).
+        The default is 1.
+    custom_path_angle : real, optional
+        Required only for layer type 3.
+        Zenith angle in degrees defined at the base of the lowest layer.
+        The default is 0.0.
+    custom_H_base(NLAYER) : ndarray, optional
+        Required only for layer type 5.
+        Altitudes of the layer bases defined by user.
+        The default is None.
+    custom_P_base(NLAYER) : ndarray, optional
+        Required only for layer type 4.
+        Pressures of the layer bases defined by user.
+        The default is None.
 
     Returns
     -------
-    cf average.
-
+    H_layer(NLAYER) : ndarray
+        Averaged layer altitudes.
+        Unit: m
+    P_layer(NLAYER) : ndarray
+        Averaged layer pressures.
+        Unit: Pa
+    T_layer(NLAYER) : ndarray
+        Averaged layer temperatures.
+        Unit: K
+    U_layer(NLAYER) : ndarray
+        Total gaseous absorber amounts along the line-of-sight path, i.e.
+        total number of gas molecules per unit area.
+        Unit: no of absorber per m^2
+    VMR_layer(NLAYER, NGAS) : ndarray
+        Averaged layer volume mixing ratios.
+        VMR_layer[i,j] is averaged VMR of gas j in layer i.
+    scale(NLAYER) : ndarray
+        Layer scaling factor, i.e. ratio of path length through each layer
+        to the layer thickness.
+    dS(NLAYER) : ndarray
+        Path lengths.
+        Unit: m
     """
     H_base, P_base = split(H_model, P_model, NLAYER, layer_type=layer_type,
         H_0=H_0, planet_radius=planet_radius,

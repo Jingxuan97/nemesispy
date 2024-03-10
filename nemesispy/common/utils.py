@@ -51,6 +51,16 @@ def divide_gcm_grid(nlon,nlat,nrank):
     return partition
 
 def bin_down(input_value, input_grid, bin_edges):
+    """_summary_
+
+    Args:
+        input_value (_type_): _description_
+        input_grid (_type_): _description_
+        bin_edges (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
     out = np.zeros(len(bin_edges)-1)
     for iedge in range(len(bin_edges)-1):
         temp = []
