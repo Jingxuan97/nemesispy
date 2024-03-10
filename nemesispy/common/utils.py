@@ -49,3 +49,13 @@ def divide_gcm_grid(nlon,nlat,nrank):
             jobs[ilon*nlat+ilat,1] = ilat
     partition = np.array_split(jobs,nrank)
     return partition
+
+def bin_down(input_value, input_grid, bin_edges):
+    out = np.zeros(len(bin_edges)-1)
+    for iedge in range(len(bin_edges)-1):
+        temp = []
+        for index,value in enumerate(input_grid):
+            if bin_edges[iedge]<value<bin_edges[iedge+1]:
+                temp.append(input_value[index])
+        out[iedge] = np.average(temp)
+    return out

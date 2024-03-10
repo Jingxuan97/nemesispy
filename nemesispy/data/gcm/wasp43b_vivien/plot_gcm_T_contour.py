@@ -49,10 +49,40 @@ for ip in range(npv):
     plt.title('Temperature at $P$ = {:.2f} bar'.format(pressure),
         fontsize=28,fontweight="bold")
 
-    plt.scatter(x,np.sin(y/180*np.pi)*90,s=1,marker='x',color='k')
+    # plt.scatter(x,np.sin(y/180*np.pi)*90,s=1,marker='x',color='k')
+    # plt.xlabel('Longitude [$^\circ$]',fontsize=14)
+    # plt.ylabel('Latitude [$^\circ$]',fontsize=14)
+    plt.tight_layout()
+    plt.savefig('figures/fs_gcm_contour_pressure_{}.pdf'.format(ip),
+        dpi=200)
+    plt.close()
+
+    ### not foreshortened
+    # set up foreshortened latitude coordinates
+    x,y = np.meshgrid(xlon,xlat,indexing='ij')
+
+    # read in GCM temperature map
+    z = tmap[:,:,ip]
+
+    plt.figure(figsize=(11,5))
+    plt.contourf(x,y,z,levels=20,vmin=400,vmax=2600,cmap='magma')
+    plt.colorbar()
+
+    xticks = np.array([-180,  -90,      0,     90,   180])
+
+    # move the y ticks to the foreshortened location
+    # yticks_loc = np.sin(np.array([-60, -30,   0,  30,  60])/180*np.pi)*90
+    yticks_label = np.array([-60, -30,   0,  30,  60])
+
+    plt.xticks(xticks,fontsize=28)
+    plt.yticks(yticks_label,fontsize=28)
+    plt.title('Temperature at $P$ = {:.2f} bar'.format(pressure),
+        fontsize=28,fontweight="bold")
+
+    # plt.scatter(x,np.sin(y/180*np.pi)*90,s=1,marker='x',color='k')
     # plt.xlabel('Longitude [$^\circ$]',fontsize=14)
     # plt.ylabel('Latitude [$^\circ$]',fontsize=14)
     plt.tight_layout()
     plt.savefig('figures/gcm_contour_pressure_{}.pdf'.format(ip),
-        dpi=800)
+        dpi=200)
     plt.close()

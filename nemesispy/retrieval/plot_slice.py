@@ -36,14 +36,16 @@ def plot_TP_equator(tmap, output_longitudes, output_pressures,
     x,y = np.meshgrid(longitude_grid,output_pressures/1e5,indexing='ij')
 
     z = TPs.T
-    plt.contourf(x,y,z,levels=nlevels,
+    contour = plt.contourf(x,y,z,levels=nlevels,
         vmin=T_range[0],vmax=T_range[1],cmap=cmap)
     plt.xticks(xticks)
-    plt.colorbar()
+    cbar = plt.colorbar()
+    cbar.set_label('Temperature (K)',fontsize=14)
     plt.gca().invert_yaxis()
     plt.semilogy()
-    plt.xlabel('longitude (degree)',fontsize=18)
-    plt.ylabel('pressure (bar)',fontsize=18)
+    plt.xlabel('Longitude (degree)',fontsize=18)
+    plt.ylabel('Pressure (bar)',fontsize=18)
+    # plt.clabel(contour, colors='w', fmt='%.0f', fontsize=8)
     print(z)
     plt.tight_layout()
     plt.savefig(figname,dpi=dpi)
@@ -82,15 +84,18 @@ def plot_TP_equator_weighted(tmap, output_longitudes, output_pressures,
     x,y = np.meshgrid(longitude_grid,pressure_grid/1e5,indexing='ij')
 
     z = TPs.T
-    plt.contourf(x,y,z,levels=nlevels,
+
+    fig, ax = plt.subplots()
+    contour = ax.contourf(x,y,z,levels=nlevels,
         vmin=T_range[0],vmax=T_range[1],cmap=cmap)
     plt.colorbar()
-    plt.gca().invert_yaxis()
-    plt.semilogy()
-    plt.xlabel('longitude (degree)')
-    plt.ylabel('pressure (bar)')
+    ax.invert_yaxis()
+    ax.semilogy()
+    ax.set_xlabel('longitude (degree)')
+    ax.set_ylabel('pressure (bar)')
     print(z)
     plt.tight_layout()
+    ax.clabel(contour, inline=True, fontsize=8)
     plt.savefig(figname,dpi=dpi)
     plt.close()
 

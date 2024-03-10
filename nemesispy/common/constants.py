@@ -18,12 +18,16 @@ SIGMA_SB = 5.670374419e-8 # Wm-2K-4 Stefan-Boltzmann constant
 AMU = 1.66053906660e-27   # kg atomic mass unit
 
 # Astronomical units
-AU = 1.495978707e+11      # m astronomical unit
+PC = 3.0857e16            # m parsec
+AU = 1.495978707e11       # m astronomical unit
 R_SUN = 6.95700e8         # m solar radius
-R_JUP = 6.9911e7          # m Jupiter radius
-R_JUP_E = 7.1492e7        # m nominal equatorial Jupiter radius
-M_SUN = 1.98847542e+30    # kg solar mass
+R_JUP = 6.9911e7          # m Jupiter volumetric mean radius
+R_JUP_V = 6.9911e7        # m Jupiter volumetric mean radius
+R_JUP_E = 7.1492e7        # m Jupiter equatorial Jupiter radius at 1 bar
+R_EARTH = 6.371e3         # m Mean Earth radius
+M_SUN = 1.98847542e30     # kg solar mass
 M_JUP = 1.898e27          # kg Jupiter mass
+M_EARTH = 5.972e24        # kg Earth mass
 
 # Others
 ATM = 101325              # Pa atmospheric pressure

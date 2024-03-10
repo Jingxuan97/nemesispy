@@ -33,8 +33,32 @@ lowres_file_paths = [
     'co2wasp43.kta',
     'cowasp43.kta',
     'ch4wasp43.kta']
+lowres_file_paths_no_h2o = [
+    'co2wasp43.kta',
+    'cowasp43.kta',
+    'ch4wasp43.kta']
+lowres_file_paths_no_co2 = [
+    'h2owasp43.kta',
+    'cowasp43.kta',
+    'ch4wasp43.kta']
+lowres_file_paths_no_co = [
+    'h2owasp43.kta',
+    'co2wasp43.kta',
+    'ch4wasp43.kta']
+lowres_file_paths_no_ch4 = [
+    'h2owasp43.kta',
+    'co2wasp43.kta',
+    'cowasp43.kta']
 for ipath,path in enumerate(lowres_file_paths):
     lowres_file_paths[ipath] = os.path.join(ktable_path,path)
+for ipath,path in enumerate(lowres_file_paths_no_h2o):
+    lowres_file_paths_no_h2o[ipath] = os.path.join(ktable_path,path)
+for ipath,path in enumerate(lowres_file_paths_no_co2):
+    lowres_file_paths_no_co2[ipath] = os.path.join(ktable_path,path)
+for ipath,path in enumerate(lowres_file_paths_no_co):
+    lowres_file_paths_no_co[ipath] = os.path.join(ktable_path,path)
+for ipath,path in enumerate(lowres_file_paths_no_ch4):
+    lowres_file_paths_no_ch4[ipath] = os.path.join(ktable_path,path)
 # k table information
 lowres_wavelengths = np.array(
     [1.14250004, 1.17750001, 1.21249998, 1.24749994, 1.28250003,
@@ -153,6 +177,86 @@ MIRI_temperature_grid = np.array(
      1100.0, 1200.0, 1300.0, 1400.0, 1500.0, 1600.0, 1700.0, 1800.0, 1900.0,
      2000.0, 2200.0, 2400.0, 2600.0, 2800.0, 3000.0, 3200.0, 3400.0]
 )
+
+
+
+MIRI_file_paths_no_H2O= [
+    'MIRI_wasp43b/CO2_wasp43b.kta',
+    'MIRI_wasp43b/CO_wasp43b.kta',
+    'MIRI_wasp43b/CH4_wasp43b.kta',
+    'MIRI_wasp43b/NH3_wasp43b.kta',
+]
+for ipath,path in enumerate(MIRI_file_paths_no_H2O ):
+    MIRI_file_paths_no_H2O[ipath] = os.path.join(ktable_path,path)
+
+MIRI_file_paths_no_CO2 = [
+    'MIRI_wasp43b/H2O_wasp43b.kta',
+    'MIRI_wasp43b/CO_wasp43b.kta',
+    'MIRI_wasp43b/CH4_wasp43b.kta',
+    'MIRI_wasp43b/NH3_wasp43b.kta',
+]
+for ipath,path in enumerate(MIRI_file_paths_no_CO2 ):
+    MIRI_file_paths_no_CO2[ipath] = os.path.join(ktable_path,path)
+
+MIRI_file_paths_no_CO = [
+    'MIRI_wasp43b/H2O_wasp43b.kta',
+    'MIRI_wasp43b/CO2_wasp43b.kta',
+    'MIRI_wasp43b/CH4_wasp43b.kta',
+    'MIRI_wasp43b/NH3_wasp43b.kta',
+]
+for ipath,path in enumerate(MIRI_file_paths_no_CO ):
+    MIRI_file_paths_no_CO[ipath] = os.path.join(ktable_path,path)
+
+MIRI_file_paths_no_CH4 = [
+    'MIRI_wasp43b/H2O_wasp43b.kta',
+    'MIRI_wasp43b/CO2_wasp43b.kta',
+    'MIRI_wasp43b/CO_wasp43b.kta',
+    'MIRI_wasp43b/NH3_wasp43b.kta',
+]
+for ipath,path in enumerate(MIRI_file_paths_no_CH4 ):
+    MIRI_file_paths_no_CH4[ipath] = os.path.join(ktable_path,path)
+
+MIRI_file_paths_no_NH3 = [
+    'MIRI_wasp43b/H2O_wasp43b.kta',
+    'MIRI_wasp43b/CO2_wasp43b.kta',
+    'MIRI_wasp43b/CO_wasp43b.kta',
+    'MIRI_wasp43b/CH4_wasp43b.kta',
+]
+for ipath,path in enumerate(MIRI_file_paths_no_NH3 ):
+    MIRI_file_paths_no_NH3[ipath] = os.path.join(ktable_path,path)
+
+### R=1000 resolution k-tables
+R1000_file_paths = [
+    'R1000/1H2-16O__POKAZATEL__R1000_0.3-50mu.ktable.NEMESIS.kta',
+    'R1000/12C-16O2__UCL-4000.R1000_0.3-50mu.ktable.NEMESIS.kta',
+    'R1000/12C-16O__Li2015.R1000_0.3-50mu.ktable.NEMESIS.kta',
+    'R1000/12C-1H4__YT34to10.R1000_0.3-50mu.ktable.NEMESIS.kta',
+    'R1000/14N-1H3__CoYuTe.R1000_0.3-50mu.ktable.NEMESIS.kta']
+for ipath,path in enumerate(R1000_file_paths):
+    R1000_file_paths[ipath] = os.path.join(ktable_path,path)
+# k table information
+hires_pressure_grid = np.array(
+    [1.01324999e+00, 2.18298101e+00, 4.70308971e+00, 1.01324997e+01,
+       2.18298092e+01, 4.70308990e+01, 1.01325005e+02, 2.18298111e+02,
+       4.70308990e+02, 1.01325000e+03, 2.18298096e+03, 4.70308984e+03,
+       1.01325000e+04, 2.18298086e+04, 4.70308984e+04, 1.01325000e+05,
+       2.18298094e+05, 4.70308969e+05, 1.01325000e+06, 2.18298100e+06,
+       4.70309000e+06, 1.01325000e+07], dtype=np.float32)
+hires_temperature_grid = np.array(
+    [ 100.,  200.,  300.,  400.,  500.,  600.,  700.,  800.,  900.,
+       1000., 1100., 1200., 1300., 1400., 1500., 1600., 1700., 1800.,
+       1900., 2000., 2200., 2400., 2600., 2800., 3000., 3200., 3400.],
+      dtype=np.float32)
+
+### R=100
+R100_file_paths = [
+    'R100/1H2-16O__POKAZATEL.R100_0.3-50mu.ktable.NEMESIS.kta',
+    'R100/12C-16O2__UCL-4000.R100_0.3-50mu.ktable.NEMESIS.kta',
+    'R100/12C-16O__Li2015.R100_0.3-50mu.ktable.NEMESIS.kta',
+    'R100/12C-1H4__YT34to10.R100_0.3-50mu.ktable.NEMESIS.kta',
+    'R100/14N-1H3__CoYuTe.R100_0.3-50mu.ktable.NEMESIS.kta']
+for ipath,path in enumerate(R100_file_paths):
+    R100_file_paths[ipath] = os.path.join(ktable_path,path)
 
 ### CIA tables
 cia_folder_path = os.path.join(__location__ , "cia")

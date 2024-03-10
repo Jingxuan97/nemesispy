@@ -70,6 +70,28 @@ def gen_vmrmap1(log_h2o,log_co2,log_co,log_ch4,nlon,nlat,npress,
     vmr_grid[:,:,:,5] *= h2_frac * (1-10**log_h2o-10**log_co2-10**log_co-10**log_ch4)
     return vmr_grid
 
+def gen_vmrmap0(log_h2o,log_co2,log_co,nlon,nlat,npress,
+        h2_frac = 0.84):
+    """
+    Generate a 3D uniform gas abundance map.
+    The abundance map is defined on a (longitude,latitude,pressure) grid.
+
+    Parameters
+    ---------
+
+    Returns
+    -------
+    vmr_grid
+    """
+    he_frac = 1 - h2_frac
+    vmr_grid = np.ones((nlon,nlat,npress,5))
+    vmr_grid[:,:,:,0] *= 10**log_h2o
+    vmr_grid[:,:,:,1] *= 10**log_co2
+    vmr_grid[:,:,:,2] *= 10**log_co
+    vmr_grid[:,:,:,3] *= he_frac * (1-10**log_h2o-10**log_co2-10**log_co)
+    vmr_grid[:,:,:,4] *= h2_frac * (1-10**log_h2o-10**log_co2-10**log_co)
+    return vmr_grid
+
 def gen_vmrmap2(log_h2o,log_co2,log_co,log_ch4,log_nh3,nlon,nlat,npress,
         h2_frac = 0.84):
     """
