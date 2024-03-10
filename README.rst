@@ -1,3 +1,5 @@
+See nemesispy.pdf for documentation.
+
 **NemesisPy** contains routines for calculating and fitting
 exoplanet emission spectra at arbitrary orbital phases,
 which can help us constrain the thermal structure and chemical
