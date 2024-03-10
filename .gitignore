@@ -141,3 +141,6 @@ nemesispy/data/gcm/PTprofiles_hr_all
 # */CO2_Katy_R1000.kta
 # */H2O_Katy_R1000.kta
 # */CH4_Katy_R1000.kta
+
+# Don't ignore
+!nemesispy.pdf

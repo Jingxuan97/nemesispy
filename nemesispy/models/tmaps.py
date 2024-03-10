@@ -95,13 +95,69 @@ def tmap_cos_flat_guillot(P_grid, lon_grid, lat_grid, g_plt, T_eq,
 
     return tp_out
 
-def tmap_cos_n_flat_guillot(P_grid, lon_grid, lat_grid, g_plt, T_eq,
+def Model4(P_grid, lon_grid, lat_grid, g_plt, T_eq,
     scale, phase_offset,
     log_kappa_day, log_gamma_day, log_f_day, T_int_day,
     log_kappa_night, log_gamma_night, log_f_night, T_int_night,
     n):
     """
-    11 parameters
+    2D temperature model consisting of two representative Guillot TP profiles.
+    See model 4 in Yang et al. 2023. (https://doi.org/10.1093/mnras/stad2555)
+    The atmosphere is partitioned (in longitude) into two regions: a dayside
+    and a nightside. The dayside longitudinal span is allowed to vary.
+
+    Parameters
+    ----------
+    P_grid : ndarray
+        Pressure grid (in Pa) of the model.
+    lon_grid : ndarray
+        Longitude grid (in degree) of the model.
+        Substellar point is assumed to be at 0.
+        Range is [-180,180].
+    lat_grid : ndarray
+        Latitude grid (in degree) of the model.
+        Range is [-90,90].
+    g_plt : real
+        Gravitational acceleration at the highest pressure in the pressure
+        grid.
+    T_eq : real
+        Temperature corresponding to the stellar flux.
+        T_eq = T_star * (R_star/(2*semi_major_axis))**0.5
+    scale : real
+        Scaling parameter for the longitudinal span of the dayside.
+        Set to be between 0.5 and 1.2.
+    phase_offset : real
+        Central longitude of the dayside
+        Set to be between -45 and 45.
+    log_kappa_day : real
+        Range [1e-5,1e3]
+        Mean absorption coefficient in the thermal wavelengths. (dayside)
+    log_gamma_day : real
+        Range ~ [1e-3,1e2]
+        gamma = k_V/k_IR, ratio of visible to thermal opacities (dayside)
+    log_f_day : real
+        f parameter (positive), See eqn. (29) in Guillot 2010.
+        With f = 1 at the substellar point, f = 1/2 for a
+        day-side average and f = 1/4 for whole planet surface average. (dayside)
+    T_int_day : real
+        Temperature corresponding to the intrinsic heat flux of the planet.
+        (dayside)
+    log_kappa_night : real
+        Same as above definitions but for nightside.
+    log_gamma_night : real
+        Same as above definitions but for nightside.
+    log_f_night : real
+        Same as above definitions but for nightside.
+    T_int_night : real
+        Same as above definitions but for nightside.
+    n : real
+        Parameter to control how temperature vary with longitude on the dayside.
+        Should be positive.
+
+    Returns
+    -------
+    tp_out : ndarray
+        Temperature model defined on a (longitude, laitude, pressure) grid.
     """
     # phase_offset hard coded to be between -45 and 45
     assert phase_offset <=45 and phase_offset >= -45

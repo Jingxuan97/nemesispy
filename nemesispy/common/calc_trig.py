@@ -261,7 +261,8 @@ def gauss_lobatto_weights(phase, nmu):
     nmu	: integer
         Number of zenith angle ordinates
 
-    Output variables
+    Returns
+    -------
     nav	: int
         Number of FOV points
     wav	: ndarray

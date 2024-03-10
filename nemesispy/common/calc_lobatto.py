@@ -106,7 +106,8 @@ def disc_weights(n):
     n : int
         Number of emission angles. Minuim 2.
 
-    Returns:
+    Returns
+    -------
     mu : ndarray
         List of cos(emission angle) for integration.
     wtmu : ndarray

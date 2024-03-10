@@ -61,7 +61,8 @@ def TP_Guillot(P,g_plt,T_eq,k_IR,gamma,f,T_int=100):
 def TP_Guillot14(P,g_plt,T_eq,k_IR,gamma1,gamma2,alpha,beta,T_int):
     """
     TP profile from eqn. (20) in Line et al. 2012.
-    doi:10.1088/0004-637X/749/1/93
+    doi:10.1088/0004-637X/749/1/93, based on Parmentier and Guillot 2014.
+    10.1051/0004-6361/201322342.
     Model parameters (5) : k_IR, gamma1, gamma2, alpha, beta, T_int
 
     Parameters
