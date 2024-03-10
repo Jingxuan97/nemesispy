@@ -47,13 +47,15 @@ This package has the following features:
 * Contains unit tests to check if
   the code is working correctly after modifications.
 
-In order to install the package but still make it editable, change directory to
-the software folder and type the following in the terminal:
-pip install --editable .
+.. code-block:: console
+
+    $ pip install --editable .
 
 To run all unit tests, change directory to the software folder and type the
 following in the terminal:
-python -m unittest discover test/
+.. code-block:: console
+
+    $ python -m unittest discover test/
 
 .. note::
 
@@ -63,11 +65,10 @@ python -m unittest discover test/
    :maxdepth: 2
    :caption: Contents:
 
+Contents
+--------
 
+.. toctree::
 
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   usage
+   api
