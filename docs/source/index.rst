@@ -1,3 +1,11 @@
+.. NemesisPy documentation master file, created by
+   sphinx-quickstart on Sun Mar 10 22:23:59 2024.
+   You can adapt this file completely to your liking, but it should at least
+   contain the root `toctree` directive.
+
+Welcome to NemesisPy's documentation!
+=====================================
+
 **NemesisPy** contains routines for calculating and fitting
 exoplanet emission spectra at arbitrary orbital phases,
 which can help us constrain the thermal structure and chemical
@@ -46,3 +54,20 @@ pip install --editable .
 To run all unit tests, change directory to the software folder and type the
 following in the terminal:
 python -m unittest discover test/
+
+.. note::
+
+   This project is under active development.
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
+
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
