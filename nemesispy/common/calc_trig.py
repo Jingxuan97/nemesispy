@@ -52,14 +52,15 @@ def arctan(x,y):
 
     Parameters
     ----------
-        x : real
-            x-coordinate of the point (length of the adjacent side)
-        y : real
-            y-coordinate of the point (length of the opposite side)
+    x : real
+        x-coordinate of the point (length of the adjacent side)
+    y : real
+        y-coordinate of the point (length of the opposite side)
+
     Returns
     -------
-        ang : real
-            Argument of (x,y) in radians
+    ang : real
+        Argument of (x,y) in radians
     """
     if(x == 0.0):
         if (y == 0.0) : ang = 0.0 # (x,y) is the origin, ill-defined
@@ -85,10 +86,10 @@ def rotatey(v, phi):
 
     Parameters
     ----------
-        v : ndarray
-            A real 3D vector to rotate
-        phi : real
-            Angle to rotate the vector v by (radians)
+    v : ndarray
+        A real 3D vector to rotate
+    phi : real
+        Angle to rotate the vector v by (radians)
 
     Returns
     -------
@@ -115,15 +116,15 @@ def rotatez(v, phi):
 
     Parameters
     ----------
-        v : ndarray
-            A real 3D vector to rotate
-        phi : real
-            Angle to rotate the vector by (radians)
+    v : ndarray
+        A real 3D vector to rotate
+    phi : real
+        Angle to rotate the vector by (radians)
 
     Returns
     -------
-        v_new : ndarray
-            Rotated 3D vector
+    v_new : ndarray
+        Rotated 3D vector
     """
     a = np.zeros((3,3))
     a[0,0] = np.cos(phi)
@@ -145,12 +146,12 @@ def generate_angles(phase,rho,alpha):
     of a chosen point on the visible disc of a planet under observation. The planet
     is assumed to be tidally locked, and is observed on an edgy-on orbit.
 
-    Refer to the begining of the trig.py file for geomety and convections.
+    Refer to the begining of the trig.py file for geomety and conventions.
 
     Parameters
     ----------
     phase : real
-        Orbital phase in degrees. 0 at  parimary transit and 180 at secondary eclipse.
+        Orbital phase in degrees. 0 at parimary transit and 180 at secondary eclipse.
         Range: [0,360)
     rho	: real
         Fractional radius of the point on disc, must be between 0 and 1 inclusive.
@@ -261,7 +262,7 @@ def gauss_lobatto_weights(phase, nmu):
         Number of zenith angle ordinates
 
     Output variables
-    nav	: integer
+    nav	: int
         Number of FOV points
     wav	: ndarray
         FOV-averaging table:
@@ -301,17 +302,6 @@ def gauss_lobatto_weights(phase, nmu):
               0.919533908166459,1.00000000000000]
         wtmu = [0.327539761183898,0.292042683679684,0.224889342063117,
                 0.133305990851069,2.222222222222220E-002]
-
-
-    # # define a range of angles from 0 to 360
-    # """
-    # thet = np.arange(361)
-    # """
-
-    # """
-    # xx = np.around(np.cos(thet*dtr), 14)
-    # zz = np.around(np.sin(thet*dtr), 14)
-    # """
 
     # trace out the day/night terminator
     z_term = np.linspace(-1,1,201) # pick out some z coordinates for the terminator

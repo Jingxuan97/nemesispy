@@ -22,20 +22,17 @@ its chemical abundance and temperature profile. This package
 can be easily integrated with a Bayesian sampler, in particular
 `MultiNest` for a full spectral retrieval.
 
+.. autosummary::
+   :toctree: _autosummary
+   :recursive:
+   nemesispy
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
    api
    usage
-
-
-.. autosummary::
-   :toctree: _autosummary
-   :template: custom-module-template.rst
-   :recursive:
-
-   nemesispy
 
 Indices and tables
 ==================
