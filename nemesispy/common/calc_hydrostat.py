@@ -1,5 +1,3 @@
-#!/usr/local/bin/python3
-# -*- coding: utf-8 -*-
 """
 Use hydrostatic equilibrium to find altitudes given pressures, temperatures
 and mean molecular weights.
@@ -30,6 +28,13 @@ def calc_grav_simple(h, M_plt, R_plt):
     g : real
         Gravitational acceleration.
         Unit: ms^-2
+
+    Notes
+    -----
+    This function assumes that the altitude h is small compared to the
+    planet radius R_plt, so that the change in the planetary mass M_plt
+    is negligible. Note that h is the altitude relative to some reference
+    planetary radius R_plt and can be negative.
     """
     g = G*M_plt/(R_plt+h)**2
     return g
@@ -67,7 +72,6 @@ def calc_hydrostat(P, T, mmw, M_plt, R_plt, H=np.array([])):
     adjusted_H : ndarray
         Altitude profile satisfying hydrostatic equlibrium.
         Unit: m
-
     """
     # Note number of profile points and set up a temporary height profile
     NPRO = len(P)
