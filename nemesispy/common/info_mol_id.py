@@ -1,7 +1,5 @@
-#!/usr/local/bin/python3
-# -*- coding: utf-8 -*-
 """
-Radtran gas molecule identifiers recognised by Nemesis.
+NEMESIS gas molecule identifiers.
 """
 mol_id = {
     "H2O": 1,

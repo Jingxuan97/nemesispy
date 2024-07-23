@@ -1,5 +1,3 @@
-#!/usr/local/bin/python3
-# -*- coding: utf-8 -*-
 """
 Reference atomic data containing atomic masses in amu.
 """
@@ -123,5 +121,4 @@ atom_info = {
     'Lv': 292,
     'Ts': 294,
     'Og': 294,
-    'ZERO': 0,
 }

@@ -3,7 +3,7 @@ from nemesispy.common.info_mol_id import mol_id
 
 def get_gas_name(id):
     """
-    Find the name of the molecule given its ID number.
+    Find the name of the molecule given its NEMESIS ID number.
 
     Parameters
     ----------
@@ -24,7 +24,7 @@ def get_gas_name(id):
 
 def get_gas_id(name):
     """
-    Find the ID of the molecule given its name.
+    Find the NEMESIS ID of the molecule given its name.
 
     Parameters
     ----------

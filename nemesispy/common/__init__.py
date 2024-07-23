@@ -2,7 +2,6 @@ from .calc_hydrostat import *
 from .calc_lobatto import *
 from .calc_trig import *
 from .constants import *
-from .function_fit import *
 from .get_gas_info import *
 from .info_atom import *
 from .info_mol_id import *

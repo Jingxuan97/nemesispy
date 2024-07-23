@@ -3,4 +3,4 @@ following in the terminal:
 pip install --editable .
 
 To run all unit tests, type the following command in the terminal:
-python -m unittest discover test/
+python -m unittest discover

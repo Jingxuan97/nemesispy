@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Generate quadrature points and weights for Gauss-Lobatto rules.
 For disc integration, the range of cos(emission angle) is [0,1], and we choose

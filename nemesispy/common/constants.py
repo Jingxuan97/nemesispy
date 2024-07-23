@@ -1,5 +1,3 @@
-#!/usr/local/bin/python3
-# -*- coding: utf-8 -*-
 """
 Constants used in this package.
 Follow the CODATA Recommended Values of Fundamental Physical Constants.

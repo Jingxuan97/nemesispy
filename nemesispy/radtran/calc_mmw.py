@@ -1,5 +1,3 @@
-#!/usr/local/bin/python3
-# -*- coding: utf-8 -*-
 """
 Calculate mean molecular weight
 """
@@ -8,20 +6,20 @@ from nemesispy.common.constants import AMU
 
 def calc_mmw(ID, VMR, ISO=[]):
     """
-    Calculate mean molecular weight in kg given a list of molecule IDs and
-    a list of their respective volume mixing ratios.
+    Calculate mean molecular weight in kg given a list of NEMESIS molecule
+    IDs and a list of their respective volume mixing ratios.
 
     Parameters
     ----------
     ID : ndarray or list
-        A list of Radtran gas identifiers.
+        A list of NEMESIS gas identifiers.
     VMR : ndarray or list
         A list of VMRs corresponding to the gases in ID.
     ISO : ndarray or list
         If ISO=[], assume terrestrial relative isotopic abundance for all gases.
         Otherwise, if ISO[i]=0, then use terrestrial relative isotopic abundance
         for the ith gas. To specify particular isotopologue, input the
-        corresponding Radtran isotopologue identifiers.
+        corresponding NEMESIS isotopologue identifiers.
 
     Returns
     -------
@@ -31,7 +29,8 @@ def calc_mmw(ID, VMR, ISO=[]):
 
     Notes
     -----
-    Cf mol_id.py and mol_info.py.
+    See info_mol_id.py for the list of NEMESIS gas identifiers.
+    See mol_info.py. for the molecular weight information.
     """
     mmw = 0
     if len(ISO) == 0:

@@ -1,4 +1,4 @@
-##logg 45
+# Spectral luminosity
        1
       463899.
      0.200000  1.62923e+20

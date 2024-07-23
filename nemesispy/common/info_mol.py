@@ -1,8 +1,6 @@
-#!/usr/local/bin/python3
-# -*- coding: utf-8 -*-
-# By default, terrestrial
-#     relative isotopic abundance is assumed.
 """
+By default, terrestrial relative isotopic abundance is assumed.
+
 Reference molecular data. The mol_info dictionary contains:
     (1) terrestrial relative isotopic abundance for each molecule;
     (2) mass of each isotope in atomic mass unit (amu);
