@@ -1,7 +1,7 @@
 See https://jingxuan97.github.io/nemesispy/ for documentation.
 
 ============
-Introudction
+Introduction
 ============
 
 **NEMESISPY** contains routines for calculating and fitting
