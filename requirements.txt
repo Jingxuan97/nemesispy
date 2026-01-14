@@ -1,7 +1,8 @@
 # Core dependencies for NEMESISPY
 # Python package for simulating and retrieving exoplanetary spectra
 
-numpy>=1.19.0
+numpy>=1.19.0,<1.25
 scipy>=1.5.0
 matplotlib>=3.3.0
 numba>=0.51.0
+llvmlite==0.40.1
